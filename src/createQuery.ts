@@ -1,10 +1,10 @@
 import { computed, onScopeDispose, reactive, toRefs, toValue, watch } from "vue";
 import { createManager } from "./createManager";
-import { CreateQueryOptions, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
+import { CreateQueryOptions, DisposableQuery, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities";
 
-export type QueryFunction = <TAction extends QueryAction>(action: TAction, args: Parameters<TAction>, options?: QueryOptions) => Query<TAction>
+export type QueryFunction = <TAction extends QueryAction>(action: TAction, args: Parameters<TAction>, options?: QueryOptions) => DisposableQuery<TAction>
 export type QueryComposition = <TAction extends QueryAction>(action: TAction, args: QueryActionArgs<TAction>, options?: QueryOptions) => Query<TAction>
 
 export type CreateQuery = {

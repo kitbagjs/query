@@ -1,7 +1,7 @@
 import { test, expect, vi } from 'vitest'
 import { createQuery } from './createQuery'
 
-test('works', async () => {
+test('works', () => {
   const action = vi.fn()
   const { query } = createQuery()
 

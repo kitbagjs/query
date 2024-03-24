@@ -25,3 +25,7 @@ export type Query<TAction extends QueryAction> = {
   executing: boolean,
   unsubscribe: () => void
 }
+
+export type DisposableQuery<TAction extends QueryAction> = Query<TAction> & {
+  [Symbol.dispose](): void;
+}
