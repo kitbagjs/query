@@ -24,9 +24,6 @@ export function createQuery(options?: CreateQueryOptions): CreateQuery {
       [Symbol.dispose]: () => {
         query.unsubscribe()
       },
-      [Symbol.asyncDispose]: () => {
-        query.unsubscribe()
-      }
     })
   }
 
