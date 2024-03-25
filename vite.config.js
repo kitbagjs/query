@@ -31,6 +31,9 @@ export default defineConfig({
       rollupTypes: true 
     })
   ],
+  esbuild: {
+    target: 'es2022'
+  },
   rollupOptions: {
     external: ['vue'],
     output: {
