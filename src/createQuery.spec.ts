@@ -11,3 +11,18 @@ test('works', () => {
 
   expect(action).toHaveBeenCalledOnce()
 })
+
+test('dispose', () => {
+  const action = vi.fn()
+  const { query } = createQuery()
+
+  function test() {
+    using value = query(action, [])
+  }
+
+  test()
+
+  query(action, [])
+
+  expect(action).toHaveBeenCalledTimes(2)
+})
