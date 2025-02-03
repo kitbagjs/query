@@ -1,6 +1,7 @@
-import { reactive, readonly, ref } from "vue";
-import { Query, QueryAction, QueryOptions } from "./types";
+import { reactive, ref, toRefs } from "vue";
+import { AwaitedQuery, Query, QueryAction, QueryOptions } from "./types";
 import { sequence } from "./utils";
+import { isPromise } from "./utilities";
 
 export type Channel<TAction extends QueryAction = any> = {
   subscriptions: Map<number, QueryOptions>,
@@ -13,6 +14,7 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
   const errored = ref<Query<TAction>['errored']>(false)
   const executing = ref<Query<TAction>['executing']>(false)
   const executed = ref<Query<TAction>['executed']>(false)
+  const { promise, resolve, reject } = Promise.withResolvers<void>()
 
   const subscriptions = new Map<number, QueryOptions>()
   const { next: nextId } = sequence()
@@ -21,10 +23,20 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
     executing.value = true
 
     try {
-      response.value = action(parameters)
+      const value = action(parameters)
+
+      if(isPromise(value)) {
+        value.then(value => {
+          response.value = value as Awaited<ReturnType<TAction>>
+          resolve()
+        })
+      } else {
+        response.value = value
+      }
     } catch(err) {
       error.value = err
       errored.value = true
+      reject(err)
 
       return
     } finally {
@@ -56,18 +68,25 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
   }
 
   function subscribe(options?: QueryOptions): Query<TAction> {
-    const unsubscribe = addSubscription(options)
+    const dispose = addSubscription(options)
 
-    const query: Query<TAction> = readonly(reactive({
+    const query: Omit<Query<TAction>, 'then'> = reactive({
       response,
       error,
       errored,
       executing,
       executed,
-      unsubscribe,
-    }))
+      dispose,
+    })
 
-    return query
+    const then: Query<TAction>['then'] = (callback: (value: AwaitedQuery<TAction>) => void) => {
+      promise.then(() => callback(query as AwaitedQuery<TAction>))
+    }
+
+    return reactive({
+      ...toRefs(query),
+      then
+    })
   }
 
   return {

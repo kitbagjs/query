@@ -1,12 +1,11 @@
 type MaybeGetter<T> = T | Getter<T>
 type Getter<T> = () => T
-type MaybePromise<T> = T | Promise<T>
 
 export type CreateQueryOptions = {
   pauseActionsInBackground: boolean
 }
 
-export type QueryAction = (...args: any[]) => MaybePromise<any>
+export type QueryAction = (...args: any[]) => any
 
 export type QueryActionArgs<TAction extends QueryAction> = MaybeGetter<Parameters<TAction>> | Getter<null>
 
@@ -18,12 +17,22 @@ export type QueryOptions = {
 }
 
 export type Query<TAction extends QueryAction> = {
-  response: ReturnType<TAction> | undefined,
+  response: Awaited<ReturnType<TAction>> | undefined,
   error: unknown,
   errored: boolean,
   executed: boolean,
   executing: boolean,
-  unsubscribe: () => void
+  dispose: () => void,
+  then: (callback: (value: AwaitedQuery<TAction>) => void) => void
+}
+
+export type AwaitedQuery<TAction extends QueryAction> = {
+  response: Awaited<ReturnType<TAction>>,
+  error: unknown,
+  errored: boolean,
+  executed: boolean,
+  executing: boolean,
+  dispose: () => void,
 }
 
 export type DisposableQuery<TAction extends QueryAction> = Query<TAction> & {

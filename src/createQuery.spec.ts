@@ -12,6 +12,14 @@ test('works', () => {
   expect(action).toHaveBeenCalledOnce()
 })
 
+test('asyncworks', async () => {
+  const action = vi.fn(async () => await true)
+  const { query } = createQuery()
+  const { response } = await query(action, [])
+
+  expect(response).toBe(true)
+})
+
 test('dispose', () => {
   const action = vi.fn()
   const { query } = createQuery()

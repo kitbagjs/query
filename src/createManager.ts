@@ -48,8 +48,8 @@ export function createManager(options?: CreateQueryOptions) {
 
     return reactive({
       ...toRefs(query),
-      unsubscribe: () => {
-        query.unsubscribe()
+      dispose: () => {
+        query.dispose()
 
         if(channel.subscriptions.size === 0) {
           deleteChannel(action, parameters)
