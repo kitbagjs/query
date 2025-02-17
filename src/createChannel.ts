@@ -1,11 +1,10 @@
 import { reactive, ref, toRefs } from "vue";
-import { AwaitedQuery, Query, QueryAction, QueryOptions } from "./types";
+import { Query, QueryAction, QueryOptions } from "./types";
 import { sequence } from "./utils";
-import { isPromise } from "./utilities";
 
 export type Channel<TAction extends QueryAction = any> = {
-  subscriptions: Map<number, QueryOptions>,
-  subscribe: (options?: QueryOptions) => Query<TAction>,
+  subscriptions: Map<number, QueryOptions<TAction>>,
+  subscribe: (options?: QueryOptions<TAction>) => Query<TAction>,
 }
 
 export function createChannel<TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
@@ -14,31 +13,20 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
   const errored = ref<Query<TAction>['errored']>(false)
   const executing = ref<Query<TAction>['executing']>(false)
   const executed = ref<Query<TAction>['executed']>(false)
-  const { promise, resolve, reject } = Promise.withResolvers<void>()
+  const { promise, resolve } = Promise.withResolvers<unknown>()
 
-  const subscriptions = new Map<number, QueryOptions>()
+  const subscriptions = new Map<number, QueryOptions<TAction>>()
   const { next: nextId } = sequence()
 
-  function execute(): void {
+  async function execute(): Promise<void> {
     executing.value = true
 
     try {
-      const value = action(parameters)
+      const value = await action(parameters)
 
-      if(isPromise(value)) {
-        value.then(value => {
-          response.value = value as Awaited<ReturnType<TAction>>
-          resolve()
-        })
-      } else {
-        response.value = value
-      }
+      setResponse(value)
     } catch(err) {
-      error.value = err
-      errored.value = true
-      reject(err)
-
-      return
+      setError(err)
     } finally {
       executed.value = true
       executing.value = false
@@ -48,26 +36,42 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
     errored.value = false
   }
 
-  function update(): void {
-    if(!executed.value) {
-      execute()
+  function setResponse(value: Awaited<ReturnType<TAction>>): void {
+    response.value = value
+
+    for(const { onSuccess } of subscriptions.values()) {
+      onSuccess?.(value)
     }
+
+    resolve(value)
   }
 
-  function addSubscription(options?: QueryOptions): () => void {
+  function setError(value: unknown): void {
+    error.value = value
+    errored.value = true
+
+    for(const { onError } of subscriptions.values()) {
+      onError?.(value)
+    }
+
+    resolve(value)
+  }
+
+  function addSubscription(options?: QueryOptions<TAction>): () => void {
     const id = nextId()
 
     subscriptions.set(id, options ?? {})
 
-    update()
+    if(!executed.value && !executing.value) {
+      execute()
+    }
 
     return () => {
       subscriptions.delete(id)
-      update()
     }
   }
 
-  function subscribe(options?: QueryOptions): Query<TAction> {
+  function subscribe(options?: QueryOptions<TAction>): Query<TAction> {
     const dispose = addSubscription(options)
 
     const query: Omit<Query<TAction>, 'then'> = reactive({
@@ -79,13 +83,17 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
       dispose,
     })
 
-    const then: Query<TAction>['then'] = (callback: (value: AwaitedQuery<TAction>) => void) => {
-      promise.then(() => callback(query as AwaitedQuery<TAction>))
-    }
-
     return reactive({
       ...toRefs(query),
-      then
+      then: (onFulfilled: any, onRejected: any) => {
+        return promise.then((value) => {
+          if(value instanceof Error) {
+            throw value
+          }
+
+          return query
+        }).then(onFulfilled, onRejected)
+      },
     })
   }
 

@@ -11,19 +11,20 @@ export type QueryActionArgs<TAction extends QueryAction> = MaybeGetter<Parameter
 
 export type QueryLifecycle = 'app' | 'route' | 'component'
 
-export type QueryOptions = {
+export type QueryOptions<TAction extends QueryAction> = {
   maxAge?: number,
   lifecycle?: QueryLifecycle
+  onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
+  onError?: (error: unknown) => void,
 }
 
-export type Query<TAction extends QueryAction> = {
+export type Query<TAction extends QueryAction> = PromiseLike<AwaitedQuery<TAction>> & {
   response: Awaited<ReturnType<TAction>> | undefined,
   error: unknown,
   errored: boolean,
   executed: boolean,
   executing: boolean,
   dispose: () => void,
-  then: (callback: (value: AwaitedQuery<TAction>) => void) => void
 }
 
 export type AwaitedQuery<TAction extends QueryAction> = {

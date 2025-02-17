@@ -1,15 +1,40 @@
-import { computed, onScopeDispose, reactive, toRefs, toValue, watch } from "vue";
+import { computed, onScopeDispose, reactive, toValue, watch } from "vue";
 import { createManager } from "./createManager";
 import { CreateQueryOptions, DisposableQuery, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities";
 
-export type QueryFunction = <TAction extends QueryAction>(action: TAction, args: Parameters<TAction>, options?: QueryOptions) => DisposableQuery<TAction>
-export type QueryComposition = <TAction extends QueryAction>(action: TAction, args: QueryActionArgs<TAction>, options?: QueryOptions) => Query<TAction>
-
 export type CreateQuery = {
   query: QueryFunction,
-  useQuery: QueryComposition
+  useQuery: QueryComposition,
+  defineQuery: DefineQuery,
+}
+
+export type QueryFunction = <
+  TAction extends QueryAction
+>(action: TAction, args: Parameters<TAction>, options?: QueryOptions<TAction>) => DisposableQuery<TAction>
+
+export type DefinedQueryFunction<
+  TAction extends QueryAction
+> = (args: Parameters<TAction>, options?: QueryOptions<TAction>) => Query<TAction>
+
+export type QueryComposition = <
+  TAction extends QueryAction
+>(action: TAction, args: QueryActionArgs<TAction>, options?: QueryOptions<TAction>) => Query<TAction>
+
+export type DefinedQueryComposition<
+  TAction extends QueryAction
+> = (args: QueryActionArgs<TAction>, options?: QueryOptions<TAction>) => Query<TAction>
+
+export type DefineQuery = <
+  TAction extends QueryAction
+>(action: TAction) => DefinedQuery<TAction>
+
+export type DefinedQuery<
+  TAction extends QueryAction
+> = {
+  query: DefinedQueryFunction<TAction>
+  useQuery: DefinedQueryComposition<TAction>
 }
 
 const noop = () => undefined
@@ -22,20 +47,20 @@ export function createQuery(options?: CreateQueryOptions): CreateQuery {
 
     return Object.assign(query, {
       [Symbol.dispose]: () => {
-        query.unsubscribe()
+        query.dispose()
       },
     })
   }
 
   const useQuery: QueryComposition = (action, parameters, options) => {
-    const value = query(noop, [])
+    const value = reactive(query(noop, []))
 
     watch(() => toValue(parameters), (parameters, previousParameters) => {
       if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
         return
       }
 
-      value.unsubscribe()
+      value.dispose()
 
       if(parameters === null) {
         Object.assign(value, query(noop, []))
@@ -44,8 +69,8 @@ export function createQuery(options?: CreateQueryOptions): CreateQuery {
 
       const newValue = query(action, parameters, options)
 
-      Object.assign(value, reactive({
-        ...toRefs(newValue),
+      Object.assign(value, {
+        ...newValue,
         response: computed(() => {
           if(newValue.executed) {
             return newValue.response
@@ -53,17 +78,33 @@ export function createQuery(options?: CreateQueryOptions): CreateQuery {
 
           return value.response
         })
-      }))
+      })
 
     }, { deep: true, immediate: true })
 
-    onScopeDispose(() => value.unsubscribe())
+    onScopeDispose(() => value.dispose())
 
     return value
+  }
+
+  const defineQuery: DefineQuery = <TAction extends QueryAction>(action: TAction) => {
+    const definedQuery: DefinedQueryFunction<TAction> = (args, options) => {
+      return query(action, args, options)
+    }
+
+    const definedUseQuery: DefinedQueryComposition<TAction> = (args, options) => {
+      return useQuery(action, args, options)
+    }
+
+    return {
+      query: definedQuery,
+      useQuery: definedUseQuery,
+    }
   }
 
   return {
     query,
     useQuery,
+    defineQuery,
   }
 }

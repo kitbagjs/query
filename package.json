@@ -14,6 +14,7 @@
   "devDependencies": {
     "@types/lodash.isequal": "^4.5.8",
     "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/test-utils": "^2.4.6",
     "typescript": "^5.2.2",
     "vite": "^5.2.0",
     "vite-plugin-dts": "^3.7.3",

@@ -41,7 +41,7 @@ export function createManager(options?: CreateQueryOptions) {
 
   function subscribe<
     TAction extends QueryAction
-  >(action: TAction, parameters: Parameters<TAction>, options?: QueryOptions): Query<TAction> {
+  >(action: TAction, parameters: Parameters<TAction>, options?: QueryOptions<TAction>): Query<TAction> {
     const channel = getChannel(action, parameters)
 
     const query = channel.subscribe(options)
@@ -51,6 +51,7 @@ export function createManager(options?: CreateQueryOptions) {
       dispose: () => {
         query.dispose()
 
+        // todo: the channel should mark itself as inactive and let garbage collection handle it
         if(channel.subscriptions.size === 0) {
           deleteChannel(action, parameters)
         }
