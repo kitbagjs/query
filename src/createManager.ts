@@ -1,8 +1,8 @@
 import { reactive, toRefs } from "vue";
 import { Channel, createChannel } from "./createChannel";
-import { CreateClientOptions, Query, QueryAction, QueryOptions } from "./types";
+import { ClientOptions, Query, QueryAction, QueryOptions } from "./types";
 
-export function createManager(options?: CreateClientOptions) {
+export function createManager(options?: ClientOptions) {
   // might want to flatten this to a single map for simpler lookups
   const channels = new Map<QueryAction, Map<string, Channel>>()
 
