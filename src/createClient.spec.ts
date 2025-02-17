@@ -1,11 +1,11 @@
 import { test, expect, vi, describe } from 'vitest'
-import { createQuery } from './createQuery'
+import { createClient } from './createClient'
 import { flushPromises } from '@vue/test-utils'
 import { timeout } from './utils'
 
 test('multiple queries with the same action only executes the action once', async () => {
   const action = vi.fn()
-  const { query } = createQuery()
+  const { query } = createClient()
 
   query(action, [])
   query(action, [])
@@ -18,7 +18,7 @@ test('multiple queries with the same action only executes the action once', asyn
 
 test('using a query automatically disposes of the query', () => {
   const action = vi.fn()
-  const { query } = createQuery()
+  const { query } = createClient()
 
   function test() {
     using value = query(action, [])
@@ -36,7 +36,7 @@ test('using a query automatically disposes of the query', () => {
 test('response is set after action is executed', async () => {
   const response = Symbol('response')
   const action = vi.fn(() => response)
-  const { query } = createQuery()
+  const { query } = createClient()
   const value = query(action, [])
 
   expect(value.response).toBeUndefined()
@@ -53,7 +53,7 @@ test('awaiting a query returns the response', async () => {
     return response
   })
 
-  const { query } = createQuery()
+  const { query } = createClient()
   const value = query(action, [])
 
   expect(value.response).toBeUndefined()
@@ -65,7 +65,7 @@ test('awaiting a query returns the response', async () => {
 
 test('awaiting a query throws an error if the action throws an error', async () => {
   const action = vi.fn(() => { throw new Error('test') })
-  const { query } = createQuery()
+  const { query } = createClient()
   const value = query(action, [])
 
   await expect(value).rejects.toThrow('test')
@@ -74,7 +74,7 @@ test('awaiting a query throws an error if the action throws an error', async () 
 test('onSuccess', async () => {
   const action = vi.fn()
   const onSuccess = vi.fn()
-  const { query } = createQuery()
+  const { query } = createClient()
 
   query(action, [], { onSuccess })
 
@@ -86,7 +86,7 @@ test('onSuccess', async () => {
 test('onError', async () => {
   const action = vi.fn(() => { throw new Error('test') })
   const onError = vi.fn()
-  const { query } = createQuery()
+  const { query } = createClient()
 
   query(action, [], { onError })
 
@@ -99,7 +99,7 @@ describe('defineQuery', () => {
   test('returns a defined query', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { defineQuery } = createQuery()
+    const { defineQuery } = createClient()
 
     const { query } = defineQuery(action)
 

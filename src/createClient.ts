@@ -1,10 +1,10 @@
 import { computed, onScopeDispose, reactive, toValue, watch } from "vue";
 import { createManager } from "./createManager";
-import { CreateQueryOptions, DisposableQuery, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
+import { CreateClientOptions, DisposableQuery, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities";
 
-export type CreateQuery = {
+export type QueryClient = {
   query: QueryFunction,
   useQuery: QueryComposition,
   defineQuery: DefineQuery,
@@ -39,7 +39,7 @@ export type DefinedQuery<
 
 const noop = () => undefined
 
-export function createQuery(options?: CreateQueryOptions): CreateQuery {
+export function createClient(options?: CreateClientOptions): QueryClient {
   const manager = createManager(options)
 
   const query: QueryFunction = (action, args, options) => {

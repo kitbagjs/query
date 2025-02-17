@@ -1,11 +1,11 @@
-import { createQuery } from './createQuery'
+import { createClient } from './createClient'
 
-const { query, useQuery } = createQuery()
+const { query, useQuery } = createClient()
 
 export {
   query,
   useQuery,
-  createQuery,
+  createClient,
 }
 
 export * from './types'

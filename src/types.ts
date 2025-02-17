@@ -1,7 +1,7 @@
 type MaybeGetter<T> = T | Getter<T>
 type Getter<T> = () => T
 
-export type CreateQueryOptions = {
+export type CreateClientOptions = {
   pauseActionsInBackground: boolean
 }
 
