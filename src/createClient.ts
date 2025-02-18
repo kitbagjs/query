@@ -1,8 +1,10 @@
-import { computed, onScopeDispose, reactive, toValue, watch } from "vue";
-import { createManager } from "./createManager";
-import { ClientOptions, DisposableQuery, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
+import { computed, onScopeDispose, reactive, toRefs, toValue, watch } from "vue";
+import { ClientOptions, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities";
+import { createGetQueryKey } from "./createQueryKey";
+import { Channel, createChannel } from "./createChannel";
+import { QueryKey } from "./createQueryKey";
 
 export type QueryClient = {
   query: QueryFunction,
@@ -12,7 +14,7 @@ export type QueryClient = {
 
 export type QueryFunction = <
   TAction extends QueryAction
->(action: TAction, args: Parameters<TAction>, options?: QueryOptions<TAction>) => DisposableQuery<TAction>
+>(action: TAction, args: Parameters<TAction>, options?: QueryOptions<TAction>) => Query<TAction>
 
 export type DefinedQueryFunction<
   TAction extends QueryAction
@@ -40,16 +42,31 @@ export type DefinedQuery<
 const noop = () => undefined
 
 export function createClient(options?: ClientOptions): QueryClient {
-  const manager = createManager(options)
+  const getQueryKey = createGetQueryKey()
+  const channels = new Map<QueryKey, Channel>()
+
+  function getChannel<
+    TAction extends QueryAction
+  >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
+    const queryKey = getQueryKey(action, parameters)
+
+    if(!channels.has(queryKey)) {
+      channels.set(queryKey, createChannel(action, parameters))
+    }
+
+    return channels.get(queryKey)!
+  }
+
+  function subscribe<
+    TAction extends QueryAction
+  >(action: TAction, parameters: Parameters<TAction>, options?: QueryOptions<TAction>): Query<TAction> {
+    const channel = getChannel(action, parameters)
+
+    return channel.subscribe(options)
+  }
 
   const query: QueryFunction = (action, args, options) => {
-    const query = manager.subscribe(action, args, options)
-
-    return Object.assign(query, {
-      [Symbol.dispose]: () => {
-        query.dispose()
-      },
-    })
+    return subscribe(action, args, options)
   }
 
   const useQuery: QueryComposition = (action, parameters, options) => {

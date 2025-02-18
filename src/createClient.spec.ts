@@ -16,23 +16,6 @@ test('multiple queries with the same action only executes the action once', asyn
   expect(action).toHaveBeenCalledOnce()
 })
 
-test('using a query automatically disposes of the query', () => {
-  const action = vi.fn()
-  const { query } = createClient()
-
-  function test() {
-    using value = query(action, [])
-
-    return value.response
-  }
-
-  test()
-
-  query(action, [])
-
-  expect(action).toHaveBeenCalledTimes(2)
-})
-
 test('response is set after action is executed', async () => {
   const response = Symbol('response')
   const action = vi.fn(() => response)

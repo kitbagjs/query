@@ -35,7 +35,3 @@ export type AwaitedQuery<TAction extends QueryAction> = {
   executing: boolean,
   dispose: () => void,
 }
-
-export type DisposableQuery<TAction extends QueryAction> = Query<TAction> & {
-  [Symbol.dispose](): void;
-}
