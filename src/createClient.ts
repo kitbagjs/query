@@ -1,4 +1,4 @@
-import { computed, onScopeDispose, reactive, toRefs, toValue, watch } from "vue";
+import { computed, onScopeDispose, toValue, watch } from "vue";
 import { ClientOptions, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities";
