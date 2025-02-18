@@ -3,8 +3,8 @@ import { Query, QueryAction, QueryOptions } from "./types";
 import { createSequence } from "./createSequence";
 
 export type Channel<TAction extends QueryAction = any> = {
-  subscriptions: Map<number, QueryOptions<TAction>>,
   subscribe: (options?: QueryOptions<TAction>) => Query<TAction>,
+  active: boolean,
 }
 
 export function createChannel<TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
@@ -74,7 +74,7 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
   function subscribe(options?: QueryOptions<TAction>): Query<TAction> {
     const dispose = addSubscription(options)
 
-    const query: Omit<Query<TAction>, 'then'> = reactive({
+    const query: Omit<Query<TAction>, 'then' | typeof Symbol.dispose> = reactive({
       response,
       error,
       errored,
@@ -83,22 +83,33 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
       dispose,
     })
 
+    const then: Query<TAction>['then'] = (onFulfilled: any, onRejected: any) => {
+      return promise.then((value) => {
+        if(value instanceof Error) {
+          throw value
+        }
+
+        return Object.assign(query, {
+          [Symbol.dispose]: () => {
+            dispose()
+          }
+        })
+      }).then(onFulfilled, onRejected)
+    }
+
     return reactive({
       ...toRefs(query),
-      then: (onFulfilled: any, onRejected: any) => {
-        return promise.then((value) => {
-          if(value instanceof Error) {
-            throw value
-          }
-
-          return query
-        }).then(onFulfilled, onRejected)
-      },
+      then,
+      [Symbol.dispose]: () => {
+        dispose()
+      }
     })
   }
 
   return {
-    subscriptions,
-    subscribe
+    subscribe,
+    get active() {
+      return subscriptions.size > 0
+    }
   }
 }

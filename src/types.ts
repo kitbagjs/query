@@ -25,6 +25,7 @@ export type Query<TAction extends QueryAction> = PromiseLike<AwaitedQuery<TActio
   executed: boolean,
   executing: boolean,
   dispose: () => void,
+  [Symbol.dispose](): void;
 }
 
 export type AwaitedQuery<TAction extends QueryAction> = {
@@ -34,4 +35,5 @@ export type AwaitedQuery<TAction extends QueryAction> = {
   executed: boolean,
   executing: boolean,
   dispose: () => void,
+  [Symbol.dispose](): void;
 }
