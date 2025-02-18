@@ -1,6 +1,6 @@
 import { reactive, ref, toRefs } from "vue";
 import { Query, QueryAction, QueryOptions } from "./types";
-import { sequence } from "./utils";
+import { createSequence } from "./createSequence";
 
 export type Channel<TAction extends QueryAction = any> = {
   subscriptions: Map<number, QueryOptions<TAction>>,
@@ -16,7 +16,7 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
   const { promise, resolve } = Promise.withResolvers<unknown>()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
-  const { next: nextId } = sequence()
+  const nextId = createSequence()
 
   async function execute(): Promise<void> {
     executing.value = true

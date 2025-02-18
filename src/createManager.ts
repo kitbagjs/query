@@ -1,42 +1,30 @@
-import { reactive, toRefs } from "vue";
 import { Channel, createChannel } from "./createChannel";
 import { ClientOptions, Query, QueryAction, QueryOptions } from "./types";
+import { createGetQueryKey, QueryKey } from "./createQueryKey";
+import { reactive, toRefs } from "vue";
 
 export function createManager(options?: ClientOptions) {
-  // might want to flatten this to a single map for simpler lookups
-  const channels = new Map<QueryAction, Map<string, Channel>>()
+  const getQueryKey = createGetQueryKey()
+  const channels = new Map<QueryKey, Channel>()
 
-  // should this be more elegant?
-  // this would break if there are function args I believe
-  function getParametersSignature(args: any[]): string {
-    return JSON.stringify(args)
-  }
-  
   function getChannel<
     TAction extends QueryAction
   >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
-    if(!channels.has(action)) {
-      channels.set(action, new Map())
+    const queryKey = getQueryKey(action, parameters)
+
+    if(!channels.has(queryKey)) {
+      channels.set(queryKey, createChannel(action, parameters))
     }
 
-    const actionChannels = channels.get(action)!
-    const argsString = getParametersSignature(parameters)
-
-    if(!actionChannels.has(argsString)) {
-      actionChannels.set(argsString, createChannel(action, parameters))
-    }
-
-    const channel = actionChannels.get(argsString)!
-
-    return channel
+    return channels.get(queryKey)!
   }
 
   function deleteChannel<
     TAction extends QueryAction
   >(action: TAction, parameters: Parameters<TAction>): void {
-    const argsString = getParametersSignature(parameters)
+    const queryKey = getQueryKey(action, parameters)
 
-    channels.get(action)?.delete(argsString)
+    channels.delete(queryKey)
   }
 
   function subscribe<

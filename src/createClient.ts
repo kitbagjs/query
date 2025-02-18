@@ -53,7 +53,7 @@ export function createClient(options?: ClientOptions): QueryClient {
   }
 
   const useQuery: QueryComposition = (action, parameters, options) => {
-    const value = reactive(query(noop, []))
+    const value = query(noop, [])
 
     watch(() => toValue(parameters), (parameters, previousParameters) => {
       if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
@@ -71,6 +71,7 @@ export function createClient(options?: ClientOptions): QueryClient {
 
       Object.assign(value, {
         ...newValue,
+        // todo: this probably doesn't even work
         response: computed(() => {
           if(newValue.executed) {
             return newValue.response
