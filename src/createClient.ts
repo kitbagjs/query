@@ -21,15 +21,16 @@ export type DefinedQueryFunction<
 > = (args: Parameters<TAction>, options?: QueryOptions<TAction>) => Query<TAction>
 
 export type QueryComposition = <
-  TAction extends QueryAction
->(action: TAction, args: QueryActionArgs<TAction>, options?: QueryOptions<TAction>) => Query<TAction>
+  const TAction extends QueryAction,
+  const Args extends QueryActionArgs<TAction>
+>(action: TAction, args: Args, options?: QueryOptions<TAction>) => Query<TAction>
 
 export type DefinedQueryComposition<
   TAction extends QueryAction
 > = (args: QueryActionArgs<TAction>, options?: QueryOptions<TAction>) => Query<TAction>
 
 export type DefineQuery = <
-  TAction extends QueryAction
+  const TAction extends QueryAction
 >(action: TAction) => DefinedQuery<TAction>
 
 export type DefinedQuery<
