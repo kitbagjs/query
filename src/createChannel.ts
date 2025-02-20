@@ -22,7 +22,7 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
     executing.value = true
 
     try {
-      const value = await action(parameters)
+      const value = await action(...parameters)
 
       setResponse(value)
 

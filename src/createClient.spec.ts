@@ -1,103 +1,189 @@
-import { test, expect, vi, describe } from 'vitest'
+import { test, expect, vi, describe, afterEach } from 'vitest'
 import { createClient } from './createClient'
 import { flushPromises } from '@vue/test-utils'
 import { timeout } from './utils'
-import { nextTick, ref, toValue, watch } from 'vue'
+import { nextTick, ref } from 'vue'
 
-test('multiple queries with the same action only executes the action once', async () => {
-  const action = vi.fn()
-  const { query } = createClient()
-
-  query(action, [])
-  query(action, [])
-  query(action, [])
-
-  await flushPromises()
-
-  expect(action).toHaveBeenCalledOnce()
+afterEach(() => {
+  vi.useRealTimers()
 })
 
-test.fails('using a query automatically disposes of the query', () => {
-  const action = vi.fn(() => true)
-  const { query } = createClient()
+describe('query', () => {
+  test('multiple queries with the same action only executes the action once', async () => {
+    const action = vi.fn()
+    const { query } = createClient()
 
-  async function test() {
-    using value = await query(action, [])
+    query(action, [])
+    query(action, [])
+    query(action, [])
 
-    return value.response
-  }
+    await flushPromises()
 
-  test()
-
-  query(action, [])
-
-  expect(action).toHaveBeenCalledTimes(2)
-})
-
-test('response is set after action is executed', async () => {
-  const response = Symbol('response')
-  const action = vi.fn(() => response)
-  const { query } = createClient()
-  const value = query(action, [])
-
-  expect(value.response).toBeUndefined()
-
-  await flushPromises()
-
-  expect(value.response).toBe(response)
-})
-
-test('awaiting a query returns the response', async () => {
-  const response = Symbol('response')
-  const action = vi.fn(async () => {
-    await timeout(100)
-    return response
+    expect(action).toHaveBeenCalledOnce()
   })
 
-  const { query } = createClient()
-  const value = query(action, [])
+  test.fails('using a query automatically disposes of the query', () => {
+    const action = vi.fn(() => true)
+    const { query } = createClient()
 
-  expect(value.response).toBeUndefined()
+    async function test() {
+      using value = await query(action, [])
 
-  await value
+      return value.response
+    }
 
-  expect(value.response).toBe(response)
+    test()
+
+    query(action, [])
+
+    expect(action).toHaveBeenCalledTimes(2)
+  })
+
+  test('response is set after action is executed', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const { query } = createClient()
+    const value = query(action, [])
+
+    expect(value.response).toBeUndefined()
+
+    await flushPromises()
+
+    expect(value.response).toBe(response)
+  })
+
+  test('awaiting a query returns the response', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(async () => {
+      await timeout(100)
+      return response
+    })
+
+    const { query } = createClient()
+    const value = query(action, [])
+
+    expect(value.response).toBeUndefined()
+
+    await value
+
+    expect(value.response).toBe(response)
+  })
+
+  test('awaiting a query throws an error if the action throws an error', async () => {
+    const action = vi.fn(() => { throw new Error('test') })
+    const { query } = createClient()
+    const value = query(action, [])
+
+    await expect(value).rejects.toThrow('test')
+  })
+
+  test('onSuccess', async () => {
+    const action = vi.fn()
+    const onSuccess = vi.fn()
+    const { query } = createClient()
+
+    query(action, [], { onSuccess })
+
+    await flushPromises()
+
+    expect(onSuccess).toHaveBeenCalledOnce()
+  })
+
+  test('onError', async () => {
+    const action = vi.fn(() => { throw new Error('test') })
+    const onError = vi.fn()
+    const { query } = createClient()
+
+    query(action, [], { onError })
+
+    await flushPromises()
+
+    expect(onError).toHaveBeenCalledOnce()
+  })
 })
 
-test('awaiting a query throws an error if the action throws an error', async () => {
-  const action = vi.fn(() => { throw new Error('test') })
-  const { query } = createClient()
-  const value = query(action, [])
+describe('useQuery', () => {
+  test('responds to parameter changes', async () => {
+    const responseTrue = Symbol('responseTrue')
+    const responseFalse = Symbol('responseFalse')
 
-  await expect(value).rejects.toThrow('test')
-})
+    const action = vi.fn((value: boolean) => value ? responseTrue : responseFalse)
+    const { useQuery } = createClient()
 
-test('onSuccess', async () => {
-  const action = vi.fn()
-  const onSuccess = vi.fn()
-  const { query } = createClient()
+    const input = ref(false)
 
-  query(action, [], { onSuccess })
+    const query = useQuery(action, () => [input.value])
 
-  await flushPromises()
+    expect(query.response).toBe(undefined)
 
-  expect(onSuccess).toHaveBeenCalledOnce()
-})
+    await nextTick()
 
-test('onError', async () => {
-  const action = vi.fn(() => { throw new Error('test') })
-  const onError = vi.fn()
-  const { query } = createClient()
+    expect(query.response).toBe(responseFalse)
 
-  query(action, [], { onError })
+    input.value = true
 
-  await flushPromises()
+    await nextTick()
 
-  expect(onError).toHaveBeenCalledOnce()
+    expect(query.response).toBe(responseTrue)
+  })
+
+  test('awaiting a query returns the response', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const { useQuery } = createClient()
+
+    const query = await useQuery(action, [])
+
+    expect(query.response).toBe(response)
+  })
+
+  test('awaiting a query throws an error if the action throws an error', async () => {
+    const action = vi.fn(() => { throw new Error('test') })
+    const { useQuery } = createClient()
+    const value = useQuery(action, [])
+  
+    await expect(value).rejects.toThrow('test')
+  })
+
+  test.fails('changing parameters preserves previous response', async () => {
+    vi.useFakeTimers()
+    const responseTrue = Symbol('responseTrue')
+    const responseFalse = Symbol('responseFalse')
+    const input = ref(false)
+
+    const action = vi.fn(async (value: boolean) => {
+      await timeout(100)
+      return value ? responseTrue : responseFalse
+    })
+
+    const { useQuery } = createClient()
+
+    const query = useQuery(action, () => [input.value])
+
+    await nextTick()
+
+    expect(query.response).toBeUndefined()
+
+    vi.runAllTimers()
+    await flushPromises()
+
+    expect(query.response).toBe(responseFalse)
+
+    input.value = true
+
+    await nextTick()
+
+    expect(query.response).toBe(responseFalse)
+
+    vi.runAllTimers()
+    await flushPromises()
+
+    expect(query.response).toBe(responseTrue)
+  })
 })
 
 describe('defineQuery', () => {
-  test('returns a defined query', async () => {
+  test('returns a defined query function', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
     const { defineQuery } = createClient()
@@ -108,47 +194,16 @@ describe('defineQuery', () => {
 
     expect(value.response).toBe(response)
   })
-})
 
-describe('useQuery', () => {
-  test('returns a query', async () => {
-    const responseTrue = Symbol('responseTrue')
-    const responseFalse = Symbol('responseFalse')
+  test('returns a defined query composition', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const { defineQuery } = createClient()
 
-    const action = vi.fn((value: boolean) => value ? responseTrue : responseFalse)
-    const { useQuery } = createClient()
+    const { useQuery } = defineQuery(action)
 
-    const value = ref(false)
-    const query = await useQuery(action, () => [value.value])
+    const value = await useQuery([])
 
-    expect(query.response).toBe(responseFalse)
-
-    value.value = true
-
-    await nextTick()
-    await flushPromises()
-
-    expect(query.response).toBe(responseTrue)
+    expect(value.response).toBe(response)
   })
-})
-
-test('fun', async () => {
-  const foo = ref(true)
-  const getter = () => [foo.value]
-
-  watch(() => toValue(getter), (value) => {
-    console.log('watcher', value)
-  })
-
-  foo.value = false
-
-  await nextTick()
-  
-  foo.value = true
-  
-  await nextTick()
-
-  foo.value = false
-
-  await nextTick()
 })
