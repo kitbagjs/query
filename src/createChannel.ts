@@ -25,15 +25,15 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
       const value = await action(parameters)
 
       setResponse(value)
+
+      error.value = undefined
+      errored.value = false
     } catch(err) {
       setError(err)
-    } finally {
-      executed.value = true
-      executing.value = false
     }
 
-    error.value = undefined
-    errored.value = false
+    executed.value = true
+    executing.value = false
   }
 
   function setResponse(value: Awaited<ReturnType<TAction>>): void {
@@ -54,6 +54,7 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
       onError?.(value)
     }
 
+    // wrap this somehow so we can rethrow it later
     resolve(value)
   }
 

@@ -74,6 +74,8 @@ export function createClient(options?: ClientOptions): QueryClient {
     const value = query(noop, [])
 
     watch(() => toValue(parameters), (parameters, previousParameters) => {
+      console.log('watcher', toValue(parameters), toValue(previousParameters))
+
       if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
         return
       }

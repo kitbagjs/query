@@ -2,6 +2,7 @@ import { test, expect, vi, describe } from 'vitest'
 import { createClient } from './createClient'
 import { flushPromises } from '@vue/test-utils'
 import { timeout } from './utils'
+import { nextTick, ref, toValue, watch } from 'vue'
 
 test('multiple queries with the same action only executes the action once', async () => {
   const action = vi.fn()
@@ -107,4 +108,47 @@ describe('defineQuery', () => {
 
     expect(value.response).toBe(response)
   })
+})
+
+describe('useQuery', () => {
+  test('returns a query', async () => {
+    const responseTrue = Symbol('responseTrue')
+    const responseFalse = Symbol('responseFalse')
+
+    const action = vi.fn((value: boolean) => value ? responseTrue : responseFalse)
+    const { useQuery } = createClient()
+
+    const value = ref(false)
+    const query = await useQuery(action, () => [value.value])
+
+    expect(query.response).toBe(responseFalse)
+
+    value.value = true
+
+    await nextTick()
+    await flushPromises()
+
+    expect(query.response).toBe(responseTrue)
+  })
+})
+
+test('fun', async () => {
+  const foo = ref(true)
+  const getter = () => [foo.value]
+
+  watch(() => toValue(getter), (value) => {
+    console.log('watcher', value)
+  })
+
+  foo.value = false
+
+  await nextTick()
+  
+  foo.value = true
+  
+  await nextTick()
+
+  foo.value = false
+
+  await nextTick()
 })
