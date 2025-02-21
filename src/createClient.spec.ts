@@ -180,6 +180,20 @@ describe('useQuery', () => {
 
     expect(query.response).toBe(responseTrue)
   })
+
+  test('queries do not interfere with each other', async () => {
+    const action1 = vi.fn(() => true)
+    const action2 = vi.fn(() => false)
+    const { useQuery } = createClient()
+
+    const query1 = useQuery(action1, [])
+    const query2 = useQuery(action2, [])
+
+    await flushPromises()
+
+    expect(query1.response).toBe(true)
+    expect(query2.response).toBe(false)
+  })
 })
 
 describe('defineQuery', () => {
