@@ -1,4 +1,4 @@
-import { onScopeDispose, toRefs, toValue, watch } from "vue";
+import { computed, onScopeDispose, toRefs, toValue, watch } from "vue";
 import { ClientOptions, Query, QueryAction, QueryActionArgs, QueryOptions } from "./types";
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities";
@@ -71,39 +71,35 @@ export function createClient(options?: ClientOptions): QueryClient {
   }
 
   const useQuery: QueryComposition = (action, parameters, options) => {
-    const response = query(noop, [])
+    const value = query(noop, [])
 
     watch(() => toValue(parameters), (parameters, previousParameters) => {
       if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
         return
       }
 
-      response.dispose()
+      value.dispose()
 
       if(parameters === null) {
-        Object.assign(response, query(noop, []))
+        Object.assign(value, query(noop, []))
         return
       }
 
       const newValue = query(action, parameters, options)
+      const previousResponse = value.response
 
-      Object.assign(response, {
+      Object.assign(value, {
         ...toRefs(newValue),
-        // todo: this probably doesn't even work
-        // response: computed(() => {
-        //   if(newValue.executed) {
-        //     return newValue.response
-        //   }
-
-        //   return value.response
-        // })
+        response: computed(() => {
+          return newValue.response ?? previousResponse
+        })
       })
-
+          
     }, { deep: true, immediate: true })
 
-    onScopeDispose(() => response.dispose())
+    onScopeDispose(() => value.dispose())
 
-    return response
+    return value
   }
 
   const defineQuery: DefineQuery = <TAction extends QueryAction>(action: TAction) => {

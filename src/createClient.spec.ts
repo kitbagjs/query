@@ -145,7 +145,7 @@ describe('useQuery', () => {
     await expect(value).rejects.toThrow('test')
   })
 
-  test.fails('changing parameters preserves previous response', async () => {
+  test('changing parameters preserves previous response', async () => {
     vi.useFakeTimers()
     const responseTrue = Symbol('responseTrue')
     const responseFalse = Symbol('responseFalse')
