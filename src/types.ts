@@ -7,7 +7,7 @@ export type ClientOptions = {
 
 export type QueryAction = (...args: any[]) => any
 
-export type QueryActionArgs<TAction extends QueryAction> = MaybeGetter<Parameters<TAction>> | Getter<null>
+export type QueryActionArgs<TAction extends QueryAction> = MaybeGetter<Parameters<TAction>> | Getter<Parameters<TAction> | null> | Getter<null>
 
 export type QueryLifecycle = 'app' | 'route' | 'component'
 
