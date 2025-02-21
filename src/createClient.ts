@@ -81,7 +81,10 @@ export function createClient(options?: ClientOptions): QueryClient {
       value.dispose()
 
       if(parameters === null) {
-        Object.assign(value, query(noop, []))
+        const newValue = query(noop, [])
+
+        Object.assign(value, toRefs(newValue))
+
         return
       }
 

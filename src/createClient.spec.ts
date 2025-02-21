@@ -149,7 +149,7 @@ describe('useQuery', () => {
     vi.useFakeTimers()
     const responseTrue = Symbol('responseTrue')
     const responseFalse = Symbol('responseFalse')
-    const input = ref(false)
+    const input = ref<boolean | null>(false)
 
     const action = vi.fn(async (value: boolean) => {
       await timeout(100)
@@ -158,9 +158,13 @@ describe('useQuery', () => {
 
     const { useQuery } = createClient()
 
-    const query = useQuery(action, () => [input.value])
+    const query = useQuery(action, () => {
+      if(input.value === null) {
+        return null
+      }
 
-    await nextTick()
+      return [input.value]
+    })
 
     expect(query.response).toBeUndefined()
 
@@ -179,6 +183,18 @@ describe('useQuery', () => {
     await flushPromises()
 
     expect(query.response).toBe(responseTrue)
+
+    input.value = true
+
+    await nextTick()
+
+    expect(query.response).toBe(responseTrue)
+
+    input.value = null
+
+    await nextTick()
+
+    expect(query.response).toBeUndefined()
   })
 
   test('queries do not interfere with each other', async () => {
