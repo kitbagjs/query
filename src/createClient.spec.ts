@@ -225,7 +225,7 @@ describe('useQuery', () => {
 })
 
 describe('defineQuery', () => {
-  testInEffectScope('returns a defined query function', async () => {
+  test('returns a defined query function', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
     const { defineQuery } = createClient()
