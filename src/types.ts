@@ -9,11 +9,8 @@ export type QueryAction = (...args: any[]) => any
 
 export type QueryActionArgs<TAction extends QueryAction> = MaybeGetter<Parameters<TAction>> | Getter<Parameters<TAction> | null> | Getter<null>
 
-export type QueryLifecycle = 'app' | 'route' | 'component'
 
 export type QueryOptions<TAction extends QueryAction> = {
-  maxAge?: number,
-  lifecycle?: QueryLifecycle
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
 }
