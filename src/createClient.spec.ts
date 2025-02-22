@@ -1,9 +1,8 @@
 import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
 import { createClient } from './createClient'
 import { flushPromises } from '@vue/test-utils'
-import { timeout } from './utils'
 import { effectScope, nextTick, ref } from 'vue'
-
+import { timeout } from './utilities'
 
 beforeEach(() => {
   vi.useFakeTimers()
