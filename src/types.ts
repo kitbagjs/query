@@ -9,7 +9,6 @@ export type QueryAction = (...args: any[]) => any
 
 export type QueryActionArgs<TAction extends QueryAction> = MaybeGetter<Parameters<TAction>> | Getter<Parameters<TAction> | null> | Getter<null>
 
-
 export type QueryOptions<TAction extends QueryAction> = {
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
