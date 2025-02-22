@@ -113,6 +113,20 @@ describe('query', () => {
 
     expect(onError).toHaveBeenCalledOnce()
   })
+
+  test('placeholder', async () => {
+    const placeholder = Symbol('placeholder')
+    const response = Symbol('response')
+    const { query } = createClient()
+
+    const value = query(() => response, [], { placeholder })
+
+    expect(value.response).toBe(placeholder)
+
+    await nextTick()
+
+    expect(value.response).toBe(response)
+  })
 })
 
 describe('useQuery', () => {
