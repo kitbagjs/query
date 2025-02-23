@@ -6,20 +6,21 @@ export type QueryActionArgs<TAction extends QueryAction> = MaybeGetter<Parameter
 
 export type QueryOptions<
   TAction extends QueryAction,
-  TPlaceholder extends unknown
 > = {
-  placeholder?: TPlaceholder,
+  placeholder?: any,
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
 }
 
-type QueryPlaceholder<TPlaceholder extends unknown> = unknown extends TPlaceholder ? undefined : TPlaceholder
+export type QueryPlaceholder<
+  TPlaceholder extends unknown
+> = unknown extends TPlaceholder ? undefined : TPlaceholder
 
 export type Query<
   TAction extends QueryAction,
-  TPlaceholder extends unknown
+  TOptions extends QueryOptions<TAction>
 > = PromiseLike<AwaitedQuery<TAction>> & {
-  response: Awaited<ReturnType<TAction>> | QueryPlaceholder<TPlaceholder>,
+  response: Awaited<ReturnType<TAction>> | QueryPlaceholder<TOptions['placeholder']>,
   error: unknown,
   errored: boolean,
   executed: boolean,

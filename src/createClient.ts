@@ -27,9 +27,9 @@ export function createClient(options?: ClientOptions): QueryClient {
   }
 
   function subscribe<
-    TAction extends QueryAction,
-    TPlaceholder extends unknown
-  >(action: TAction, parameters: Parameters<TAction>, options?: QueryOptions<TAction, TPlaceholder>): Query<TAction, TPlaceholder> {
+    const TAction extends QueryAction,
+    const TOptions extends QueryOptions<TAction>
+  >(action: TAction, parameters: Parameters<TAction>, options?: TOptions): Query<TAction, TOptions> {
     const channel = getChannel(action, parameters)
 
     return channel.subscribe(options)
@@ -74,7 +74,10 @@ export function createClient(options?: ClientOptions): QueryClient {
     return query
   }
 
-  const defineQuery: DefineQuery = <TAction extends QueryAction, TOptions extends unknown>(action: TAction) => {
+  const defineQuery: DefineQuery = <
+    TAction extends QueryAction,
+    TOptions extends QueryOptions<TAction>
+  >(action: TAction) => {
     const definedQuery: DefinedQueryFunction<TAction, TOptions> = (args, options) => {
       return query(action, args, options)
     }

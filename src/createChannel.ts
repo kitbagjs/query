@@ -5,14 +5,14 @@ import { createSequence } from "./createSequence";
 export type Channel<
   TAction extends QueryAction = any,
 > = {
-  subscribe: <TPlaceholder extends unknown>(options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>,
+  subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   active: boolean,
 }
 
 export function createChannel<
   TAction extends QueryAction,
 >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
-  type ChannelQuery = Query<TAction, unknown>
+  type ChannelQuery = Query<TAction, QueryOptions<TAction>>
 
   const response = ref<ChannelQuery['response']>()
   const error = ref<ChannelQuery['error']>()
@@ -21,7 +21,7 @@ export function createChannel<
   const executed = ref<ChannelQuery['executed']>(false)
   const { promise, resolve } = Promise.withResolvers<unknown>()
 
-  const subscriptions = new Map<number, QueryOptions<TAction, unknown>>()
+  const subscriptions = new Map<number, QueryOptions<TAction>>()
   const nextId = createSequence()
 
   async function execute(): Promise<void> {
@@ -64,7 +64,7 @@ export function createChannel<
     resolve(value)
   }
 
-  function addSubscription(options?: QueryOptions<TAction, unknown>): () => void {
+  function addSubscription(options?: QueryOptions<TAction>): () => void {
     const id = nextId()
 
     subscriptions.set(id, options ?? {})  
@@ -79,11 +79,11 @@ export function createChannel<
   }
 
   function subscribe<
-    TPlaceholder extends unknown
-  >(options?: QueryOptions<TAction, TPlaceholder>): Query<TAction, TPlaceholder> {
+    TOptions extends QueryOptions<TAction>
+  >(options?: TOptions): Query<TAction, TOptions> {
     const dispose = addSubscription(options)
 
-    const query: Omit<Query<TAction, TPlaceholder>, 'then' | typeof Symbol.dispose> = reactive({
+    const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
       response: computed(() => response.value ?? options?.placeholder),
       error,
       errored,
@@ -92,7 +92,7 @@ export function createChannel<
       dispose,
     })
 
-    const then: Query<TAction, TPlaceholder>['then'] = (onFulfilled: any, onRejected: any) => {
+    const then: Query<TAction, TOptions>['then'] = (onFulfilled: any, onRejected: any) => {
       return promise.then((value) => {
         if(value instanceof Error) {
           throw value

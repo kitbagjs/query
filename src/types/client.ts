@@ -10,35 +10,35 @@ export type QueryClient = {
 }
 
 export type QueryFunction = <
-  TAction extends QueryAction,
-  TPlaceholder extends unknown
->(action: TAction, args: Parameters<TAction>, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
+  const TAction extends QueryAction,
+  const TOptions extends QueryOptions<TAction>
+>(action: TAction, args: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
 
 export type DefinedQueryFunction<
   TAction extends QueryAction,
-  TPlaceholder extends unknown
-> = (args: Parameters<TAction>, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
+  TOptions extends QueryOptions<TAction>
+> = (args: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
 
 export type QueryComposition = <
   const TAction extends QueryAction,
   const Args extends QueryActionArgs<TAction>,
-  const TPlaceholder extends unknown
->(action: TAction, args: Args, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
+  const TOptions extends QueryOptions<TAction>
+>(action: TAction, args: Args, options?: TOptions) => Query<TAction, TOptions>
 
 export type DefinedQueryComposition<
   TAction extends QueryAction,
-  TPlaceholder extends unknown
-> = (args: QueryActionArgs<TAction>, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
+  TOptions extends QueryOptions<TAction>
+> = (args: QueryActionArgs<TAction>, options?: TOptions) => Query<TAction, TOptions>
 
 export type DefineQuery = <
   const TAction extends QueryAction,
-  const TPlaceholder extends unknown
->(action: TAction) => DefinedQuery<TAction, TPlaceholder>
+  const TOptions extends QueryOptions<TAction>
+>(action: TAction) => DefinedQuery<TAction, TOptions>
 
 export type DefinedQuery<
   TAction extends QueryAction,
-  TPlaceholder extends unknown
+  TOptions extends QueryOptions<TAction>
 > = {
-  query: DefinedQueryFunction<TAction, TPlaceholder>
-  useQuery: DefinedQueryComposition<TAction, TPlaceholder>
+  query: DefinedQueryFunction<TAction, TOptions>
+  useQuery: DefinedQueryComposition<TAction, TOptions>
 }
