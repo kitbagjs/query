@@ -12,15 +12,11 @@ export type QueryOptions<
   onError?: (error: unknown) => void,
 }
 
-export type QueryPlaceholder<
-  TPlaceholder extends unknown
-> = unknown extends TPlaceholder ? undefined : TPlaceholder
-
 export type Query<
   TAction extends QueryAction,
   TOptions extends QueryOptions<TAction>
 > = PromiseLike<AwaitedQuery<TAction>> & {
-  response: Awaited<ReturnType<TAction>> | QueryPlaceholder<TOptions['placeholder']>,
+  response: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
   error: unknown,
   errored: boolean,
   executed: boolean,
