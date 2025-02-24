@@ -1,23 +1,23 @@
-import { computed, onScopeDispose, toRefs, toValue, watch } from "vue";
+import { onScopeDispose, toRef, toRefs, toValue, watch } from "vue";
 import { Query, QueryAction, QueryOptions } from "./types/query";
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities";
-import { createGetQueryKey } from "./createQueryKey";
+import { createGetChanelKey } from "./createQueryKey";
 import { Channel, createChannel } from "./createChannel";
-import { QueryKey } from "./createQueryKey";
+import { ChannelKey } from "./createQueryKey";
 import { ClientOptions } from "./types/clientOptions";
 import { DefinedQueryComposition, DefinedQueryFunction, DefineQuery, QueryClient, QueryComposition, QueryFunction } from "./types/client";
 
 const noop = () => undefined
 
 export function createClient(options?: ClientOptions): QueryClient {
-  const getQueryKey = createGetQueryKey()
-  const channels = new Map<QueryKey, Channel>()
+  const getChannelKey = createGetChanelKey()
+  const channels = new Map<ChannelKey, Channel>()
 
   function getChannel<
     TAction extends QueryAction,
   >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
-    const queryKey = getQueryKey(action, parameters)
+    const queryKey = getChannelKey(action, parameters)
 
     if(!channels.has(queryKey)) {
       channels.set(queryKey, createChannel(action, parameters))
@@ -50,9 +50,9 @@ export function createClient(options?: ClientOptions): QueryClient {
       query.dispose()
 
       if(parameters === null) {
-        const newValue = subscribe(noop, [], options)
-
-        Object.assign(query, toRefs(newValue))
+        Object.assign(query, {
+          response: toRef(() => options?.placeholder),
+        })
 
         return
       }
@@ -60,11 +60,8 @@ export function createClient(options?: ClientOptions): QueryClient {
       const newValue = subscribe(action, parameters, options)
       const previousResponse = query.response
 
-      Object.assign(query, {
-        ...toRefs(newValue),
-        response: computed(() => {
-          return newValue.response ?? previousResponse
-        })
+      Object.assign(query, toRefs(newValue), {
+        response: toRef(() => newValue.response ?? previousResponse)
       })
           
     }, { deep: true, immediate: true })

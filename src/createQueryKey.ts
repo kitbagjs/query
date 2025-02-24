@@ -1,9 +1,9 @@
-import { QueryAction } from "./types";
 import { createSequence } from "./createSequence";
+import { QueryAction } from "./types/query";
 
-export type QueryKey = `${number}-${string}`
+export type ChannelKey = `${number}-${string}`
 
-export function createGetQueryKey() {
+export function createGetChanelKey() {
   const actions = new Map<QueryAction, number>()
   const nextId = createSequence()
 
@@ -15,7 +15,7 @@ export function createGetQueryKey() {
     return actions.get(action)!
   }
 
-  return (action: QueryAction, args: Parameters<QueryAction>): QueryKey => {
+  return (action: QueryAction, args: Parameters<QueryAction>): ChannelKey => {
     const actionValue = getActionValue(action)
 
     return `${actionValue}-${JSON.stringify(args)}`
