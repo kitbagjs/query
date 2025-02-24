@@ -19,7 +19,7 @@ export function createChannel<
   const errored = ref<ChannelQuery['errored']>(false)
   const executing = ref<ChannelQuery['executing']>(false)
   const executed = ref<ChannelQuery['executed']>(false)
-  const { promise, resolve } = Promise.withResolvers<unknown>()
+  const { promise, resolve } = Promise.withResolvers()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
   const nextId = createSequence()
