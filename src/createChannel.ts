@@ -3,7 +3,7 @@ import { Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 
 export type Channel<
-  TAction extends QueryAction = any,
+  TAction extends QueryAction = QueryAction,
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   active: boolean,
