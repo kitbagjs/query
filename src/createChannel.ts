@@ -1,18 +1,24 @@
-import { reactive, ref, toRefs } from "vue";
-import { Query, QueryAction, QueryOptions } from "./types";
+import { computed, reactive, ref, toRefs } from "vue";
+import { Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 
-export type Channel<TAction extends QueryAction = any> = {
-  subscribe: (options?: QueryOptions<TAction>) => Query<TAction>,
+export type Channel<
+  TAction extends QueryAction = any,
+> = {
+  subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   active: boolean,
 }
 
-export function createChannel<TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
-  const response = ref<Query<TAction>['response']>()
-  const error = ref<Query<TAction>['error']>()
-  const errored = ref<Query<TAction>['errored']>(false)
-  const executing = ref<Query<TAction>['executing']>(false)
-  const executed = ref<Query<TAction>['executed']>(false)
+export function createChannel<
+  TAction extends QueryAction,
+>(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
+  type ChannelQuery = Query<TAction, QueryOptions<TAction>>
+
+  const response = ref<ChannelQuery['response']>()
+  const error = ref<ChannelQuery['error']>()
+  const errored = ref<ChannelQuery['errored']>(false)
+  const executing = ref<ChannelQuery['executing']>(false)
+  const executed = ref<ChannelQuery['executed']>(false)
   const { promise, resolve } = Promise.withResolvers<unknown>()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
@@ -61,7 +67,7 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
   function addSubscription(options?: QueryOptions<TAction>): () => void {
     const id = nextId()
 
-    subscriptions.set(id, options ?? {})
+    subscriptions.set(id, options ?? {})  
 
     if(!executed.value && !executing.value) {
       execute()
@@ -72,11 +78,13 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
     }
   }
 
-  function subscribe(options?: QueryOptions<TAction>): Query<TAction> {
+  function subscribe<
+    TOptions extends QueryOptions<TAction>
+  >(options?: TOptions): Query<TAction, TOptions> {
     const dispose = addSubscription(options)
 
-    const query: Omit<Query<TAction>, 'then' | typeof Symbol.dispose> = reactive({
-      response,
+    const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
+      response: computed(() => response.value ?? options?.placeholder),
       error,
       errored,
       executing,
@@ -84,7 +92,7 @@ export function createChannel<TAction extends QueryAction>(action: TAction, para
       dispose,
     })
 
-    const then: Query<TAction>['then'] = (onFulfilled: any, onRejected: any) => {
+    const then: Query<TAction, TOptions>['then'] = (onFulfilled: any, onRejected: any) => {
       return promise.then((value) => {
         if(value instanceof Error) {
           throw value
