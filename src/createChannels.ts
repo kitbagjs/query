@@ -1,15 +1,28 @@
 import { Channel, createChannel } from "./createChannel";
-import { ChannelKey, createGetChanelKey } from "./createQueryKey";
+import { createSequence } from "./createSequence";
 import { Query, QueryAction, QueryOptions } from "./types/query";
 
+type ChannelKey = `${number}-${string}`
+
 export function createChannels() {
-  const getChannelKey = createGetChanelKey()
+  const createActionId = createSequence()
+  const actions = new Map<QueryAction, number>()
   const channels = new Map<ChannelKey, Channel>()
+
+  function createChannelKey(action: QueryAction, args: Parameters<QueryAction>): ChannelKey {
+    if (!actions.has(action)) {
+      actions.set(action, createActionId())
+    }
+
+    const actionValue = actions.get(action)!
+
+    return `${actionValue}-${JSON.stringify(args)}`
+  }
 
   function getChannel<
     TAction extends QueryAction,
   >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
-    const queryKey = getChannelKey(action, parameters)
+    const queryKey = createChannelKey(action, parameters)
 
     if(!channels.has(queryKey)) {
       channels.set(queryKey, createChannel(action, parameters))
