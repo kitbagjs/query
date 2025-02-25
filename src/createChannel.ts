@@ -1,6 +1,7 @@
 import { computed, reactive, ref, toRefs } from "vue";
 import { Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
+import { QueryError } from "./queryError";
 
 export type Channel<
   TAction extends QueryAction = QueryAction,
@@ -60,8 +61,7 @@ export function createChannel<
       onError?.(value)
     }
 
-    // wrap this somehow so we can rethrow it later
-    resolve(value)
+    resolve(new QueryError(value))
   }
 
   function addSubscription(options?: QueryOptions<TAction>): () => void {
@@ -94,8 +94,8 @@ export function createChannel<
 
     const then: Query<TAction, TOptions>['then'] = (onFulfilled: any, onRejected: any) => {
       return promise.then((value) => {
-        if(value instanceof Error) {
-          throw value
+        if(value instanceof QueryError) {
+          throw value.original
         }
 
         return Object.assign(query, {

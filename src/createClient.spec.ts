@@ -113,7 +113,7 @@ describe('query', () => {
     const { query } = createClient()
     const value = query(action, [])
 
-    await expect(value).rejects.toThrow(error)
+    await expect(value).rejects.toBe(error)
   })
 
   test('onSuccess', async () => {
