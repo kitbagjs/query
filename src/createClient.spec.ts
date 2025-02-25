@@ -21,7 +21,7 @@ function testInEffectScope(name: string, fn: () => Promise<void>) {
 }
 
 describe('query', () => {
-  testInEffectScope('multiple queries with the same action only executes the action once', async () => {
+  test('multiple queries with the same action only executes the action once', async () => {
     const action = vi.fn()
     const { query } = createClient()
 
@@ -64,6 +64,24 @@ describe('query', () => {
     expect(value.response).toBe(response)
   })
 
+  test.each([
+    [new Error('test')],
+    ['test'],
+    [1],
+    [true],
+    [false],
+    [null],
+    [undefined],
+  ])('error is set after action throws: %s', async (error) => {
+    const action = vi.fn(() => { throw error })
+    const { query } = createClient()
+    const value = query(action, [])
+
+    await flushPromises()
+
+    expect(value.error).toBe(error)
+  })
+
   test('awaiting a query returns the response', async () => {
     const response = Symbol('response')
     const action = vi.fn(async () => {
@@ -82,12 +100,20 @@ describe('query', () => {
     expect(value.response).toBe(response)
   })
 
-  test('awaiting a query throws an error if the action throws an error', async () => {
-    const action = vi.fn(() => { throw new Error('test') })
+  test.each([
+    [new Error('test')],
+    ['test'],
+    [1],
+    [true],
+    [false],
+    [null],
+    [undefined],
+  ])('awaiting a query throws an error if the action throws: %s', async (error) => {
+    const action = vi.fn(() => { throw error })
     const { query } = createClient()
     const value = query(action, [])
 
-    await expect(value).rejects.toThrow('test')
+    await expect(value).rejects.toThrow(error)
   })
 
   test('onSuccess', async () => {
