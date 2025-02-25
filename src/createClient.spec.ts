@@ -302,7 +302,7 @@ describe('useQuery', () => {
     expect(query2.response).toBe(false)
   })
 
-  test('placeholder', async () => {
+  testInEffectScope('placeholder', async () => {
     const placeholder = Symbol('placeholder')
     const response = Symbol('response')
     const { useQuery } = createClient()
