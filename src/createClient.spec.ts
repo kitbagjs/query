@@ -130,28 +130,93 @@ describe('query', () => {
 })
 
 describe('useQuery', () => {
-  testInEffectScope('responds to parameter changes', async () => {
-    const responseTrue = Symbol('responseTrue')
-    const responseFalse = Symbol('responseFalse')
+  describe('when parameters change', () => {
+    testInEffectScope('response is updated', async () => {
+      const responseTrue = Symbol('responseTrue')
+      const responseFalse = Symbol('responseFalse')
 
-    const action = vi.fn((value: boolean) => value ? responseTrue : responseFalse)
-    const { useQuery } = createClient()
+      const action = vi.fn((value: boolean) => value ? responseTrue : responseFalse)
+      const { useQuery } = createClient()
 
-    const input = ref(false)
+      const input = ref(false)
 
-    const query = useQuery(action, () => [input.value])
+      const query = useQuery(action, () => [input.value])
 
-    expect(query.response).toBe(undefined)
+      expect(query.response).toBe(undefined)
 
-    await nextTick()
+      await nextTick()
 
-    expect(query.response).toBe(responseFalse)
+      expect(query.response).toBe(responseFalse)
 
-    input.value = true
+      input.value = true
 
-    await nextTick()
+      await nextTick()
 
-    expect(query.response).toBe(responseTrue)
+      expect(query.response).toBe(responseTrue)
+    })
+
+    testInEffectScope('executed and executing are updated', async () => {
+      const responseTrue = Symbol('responseTrue')
+      const responseFalse = Symbol('responseFalse')
+
+      const action = vi.fn((value: boolean) => new Promise((resolve) => setTimeout(() => resolve(value ? responseTrue : responseFalse), 5000)))
+      const { useQuery } = createClient()
+
+      const input = ref(false)
+
+      const query = useQuery(action, () => [input.value])
+
+      await nextTick()
+
+      expect(query.executing).toBe(true)
+      expect(query.executed).toBe(false)
+
+      await vi.runAllTimersAsync()
+
+      expect(query.executing).toBe(false)
+      expect(query.executed).toBe(true)
+
+      input.value = true
+
+      await nextTick()
+
+      expect(query.executing).toBe(true)
+      expect(query.executed).toBe(false)
+
+      await vi.runAllTimersAsync()
+
+      expect(query.executing).toBe(false)
+      expect(query.executed).toBe(true)
+    })
+
+    testInEffectScope('when parameters become null, response is set to placeholder', async () => {
+      const responseTrue = Symbol('responseTrue')
+      const responseFalse = Symbol('responseFalse')
+      const placeholder = Symbol('placeholder')
+
+      const action = vi.fn((value: boolean) => new Promise((resolve) => setTimeout(() => resolve(value ? responseTrue : responseFalse), 5000)))
+      const { useQuery } = createClient()
+
+      const parameters = ref<[boolean] | null>([false])
+
+      const query = useQuery(action, () => parameters.value, {placeholder })
+
+      await vi.runAllTimersAsync()
+
+      expect(query.response).toBe(responseFalse)
+
+      parameters.value = [true]
+
+      await nextTick()
+
+      parameters.value = null
+
+      await vi.runAllTimersAsync()
+
+      expect(query.response).toBe(placeholder)
+      expect(query.executing).toBe(false)
+      expect(query.executed).toBe(true)
+    })
   })
 
   testInEffectScope('awaiting a query returns the response', async () => {
@@ -235,6 +300,20 @@ describe('useQuery', () => {
 
     expect(query1.response).toBe(true)
     expect(query2.response).toBe(false)
+  })
+
+  test('placeholder', async () => {
+    const placeholder = Symbol('placeholder')
+    const response = Symbol('response')
+    const { useQuery } = createClient()
+
+    const value = useQuery(() => response, [], { placeholder })
+
+    expect(value.response).toBe(placeholder)
+
+    await nextTick()
+
+    expect(value.response).toBe(response)
   })
 })
 
