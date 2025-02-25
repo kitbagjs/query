@@ -9,9 +9,6 @@ export default defineConfig({
       checker: 'vue-tsc',
       ignoreSourceErrors: true,
     },
-    fakeTimers: {
-      enable: true,
-    },
   },
   resolve: {
     alias: [

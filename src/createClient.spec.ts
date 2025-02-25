@@ -159,7 +159,12 @@ describe('useQuery', () => {
       const responseTrue = Symbol('responseTrue')
       const responseFalse = Symbol('responseFalse')
 
-      const action = vi.fn((value: boolean) => new Promise((resolve) => setTimeout(() => resolve(value ? responseTrue : responseFalse), 5000)))
+      const action = vi.fn(async (value: boolean) => {
+        await timeout(5000)
+
+        return value ? responseTrue : responseFalse
+      })
+
       const { useQuery } = createClient()
 
       const input = ref(false)
@@ -194,7 +199,12 @@ describe('useQuery', () => {
       const responseFalse = Symbol('responseFalse')
       const placeholder = Symbol('placeholder')
 
-      const action = vi.fn((value: boolean) => new Promise((resolve) => setTimeout(() => resolve(value ? responseTrue : responseFalse), 5000)))
+      const action = vi.fn(async (value: boolean) => {
+        await timeout(5000)
+
+        return value ? responseTrue : responseFalse
+      })
+
       const { useQuery } = createClient()
 
       const parameters = ref<[boolean] | null>([false])
