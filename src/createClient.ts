@@ -35,6 +35,8 @@ export function createClient(options?: ClientOptions): QueryClient {
       if(parameters === null) {
         Object.assign(query, {
           response: toRef(() => options?.placeholder),
+          executed: false,
+          executing: false,
         })
 
         return
