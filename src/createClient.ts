@@ -1,46 +1,29 @@
 import { onScopeDispose, toRef, toRefs, toValue, watch } from "vue";
-import { Query, QueryAction, QueryOptions } from "./types/query";
+import { QueryAction, QueryOptions } from "./types/query";
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities";
-import { createGetChanelKey } from "./createQueryKey";
-import { Channel, createChannel } from "./createChannel";
-import { ChannelKey } from "./createQueryKey";
 import { ClientOptions } from "./types/clientOptions";
-import { DefinedQueryComposition, DefinedQueryFunction, DefineQuery, QueryClient, QueryComposition, QueryFunction } from "./types/client";
+import { 
+  DefinedQueryComposition,
+  DefinedQueryFunction,
+  DefineQuery,
+  QueryClient,
+  QueryComposition,
+  QueryFunction,
+} from "./types/client";
+import { createChannels } from "./createChannels";
 
 const noop = () => undefined
 
 export function createClient(options?: ClientOptions): QueryClient {
-  const getChannelKey = createGetChanelKey()
-  const channels = new Map<ChannelKey, Channel>()
-
-  function getChannel<
-    TAction extends QueryAction,
-  >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
-    const queryKey = getChannelKey(action, parameters)
-
-    if(!channels.has(queryKey)) {
-      channels.set(queryKey, createChannel(action, parameters))
-    }
-
-    return channels.get(queryKey)!
-  }
-
-  function subscribe<
-    const TAction extends QueryAction,
-    const TOptions extends QueryOptions<TAction>
-  >(action: TAction, parameters: Parameters<TAction>, options?: TOptions): Query<TAction, TOptions> {
-    const channel = getChannel(action, parameters)
-
-    return channel.subscribe(options)
-  }
+  const { createQuery } = createChannels()
 
   const query: QueryFunction = (action, args, options) => {
-    return subscribe(action, args, options)
+    return createQuery(action, args, options)
   }
 
   const useQuery: QueryComposition = (action, parameters, options) => {
-    const query = subscribe(noop, [], options)
+    const query = createQuery(noop, [], options)
 
     watch(() => toValue(parameters), (parameters, previousParameters) => {
       if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
@@ -57,7 +40,7 @@ export function createClient(options?: ClientOptions): QueryClient {
         return
       }
 
-      const newValue = subscribe(action, parameters, options)
+      const newValue = createQuery(action, parameters, options)
       const previousResponse = query.response
 
       Object.assign(query, toRefs(newValue), {
