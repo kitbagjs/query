@@ -3,7 +3,7 @@ import { Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 
 export type Channel<
-  TAction extends QueryAction = any,
+  TAction extends QueryAction = QueryAction,
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   active: boolean,
@@ -19,7 +19,7 @@ export function createChannel<
   const errored = ref<ChannelQuery['errored']>(false)
   const executing = ref<ChannelQuery['executing']>(false)
   const executed = ref<ChannelQuery['executed']>(false)
-  const { promise, resolve } = Promise.withResolvers<unknown>()
+  const { promise, resolve } = Promise.withResolvers()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
   const nextId = createSequence()

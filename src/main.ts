@@ -7,5 +7,3 @@ export {
   useQuery,
   createClient,
 }
-
-export * from './types'
