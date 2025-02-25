@@ -13,12 +13,11 @@
   },
   "devDependencies": {
     "@types/lodash.isequal": "^4.5.8",
-    "@vitejs/plugin-vue": "^5.0.4",
+    "@vitejs/plugin-vue": "^5.2.1",
     "@vue/test-utils": "^2.4.6",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0",
-    "vite-plugin-dts": "^3.7.3",
-    "vitest": "^1.4.0",
-    "vue-tsc": "^2.0.6"
+    "vite": "^6.1.1",
+    "vite-plugin-dts": "^4.5.0",
+    "vitest": "^3.0.7"
   }
 }
