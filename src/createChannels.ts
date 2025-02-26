@@ -4,6 +4,15 @@ import { Query, QueryAction, QueryOptions } from "./types/query";
 
 type ChannelKey = `${number}-${string}`
 
+export type CreateQuery = <
+  const TAction extends QueryAction,
+  const TOptions extends QueryOptions<TAction>
+>(action: TAction, parameters: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
+
+export type CreateChannels = {
+  createQuery: CreateQuery
+}
+
 export function createChannels() {
   const createActionId = createSequence()
   const actions = new Map<QueryAction, number>()
@@ -31,10 +40,7 @@ export function createChannels() {
     return channels.get(queryKey)!
   }
 
-  function createQuery<
-    const TAction extends QueryAction,
-    const TOptions extends QueryOptions<TAction>
-  >(action: TAction, parameters: Parameters<TAction>, options?: TOptions): Query<TAction, TOptions> {
+  const createQuery: CreateQuery = (action, parameters, options) => {
     const channel = getChannel(action, parameters)
 
     return channel.subscribe(options)
