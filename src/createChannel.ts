@@ -17,11 +17,12 @@ export function createChannel<
 >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
   type ChannelQuery = Query<TAction, QueryOptions<TAction>>
 
-  const { lastExecuted, execute: executeInterval, clear: clearInterval } = createIntervalController()
+  const intervalController = createIntervalController()
 
   const response = ref<ChannelQuery['response']>()
   const error = ref<ChannelQuery['error']>()
   const errored = ref<ChannelQuery['errored']>(false)
+  const lastExecuted = ref<number>()
   const executing = ref<ChannelQuery['executing']>(false)
   const { promise, resolve } = Promise.withResolvers()
 
@@ -33,9 +34,10 @@ export function createChannel<
 
     try {
       const value = await action(...parameters)
-
+      
       setResponse(value)
-
+      
+      lastExecuted.value = Date.now()
       error.value = undefined
       errored.value = false
     } catch(err) {
@@ -72,8 +74,10 @@ export function createChannel<
     subscriptions.set(id, options ?? {})  
 
     if(lastExecuted.value === undefined && !executing.value) {
-      executeInterval(execute, () => channel.interval)
+      execute()
     }
+
+    intervalController.set(execute, () => channel.interval)
 
     return () => {
       subscriptions.delete(id)
@@ -87,7 +91,7 @@ export function createChannel<
 
     function dispose(): void {
       removeSubscription()
-      clearInterval()
+      intervalController.clear()
     }
 
     const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
