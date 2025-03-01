@@ -1,7 +1,7 @@
 import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
 import { createClient } from './createClient'
 import { flushPromises } from '@vue/test-utils'
-import { effectScope, nextTick, ref } from 'vue'
+import { effectScope, ref } from 'vue'
 import { timeout } from './utilities'
 
 beforeEach(() => {
@@ -149,7 +149,7 @@ describe('query', () => {
 
     expect(value.response).toBe(placeholder)
 
-    await nextTick()
+    await flushPromises()
 
     expect(value.response).toBe(response)
   })
@@ -170,13 +170,13 @@ describe('useQuery', () => {
 
       expect(query.response).toBe(undefined)
 
-      await nextTick()
+      await flushPromises()
 
       expect(query.response).toBe(responseFalse)
 
       input.value = true
 
-      await nextTick()
+      await flushPromises()
 
       expect(query.response).toBe(responseTrue)
     })
@@ -197,7 +197,7 @@ describe('useQuery', () => {
 
       const query = useQuery(action, () => [input.value])
 
-      await nextTick()
+      await flushPromises()
 
       expect(query.executing).toBe(true)
       expect(query.executed).toBe(false)
@@ -209,7 +209,7 @@ describe('useQuery', () => {
 
       input.value = true
 
-      await nextTick()
+      await flushPromises()
 
       expect(query.executing).toBe(true)
       expect(query.executed).toBe(false)
@@ -243,7 +243,7 @@ describe('useQuery', () => {
 
       parameters.value = [true]
 
-      await nextTick()
+      await flushPromises()
 
       parameters.value = null
 
@@ -251,7 +251,7 @@ describe('useQuery', () => {
 
       expect(query.response).toBe(placeholder)
       expect(query.executing).toBe(false)
-      expect(query.executed).toBe(true)
+      expect(query.executed).toBe(false)
     })
   })
 
@@ -302,7 +302,7 @@ describe('useQuery', () => {
 
     input.value = true
 
-    await nextTick()
+    await flushPromises()
 
     expect(query.response).toBe(responseFalse)
 
@@ -313,13 +313,13 @@ describe('useQuery', () => {
 
     input.value = true
 
-    await nextTick()
+    await flushPromises()
 
     expect(query.response).toBe(responseTrue)
 
     input.value = null
 
-    await nextTick()
+    await flushPromises()
 
     expect(query.response).toBeUndefined()
   })
@@ -347,7 +347,7 @@ describe('useQuery', () => {
 
     expect(value.response).toBe(placeholder)
 
-    await nextTick()
+    await flushPromises()
 
     expect(value.response).toBe(response)
   })

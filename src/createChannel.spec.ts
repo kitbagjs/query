@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest"
 import { createChannel } from "./createChannel"
-import { nextTick } from "vue"
+import { flushPromises } from "@vue/test-utils"
 
 test('subscribing to new channel, always executes the action', async () => {
   const response = Symbol('response')
@@ -10,7 +10,7 @@ test('subscribing to new channel, always executes the action', async () => {
 
   const query = channel.subscribe()
 
-  await nextTick()
+  await flushPromises()
 
   expect(query.response).toBe(response)
   expect(query.error).toBeUndefined()
@@ -29,7 +29,7 @@ test('additional subscription to existing channel, does not execute the action',
   // initial subscription
   channel.subscribe()
 
-  await nextTick()
+  await flushPromises()
   
   expect(action).toHaveBeenCalledOnce()
 
@@ -37,7 +37,7 @@ test('additional subscription to existing channel, does not execute the action',
     channel.subscribe()
   }
 
-  await nextTick()
+  await flushPromises()
 
   expect(action).toHaveBeenCalledOnce()
 })
@@ -51,7 +51,7 @@ describe('when action executes successfully', () => {
 
     const query = channel.subscribe()
 
-    await nextTick()
+    await flushPromises()
 
     expect(query.response).toBe(response)
     expect(query.error).toBeUndefined()
@@ -72,7 +72,7 @@ describe('when action executes successfully', () => {
   
     channel.subscribe({ onSuccess, onError })
   
-    await nextTick()
+    await flushPromises()
     
     expect(onSuccess).toHaveBeenCalledOnce()
     expect(onError).not.toHaveBeenCalled()
@@ -88,7 +88,7 @@ describe('when action throws an error', () => {
 
     const query = channel.subscribe()
 
-    await nextTick()
+    await flushPromises()
 
     expect(query.response).toBe(response)
     expect(query.error).toBeUndefined()
@@ -109,7 +109,7 @@ describe('when action throws an error', () => {
 
     channel.subscribe({ onSuccess, onError })
 
-    await nextTick()
+    await flushPromises()
     
     expect(onSuccess).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
@@ -123,13 +123,13 @@ test('active property is true whenever there are 1+ subscriptions', async () => 
 
   const first = channel.subscribe()
 
-  await nextTick()
+  await flushPromises()
 
   expect(channel.active).toBe(true)
   
   const second = channel.subscribe()
 
-  await nextTick()
+  await flushPromises()
 
   expect(channel.active).toBe(true)
 

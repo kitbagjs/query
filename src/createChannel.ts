@@ -2,12 +2,14 @@ import { computed, reactive, ref, toRefs } from "vue";
 import { Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 import { QueryError } from "./queryError";
+import { createIntervalController } from "./services/intervalController";
 
 export type Channel<
   TAction extends QueryAction = QueryAction,
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   active: boolean,
+  interval: number,
 }
 
 export function createChannel<
@@ -15,11 +17,12 @@ export function createChannel<
 >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
   type ChannelQuery = Query<TAction, QueryOptions<TAction>>
 
+  const { lastExecuted, execute: executeInterval, clear: clearInterval } = createIntervalController()
+
   const response = ref<ChannelQuery['response']>()
   const error = ref<ChannelQuery['error']>()
   const errored = ref<ChannelQuery['errored']>(false)
   const executing = ref<ChannelQuery['executing']>(false)
-  const executed = ref<ChannelQuery['executed']>(false)
   const { promise, resolve } = Promise.withResolvers()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
@@ -39,7 +42,6 @@ export function createChannel<
       setError(err)
     }
 
-    executed.value = true
     executing.value = false
   }
 
@@ -69,8 +71,8 @@ export function createChannel<
 
     subscriptions.set(id, options ?? {})  
 
-    if(!executed.value && !executing.value) {
-      execute()
+    if(lastExecuted.value === undefined && !executing.value) {
+      executeInterval(execute, () => channel.interval)
     }
 
     return () => {
@@ -81,14 +83,19 @@ export function createChannel<
   function subscribe<
     TOptions extends QueryOptions<TAction>
   >(options?: TOptions): Query<TAction, TOptions> {
-    const dispose = addSubscription(options)
+    const removeSubscription = addSubscription(options)
+
+    function dispose(): void {
+      removeSubscription()
+      clearInterval()
+    }
 
     const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
       response: computed(() => response.value ?? options?.placeholder),
+      executed: computed(() => lastExecuted.value !== undefined),
       error,
       errored,
       executing,
-      executed,
       dispose,
     })
 
@@ -115,10 +122,19 @@ export function createChannel<
     })
   }
 
-  return {
+  const channel = {
     subscribe,
     get active() {
       return subscriptions.size > 0
+    },
+    get interval(): number {
+      const intervals = Array
+        .from(subscriptions.values())
+        .map(subscription => subscription.interval ?? Infinity)
+  
+      return Math.min(...intervals)
     }
-  }
+  } satisfies Channel<TAction>
+
+  return channel
 }
