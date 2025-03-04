@@ -28,7 +28,7 @@ describe('query', () => {
     query(action, [])
     query(action, [])
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(action).toHaveBeenCalledOnce()
   })
@@ -58,7 +58,7 @@ describe('query', () => {
 
     expect(value.response).toBeUndefined()
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(value.response).toBe(response)
   })
@@ -76,7 +76,7 @@ describe('query', () => {
     const { query } = createClient()
     const value = query(action, [])
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(value.error).toBe(error)
   })
@@ -111,7 +111,7 @@ describe('query', () => {
     const { query } = createClient()
     const value = query(action, [])
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     await expect(value).rejects.toBe(error)
   })
@@ -123,7 +123,7 @@ describe('query', () => {
 
     query(action, [], { onSuccess })
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(onSuccess).toHaveBeenCalledOnce()
   })
@@ -135,7 +135,7 @@ describe('query', () => {
 
     query(action, [], { onError })
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(onError).toHaveBeenCalledOnce()
   })
@@ -149,7 +149,7 @@ describe('query', () => {
 
     expect(value.response).toBe(placeholder)
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(value.response).toBe(response)
   })
@@ -170,13 +170,13 @@ describe('useQuery', () => {
 
       expect(query.response).toBe(undefined)
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       expect(query.response).toBe(responseFalse)
 
       input.value = true
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       expect(query.response).toBe(responseTrue)
     })
@@ -202,7 +202,7 @@ describe('useQuery', () => {
       expect(query.executing).toBe(true)
       expect(query.executed).toBe(false)
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       expect(query.executing).toBe(false)
       expect(query.executed).toBe(true)
@@ -214,7 +214,7 @@ describe('useQuery', () => {
       expect(query.executing).toBe(true)
       expect(query.executed).toBe(false)
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       expect(query.executing).toBe(false)
       expect(query.executed).toBe(true)
@@ -243,11 +243,11 @@ describe('useQuery', () => {
 
       parameters.value = [true]
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       parameters.value = null
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       expect(query.response).toBe(placeholder)
       expect(query.executing).toBe(false)
@@ -307,19 +307,19 @@ describe('useQuery', () => {
 
     expect(query.response).toBe(responseFalse)
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(query.response).toBe(responseTrue)
 
     input.value = true
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(query.response).toBe(responseTrue)
 
     input.value = null
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(query.response).toBeUndefined()
   })
@@ -332,7 +332,7 @@ describe('useQuery', () => {
     const query1 = useQuery(action1, [])
     const query2 = useQuery(action2, [])
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(query1.response).toBe(true)
     expect(query2.response).toBe(false)
@@ -347,7 +347,7 @@ describe('useQuery', () => {
 
     expect(value.response).toBe(placeholder)
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(value.response).toBe(response)
   })
@@ -363,7 +363,7 @@ describe('defineQuery', () => {
 
     const value = query([])
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(value.response).toBe(response)
   })
@@ -377,7 +377,7 @@ describe('defineQuery', () => {
 
     const value = useQuery([])
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(value.response).toBe(response)
   })

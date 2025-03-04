@@ -15,7 +15,7 @@ test('given interval of Infinity, does not run', async () => {
 
   intervalController.set(action, Infinity)
 
-  await vi.runAllTimersAsync()
+  await vi.runOnlyPendingTimersAsync()
 
   expect(action).not.toHaveBeenCalled()
 
@@ -45,7 +45,7 @@ test('given interval that is later cancelled, does not run', async () => {
 
   intervalController.clear()
 
-  await vi.runAllTimersAsync()
+  await vi.runOnlyPendingTimersAsync()
 
   expect(action).not.toHaveBeenCalled()
 })

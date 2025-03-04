@@ -17,7 +17,7 @@ test('subscribing to new channel, always executes the action', async () => {
 
   const query = channel.subscribe()
 
-  await vi.runAllTimersAsync()
+  await vi.runOnlyPendingTimersAsync()
 
   expect(query.response).toBe(response)
   expect(query.error).toBeUndefined()
@@ -36,7 +36,7 @@ test('additional subscription to existing channel, does not execute the action',
   // initial subscription
   channel.subscribe()
 
-  await vi.runAllTimersAsync()
+  await vi.runOnlyPendingTimersAsync()
   
   expect(action).toHaveBeenCalledOnce()
 
@@ -44,7 +44,7 @@ test('additional subscription to existing channel, does not execute the action',
     channel.subscribe()
   }
 
-  await vi.runAllTimersAsync()
+  await vi.runOnlyPendingTimersAsync()
 
   expect(action).toHaveBeenCalledOnce()
 })
@@ -58,7 +58,7 @@ describe('when action executes successfully', () => {
 
     const query = channel.subscribe()
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(query.response).toBe(response)
     expect(query.error).toBeUndefined()
@@ -79,7 +79,7 @@ describe('when action executes successfully', () => {
   
     channel.subscribe({ onSuccess, onError })
   
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
     
     expect(onSuccess).toHaveBeenCalledOnce()
     expect(onError).not.toHaveBeenCalled()
@@ -95,7 +95,7 @@ describe('when action throws an error', () => {
 
     const query = channel.subscribe()
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
 
     expect(query.response).toBe(response)
     expect(query.error).toBeUndefined()
@@ -116,7 +116,7 @@ describe('when action throws an error', () => {
 
     channel.subscribe({ onSuccess, onError })
 
-    await vi.runAllTimersAsync()
+    await vi.runOnlyPendingTimersAsync()
     
     expect(onSuccess).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
@@ -130,13 +130,13 @@ test('active property is true whenever there are 1+ subscriptions', async () => 
 
   const first = channel.subscribe()
 
-  await vi.runAllTimersAsync()
+  await vi.runOnlyPendingTimersAsync()
 
   expect(channel.active).toBe(true)
   
   const second = channel.subscribe()
 
-  await vi.runAllTimersAsync()
+  await vi.runOnlyPendingTimersAsync()
 
   expect(channel.active).toBe(true)
 
@@ -196,7 +196,7 @@ describe('given channel with interval', () => {
       const willRemove = channel.subscribe({ interval: 5 })
       channel.subscribe({ interval: 20 })
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       // initial execution
       expect(action).toHaveBeenCalledTimes(1)
@@ -218,7 +218,7 @@ describe('given channel with interval', () => {
 
       channel.subscribe({ interval: 20 })
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       // initial execution
       expect(action).toHaveBeenCalledTimes(1)
@@ -242,7 +242,7 @@ describe('given channel with interval', () => {
 
       channel.subscribe({ interval: 20 })
 
-      await vi.runAllTimersAsync()
+      await vi.runOnlyPendingTimersAsync()
 
       // initial execution
       expect(action).toHaveBeenCalledTimes(1)
