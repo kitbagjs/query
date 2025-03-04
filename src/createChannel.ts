@@ -9,7 +9,6 @@ export type Channel<
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   active: boolean,
-  interval: number,
 }
 
 export function createChannel<
@@ -37,14 +36,16 @@ export function createChannel<
       
       setResponse(value)
       
-      lastExecuted.value = Date.now()
       error.value = undefined
       errored.value = false
     } catch(err) {
       setError(err)
     }
 
+    lastExecuted.value = Date.now()
     executing.value = false
+
+    setNextExecution()
   }
 
   function setResponse(value: Awaited<ReturnType<TAction>>): void {
@@ -73,15 +74,40 @@ export function createChannel<
 
     subscriptions.set(id, options ?? {})  
 
-    if(lastExecuted.value === undefined && !executing.value) {
-      execute()
-    }
-
-    intervalController.set(execute, () => channel.interval)
+    setNextExecution()
 
     return () => {
       subscriptions.delete(id)
     }
+  }
+
+  function setNextExecution(): void {
+    if(executing.value) {
+      return
+    }
+
+    const interval = getNextSubscriptionInterval()
+
+    intervalController.set(execute, interval)
+  }
+
+  function getNextSubscriptionInterval(): number {
+    if(lastExecuted.value === undefined) {
+      return 0
+    }
+
+    const interval = getSubscriptionInterval()
+    const timeLeftSinceLastExecution = Date.now() - lastExecuted.value
+
+    return interval - timeLeftSinceLastExecution
+  }
+
+  function getSubscriptionInterval(): number {
+    const intervals = Array
+      .from(subscriptions.values())
+      .map(subscription => subscription.interval ?? Infinity)
+  
+    return Math.min(...intervals)
   }
 
   function subscribe<
@@ -91,7 +117,7 @@ export function createChannel<
 
     function dispose(): void {
       removeSubscription()
-      intervalController.clear()
+      setNextExecution()
     }
 
     const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
@@ -126,19 +152,10 @@ export function createChannel<
     })
   }
 
-  const channel = {
+  return {
     subscribe,
     get active() {
       return subscriptions.size > 0
     },
-    get interval(): number {
-      const intervals = Array
-        .from(subscriptions.values())
-        .map(subscription => subscription.interval ?? Infinity)
-  
-      return Math.min(...intervals)
-    }
-  } satisfies Channel<TAction>
-
-  return channel
+  }
 }
