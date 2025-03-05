@@ -11,6 +11,7 @@ export type QueryOptions<
   TAction extends QueryAction,
 > = {
   placeholder?: any,
+  interval?: number,
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
   tags?: QueryTag[] | ((value: Awaited<ReturnType<TAction>>) => QueryTag[])

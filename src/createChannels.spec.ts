@@ -3,7 +3,6 @@ import { createChannels } from "./createChannels"
 import * as CreateChannelExports from './createChannel'
 import { QueryAction } from "./types/query"
 
-
 const getRandomNumber = () => Math.random()
 const multipleByTwo = (value: number) => value * 2
 
@@ -55,6 +54,7 @@ test('when createQuery is called, it should pass options through to the channel'
   vi.spyOn(CreateChannelExports, 'createChannel').mockReturnValue({
     subscribe,
     active: true
+    
   })
 
   const { createQuery } = createChannels()
