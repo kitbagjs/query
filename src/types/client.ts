@@ -33,7 +33,7 @@ export type DefinedQueryComposition<
 export type DefineQuery = <
   const TAction extends QueryAction,
   const TOptions extends QueryOptions<TAction>
->(action: TAction) => DefinedQuery<TAction, TOptions>
+>(action: TAction, options?: TOptions) => DefinedQuery<TAction, TOptions>
 
 export type DefinedQuery<
   TAction extends QueryAction,
