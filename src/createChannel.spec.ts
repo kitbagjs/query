@@ -253,9 +253,6 @@ describe('given channel with interval', () => {
       // add new, shorter interval
       channel.subscribe({ interval: 5 })
 
-      // run for new shortest, not enough to hit previous shortest
-      await vi.advanceTimersByTimeAsync(5)
-
       expect(action).toHaveBeenCalledTimes(2)
     })
   })
