@@ -1,7 +1,8 @@
 import { expectTypeOf, test, vi } from "vitest";
-import { QueryTag, QueryTagFactory, tag } from "./tag";
+import { QueryTag, QueryTagFactory } from "@/types/tags";
 import { createClient } from "./createClient";
 import { ExtractQueryOptionsFromQuery } from "./types/query";
+import { tag } from "./tag";
 
 test('tag function returns a tag when no callback is provided', () => {
   const value = tag('test')
