@@ -4,10 +4,10 @@ export type QueryTag<
   id: number
   name: TName,
   value: unknown,
-  key: QueryTagKey
+  key: (queryId: number) => QueryTagKey
 }
 
-export type QueryTagKey = `${number}-${string}-${string}`
+export type QueryTagKey = `${number}-${number}-${string}-${string}`
 
 export type QueryTagCallback<
   TInput = unknown,

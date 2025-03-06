@@ -76,12 +76,12 @@ export function createChannel<
   function setTags(): void {
     tags.clear()
 
-    for(const { tags } of subscriptions.values()) {
-      addTags(tags)
+    for(const [id, { tags }] of subscriptions.entries()) {
+      addTags(id, tags)
     }
   }
 
-  function addTags(tagsToAdd: QueryOptions<TAction>['tags']): void {
+  function addTags(queryId: number, tagsToAdd: QueryOptions<TAction>['tags']): void {
     if(!executed.value) {
       return
     }
@@ -91,11 +91,28 @@ export function createChannel<
     }
 
     if(typeof tagsToAdd === 'function') {
-      tagsToAdd(response.value).forEach(tag => tags.add(tag.key))
+      tagsToAdd(response.value).forEach(tag => tags.add(tag.key(queryId)))
       return
     }
 
-    tagsToAdd.forEach(tag => tags.add(tag.key))
+    tagsToAdd.forEach(tag => tags.add(tag.key(queryId)))
+  }
+
+  function removeTags(queryId: number, tagsToRemove: QueryOptions<TAction>['tags']): void {
+    if(!executed.value) {
+      return
+    }
+
+    if(!tagsToRemove) {
+      return
+    }
+
+    if(typeof tagsToRemove === 'function') {
+      tagsToRemove(response.value).forEach(tag => tags.delete(tag.key(queryId)))
+      return
+    }
+
+    tagsToRemove.forEach(tag => tags.delete(tag.key(queryId)))
   }
 
   function addSubscription(options?: QueryOptions<TAction>): () => void {
@@ -104,11 +121,11 @@ export function createChannel<
     subscriptions.set(id, options ?? {})  
 
     setNextExecution()
-    addTags(options?.tags)
+    addTags(id, options?.tags)
 
     return () => {
       subscriptions.delete(id)
-      setTags()
+      removeTags(id, options?.tags)
     }
   }
 

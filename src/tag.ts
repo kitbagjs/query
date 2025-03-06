@@ -6,7 +6,7 @@ function createQueryTag(id: number, name: string, value: unknown): QueryTag {
     id,
     name,
     value,
-    key: `${id}-${name}-${JSON.stringify(value)}`
+    key: (queryId: number) => `${queryId}-${id}-${name}-${JSON.stringify(value)}`
   }
 }
 
