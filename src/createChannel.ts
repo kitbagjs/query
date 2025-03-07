@@ -3,12 +3,13 @@ import { Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
-import { QueryTagKey } from "./types/tags";
+import { QueryTagKey, QueryTag } from "./types/tags";
 
 export type Channel<
   TAction extends QueryAction = QueryAction,
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
+  hasTag: (tag: QueryTag) => boolean,
   active: boolean,
 }
 
@@ -98,6 +99,10 @@ export function createChannel<
     tagsToAdd.forEach(tag => tags.add(tag.key))
   }
 
+  function hasTag(tag: QueryTag): boolean {
+    return tags.has(tag.key)
+  }
+
   function addSubscription(options?: QueryOptions<TAction>): () => void {
     const id = nextId()
 
@@ -185,6 +190,7 @@ export function createChannel<
 
   return {
     subscribe,
+    hasTag,
     get active() {
       return subscriptions.size > 0
     },
