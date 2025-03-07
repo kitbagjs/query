@@ -1,13 +1,16 @@
 export type QueryTag<
- TName extends string = string
+ TName extends string = string,
 > = {
-  id: number
   name: TName,
-  value: unknown,
-  key: (queryId: number) => QueryTagKey
+  key: QueryTagKey
 }
 
-export type QueryTagKey = `${number}-${number}-${string}-${string}`
+/**
+ * QueryTagKey is a unique identifier for a query tag.
+ * It is the combination of the tag id, and the tag value.
+ * `${tagId}-${tagValue}`
+ */
+export type QueryTagKey = `${number}-${string}`
 
 export type QueryTagCallback<
   TInput = unknown,

@@ -3,10 +3,8 @@ import { QueryTagFactory, QueryTagCallback, QueryTag } from "./types/tags";
 
 function createQueryTag(id: number, name: string, value: unknown): QueryTag {
   return {
-    id,
     name,
-    value,
-    key: (queryId: number) => `${queryId}-${id}-${name}-${JSON.stringify(value)}`
+    key: `${id}-${JSON.stringify(value)}`
   }
 }
 

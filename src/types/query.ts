@@ -1,5 +1,5 @@
-import { QueryTag } from "@/tag";
 import { Getter, MaybeGetter } from "./getters";
+import { QueryTag } from "@/types/tags";
 
 export type QueryAction = (...args: any[]) => any
 
