@@ -5,7 +5,7 @@ import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
 import { QueryTagKey, QueryTag } from "./types/tags";
 
-export type Channel<
+export type QueryGroup<
   TAction extends QueryAction = QueryAction,
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
@@ -13,19 +13,19 @@ export type Channel<
   active: boolean,
 }
 
-export function createChannel<
+export function createQueryGroup<
   TAction extends QueryAction,
->(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
-  type ChannelQuery = Query<TAction, QueryOptions<TAction>>
+>(action: TAction, parameters: Parameters<TAction>): QueryGroup<TAction> {
+  type Group = Query<TAction, QueryOptions<TAction>>
 
   const intervalController = createIntervalController()
 
-  const response = ref<ChannelQuery['response']>()
-  const error = ref<ChannelQuery['error']>()
-  const errored = ref<ChannelQuery['errored']>(false)
+  const response = ref<Group['response']>()
+  const error = ref<Group['error']>()
+  const errored = ref<Group['errored']>(false)
   const lastExecuted = ref<number>()
-  const executing = ref<ChannelQuery['executing']>(false)
-  const executed = computed<ChannelQuery['executed']>(() => lastExecuted.value !== undefined)
+  const executing = ref<Group['executing']>(false)
+  const executed = computed<Group['executed']>(() => lastExecuted.value !== undefined)
   const { promise, resolve } = Promise.withResolvers()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()

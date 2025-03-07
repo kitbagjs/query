@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest"
-import { createChannel } from "./createChannel"
+import { createQueryGroup } from "./createQueryGroup"
 import { tag } from "./tag"
 
 beforeEach(() => {
@@ -10,13 +10,13 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-test('subscribing to new channel, always executes the action', async () => {
+test('subscribing to new group, always executes the action', async () => {
   const response = Symbol('response')
   const action = vi.fn((..._args) => response)
   const args = ['a', 'b']
-  const channel = createChannel(action, args)
+  const group = createQueryGroup(action, args)
 
-  const query = channel.subscribe()
+  const query = group.subscribe()
 
   await vi.runOnlyPendingTimersAsync()
 
@@ -29,20 +29,20 @@ test('subscribing to new channel, always executes the action', async () => {
   expect(action).toHaveBeenCalledWith(...args)
 })
 
-test('additional subscription to existing channel, does not execute the action', async () => {
+test('additional subscription to existing group, does not execute the action', async () => {
   const response = Symbol('response')
   const action = vi.fn(() => response)
-  const channel = createChannel(action, [])
+  const group = createQueryGroup(action, [])
 
   // initial subscription
-  channel.subscribe()
+  group.subscribe()
 
   await vi.runOnlyPendingTimersAsync()
   
   expect(action).toHaveBeenCalledOnce()
 
   for(let i = 0; i < 10; i++) {
-    channel.subscribe()
+    group.subscribe()
   }
 
   await vi.runOnlyPendingTimersAsync()
@@ -55,9 +55,9 @@ describe('when action executes successfully', () => {
     const response = Symbol('response')
     const action = vi.fn((..._args) => response)
     const args = ['a', 'b']
-    const channel = createChannel(action, args)
+    const group = createQueryGroup(action, args)
 
-    const query = channel.subscribe()
+    const query = group.subscribe()
 
     await vi.runOnlyPendingTimersAsync()
 
@@ -73,12 +73,12 @@ describe('when action executes successfully', () => {
   test('when subscriptions add callbacks, onSuccess is called', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const channel = createChannel(action, [])
+    const group = createQueryGroup(action, [])
   
     const onSuccess = vi.fn()
     const onError = vi.fn()
   
-    channel.subscribe({ onSuccess, onError })
+    group.subscribe({ onSuccess, onError })
   
     await vi.runOnlyPendingTimersAsync()
     
@@ -92,9 +92,9 @@ describe('when action throws an error', () => {
     const response = Symbol('response')
     const action = vi.fn((..._args) => response)
     const args = ['a', 'b']
-    const channel = createChannel(action, args)
+    const group = createQueryGroup(action, args)
 
-    const query = channel.subscribe()
+    const query = group.subscribe()
 
     await vi.runOnlyPendingTimersAsync()
 
@@ -110,12 +110,12 @@ describe('when action throws an error', () => {
   test('when subscriptions add callbacks, onError is called', async () => {
     const error = Symbol('error')
     const action = vi.fn(() => { throw error })
-    const channel = createChannel(action, [])
+    const group = createQueryGroup(action, [])
 
     const onSuccess = vi.fn()
     const onError = vi.fn()
 
-    channel.subscribe({ onSuccess, onError })
+    group.subscribe({ onSuccess, onError })
 
     await vi.runOnlyPendingTimersAsync()
     
@@ -127,36 +127,36 @@ describe('when action throws an error', () => {
 test('active property is true whenever there are 1+ subscriptions', async () => {
   const response = Symbol('response')
   const action = vi.fn(() => response)
-  const channel = createChannel(action, [])
+  const group = createQueryGroup(action, [])
 
-  const first = channel.subscribe()
+  const first = group.subscribe()
 
   await vi.runOnlyPendingTimersAsync()
 
-  expect(channel.active).toBe(true)
+  expect(group.active).toBe(true)
   
-  const second = channel.subscribe()
+  const second = group.subscribe()
 
   await vi.runOnlyPendingTimersAsync()
 
-  expect(channel.active).toBe(true)
+  expect(group.active).toBe(true)
 
   first.dispose()
 
-  expect(channel.active).toBe(true)
+  expect(group.active).toBe(true)
 
   second.dispose()
 
-  expect(channel.active).toBe(false)
+  expect(group.active).toBe(false)
 })
 
-describe('given channel with interval', () => {
+describe('given group with interval', () => {
   test('with single interval of 5, runs every 5ms', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const channel = createChannel(action, [])
+    const group = createQueryGroup(action, [])
 
-    channel.subscribe({ interval: 5 })
+    group.subscribe({ interval: 5 })
 
     await vi.advanceTimersByTimeAsync(0)
 
@@ -170,11 +170,11 @@ describe('given channel with interval', () => {
   test.only('with multiple different intervals, runs at shortest', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const channel = createChannel(action, [])
+    const group = createQueryGroup(action, [])
 
-    channel.subscribe({ interval: 10 })
-    channel.subscribe({ interval: 5 })
-    channel.subscribe({ interval: 20 })
+    group.subscribe({ interval: 10 })
+    group.subscribe({ interval: 5 })
+    group.subscribe({ interval: 20 })
 
     await vi.advanceTimersByTimeAsync(0)
 
@@ -191,11 +191,11 @@ describe('given channel with interval', () => {
     test('re-evaluates next interval', async () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
-      const channel = createChannel(action, [])
+      const group = createQueryGroup(action, [])
 
-      channel.subscribe({ interval: 10 })
-      const willRemove = channel.subscribe({ interval: 5 })
-      channel.subscribe({ interval: 20 })
+      group.subscribe({ interval: 10 })
+      const willRemove = group.subscribe({ interval: 5 })
+      group.subscribe({ interval: 20 })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -215,9 +215,9 @@ describe('given channel with interval', () => {
     test('re-evaluates next interval', async () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
-      const channel = createChannel(action, [])
+      const group = createQueryGroup(action, [])
 
-      channel.subscribe({ interval: 20 })
+      group.subscribe({ interval: 20 })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -228,7 +228,7 @@ describe('given channel with interval', () => {
       await vi.advanceTimersByTimeAsync(2)
 
       // add new, shorter interval
-      channel.subscribe({ interval: 5 })
+      group.subscribe({ interval: 5 })
 
       // run for new shortest, not enough to hit previous shortest
       await vi.advanceTimersByTimeAsync(6)
@@ -239,9 +239,9 @@ describe('given channel with interval', () => {
     test('with interval less than gap since last execution, runs immediately', async () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
-      const channel = createChannel(action, [])
+      const group = createQueryGroup(action, [])
 
-      channel.subscribe({ interval: 20 })
+      group.subscribe({ interval: 20 })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -252,38 +252,38 @@ describe('given channel with interval', () => {
       await vi.advanceTimersByTimeAsync(8)
 
       // add new, shorter interval
-      channel.subscribe({ interval: 5 })
+      group.subscribe({ interval: 5 })
 
       expect(action).toHaveBeenCalledTimes(2)
     })
   })
 })
 
-describe('given channel with tags', () => {
+describe('given group with tags', () => {
   test('can check if it has a tag', () => {
-    const channel = createChannel(vi.fn(), [])
+    const group = createQueryGroup(vi.fn(), [])
     const tag1 = tag('tag1')
     const tag2 = tag('tag2', (value: string) => value)
 
-    expect(channel.hasTag(tag1)).toBe(false)
+    expect(group.hasTag(tag1)).toBe(false)
 
-    const query1 = channel.subscribe({ tags: [tag1] })
-    const query2 = channel.subscribe({ tags: [tag1, tag2('foo')] })
+    const query1 = group.subscribe({ tags: [tag1] })
+    const query2 = group.subscribe({ tags: [tag1, tag2('foo')] })
 
-    expect(channel.hasTag(tag1)).toBe(true)
-    expect(channel.hasTag(tag2('foo'))).toBe(true)
-    expect(channel.hasTag(tag2('bar'))).toBe(false)
+    expect(group.hasTag(tag1)).toBe(true)
+    expect(group.hasTag(tag2('foo'))).toBe(true)
+    expect(group.hasTag(tag2('bar'))).toBe(false)
 
     query1.dispose()
 
-    expect(channel.hasTag(tag1)).toBe(false)
-    expect(channel.hasTag(tag2('foo'))).toBe(true)
-    expect(channel.hasTag(tag2('bar'))).toBe(false)
+    expect(group.hasTag(tag1)).toBe(false)
+    expect(group.hasTag(tag2('foo'))).toBe(true)
+    expect(group.hasTag(tag2('bar'))).toBe(false)
 
     query2.dispose()
 
-    expect(channel.hasTag(tag1)).toBe(false)
-    expect(channel.hasTag(tag2('foo'))).toBe(false)
-    expect(channel.hasTag(tag2('bar'))).toBe(false)
+    expect(group.hasTag(tag1)).toBe(false)
+    expect(group.hasTag(tag2('foo'))).toBe(false)
+    expect(group.hasTag(tag2('bar'))).toBe(false)
   })
 })
