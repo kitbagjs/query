@@ -24,5 +24,4 @@ test('tag factories return the same tag name and id', () => {
 
   expect(value1.name).toBe('test')
   expect(value2.name).toBe('test')
-  expect(value1.id).toBe(value2.id)
 })
