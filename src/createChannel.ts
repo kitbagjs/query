@@ -38,6 +38,7 @@ export function createChannel<
       const value = await action(...parameters)
       
       setResponse(value)
+      setTags()
       
       error.value = undefined
       errored.value = false
@@ -48,7 +49,6 @@ export function createChannel<
     lastExecuted.value = Date.now()
     executing.value = false
     
-    setTags()
     setNextExecution()
   }
 
