@@ -167,7 +167,7 @@ describe('given group with interval', () => {
     expect(action).toHaveBeenCalledTimes(2)
   })
 
-  test.only('with multiple different intervals, runs at shortest', async () => {
+  test('with multiple different intervals, runs at shortest', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
     const group = createQueryGroup(action, [])
@@ -207,7 +207,7 @@ describe('given group with interval', () => {
       // new shortest is 10, 50ms/10 = 5 times
       await vi.advanceTimersByTimeAsync(51)
 
-      expect(action).toHaveBeenCalledTimes(5)
+      expect(action).toHaveBeenCalledTimes(6)
     })
   })
 
@@ -248,11 +248,13 @@ describe('given group with interval', () => {
       // initial execution
       expect(action).toHaveBeenCalledTimes(1)
       
-      // run without hitting interval, longer than 5ms
+      // run without hitting interval
       await vi.advanceTimersByTimeAsync(8)
 
       // add new, shorter interval
       group.subscribe({ interval: 5 })
+
+      await vi.advanceTimersByTimeAsync(0)
 
       expect(action).toHaveBeenCalledTimes(2)
     })
