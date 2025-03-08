@@ -92,8 +92,9 @@ export function createChannel<
     }
 
     if(typeof tagsToAdd === 'function') {
-      tagsToAdd(response.value).forEach(tag => tags.add(tag.key))
-      return
+      const tags = tagsToAdd(response.value)
+      
+      return addTags(tags)
     }
 
     tagsToAdd.forEach(tag => tags.add(tag.key))
