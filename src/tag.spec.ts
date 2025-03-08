@@ -17,11 +17,10 @@ test('tag factories are unique', () => {
   expect(value1).not.toBe(value2)
 })
 
-test('tag factories return the same tag name and id', () => {
+test('tag factory returns the same key when given the same value', () => {
   const factory = tag('test', (string: string) => string)
   const value1 = factory('foo')
-  const value2 = factory('bar')
+  const value2 = factory('foo')
 
-  expect(value1.name).toBe('test')
-  expect(value2.name).toBe('test')
+  expect(value1.key).toBe(value2.key)
 })
