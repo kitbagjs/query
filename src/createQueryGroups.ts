@@ -1,24 +1,24 @@
-import { Channel, createChannel } from "./createChannel";
+import { QueryGroup, createQueryGroup } from "./createQueryGroup";
 import { createSequence } from "./createSequence";
 import { Query, QueryAction, QueryOptions } from "./types/query";
 
-type ChannelKey = `${number}-${string}`
+type QueryGroupKey = `${number}-${string}`
 
 export type CreateQuery = <
   const TAction extends QueryAction,
   const TOptions extends QueryOptions<TAction>
 >(action: TAction, parameters: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
 
-export type CreateChannels = {
+export type CreateQueryGroups = {
   createQuery: CreateQuery
 }
 
-export function createChannels() {
+export function createQueryGroups() {
   const createActionId = createSequence()
   const actions = new Map<QueryAction, number>()
-  const channels = new Map<ChannelKey, Channel>()
+  const groups = new Map<QueryGroupKey, QueryGroup>()
 
-  function createChannelKey(action: QueryAction, args: Parameters<QueryAction>): ChannelKey {
+  function createGroupKey(action: QueryAction, args: Parameters<QueryAction>): QueryGroupKey {
     if (!actions.has(action)) {
       actions.set(action, createActionId())
     }
@@ -28,22 +28,22 @@ export function createChannels() {
     return `${actionValue}-${JSON.stringify(args)}`
   }
 
-  function getChannel<
+  function getQueryGroup<
     TAction extends QueryAction,
-  >(action: TAction, parameters: Parameters<TAction>): Channel<TAction> {
-    const queryKey = createChannelKey(action, parameters)
+  >(action: TAction, parameters: Parameters<TAction>): QueryGroup<TAction> {
+    const queryKey = createGroupKey(action, parameters)
 
-    if(!channels.has(queryKey)) {
-      channels.set(queryKey, createChannel(action, parameters))
+    if(!groups.has(queryKey)) {
+      groups.set(queryKey, createQueryGroup(action, parameters))
     }
 
-    return channels.get(queryKey)!
+    return groups.get(queryKey)!
   }
 
   const createQuery: CreateQuery = (action, parameters, options) => {
-    const channel = getChannel(action, parameters)
+    const group = getQueryGroup(action, parameters)
 
-    return channel.subscribe(options)
+    return group.subscribe(options)
   }
 
   return {

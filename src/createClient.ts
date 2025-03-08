@@ -11,12 +11,12 @@ import {
   QueryComposition,
   QueryFunction,
 } from "./types/client";
-import { createChannels } from "./createChannels";
+import { createQueryGroups } from "./createQueryGroups";
 
 const noop = () => undefined
 
 export function createClient(options?: ClientOptions): QueryClient {
-  const { createQuery } = createChannels()
+  const { createQuery } = createQueryGroups()
 
   const query: QueryFunction = (action, args, options) => {
     return createQuery(action, args, options)
