@@ -6,7 +6,6 @@ import dts from 'vite-plugin-dts'
 export default defineConfig({
   test: {
     typecheck: {
-      checker: 'vue-tsc',
       ignoreSourceErrors: true,
     },
   },

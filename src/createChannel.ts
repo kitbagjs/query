@@ -3,11 +3,13 @@ import { Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
+import { QueryTagKey, QueryTag } from "./types/tags";
 
 export type Channel<
   TAction extends QueryAction = QueryAction,
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
+  hasTag: (tag: QueryTag) => boolean,
   active: boolean,
 }
 
@@ -23,10 +25,12 @@ export function createChannel<
   const errored = ref<ChannelQuery['errored']>(false)
   const lastExecuted = ref<number>()
   const executing = ref<ChannelQuery['executing']>(false)
+  const executed = computed<ChannelQuery['executed']>(() => lastExecuted.value !== undefined)
   const { promise, resolve } = Promise.withResolvers()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
   const nextId = createSequence()
+  const tags = new Set<QueryTagKey>()
 
   async function execute(): Promise<void> {
     executing.value = true
@@ -35,16 +39,17 @@ export function createChannel<
       const value = await action(...parameters)
       
       setResponse(value)
+      setTags()
       
       error.value = undefined
       errored.value = false
     } catch(err) {
       setError(err)
     }
-
+    
     lastExecuted.value = Date.now()
     executing.value = false
-
+    
     setNextExecution()
   }
 
@@ -69,15 +74,47 @@ export function createChannel<
     resolve(new QueryError(value))
   }
 
+  function setTags(): void {
+    tags.clear()
+
+    for(const { tags } of subscriptions.values()) {
+      addTags(tags)
+    }
+  }
+
+  function addTags(tagsToAdd: QueryOptions<TAction>['tags']): void {
+    if(!executed.value) {
+      return
+    }
+
+    if(!tagsToAdd) {
+      return
+    }
+
+    if(typeof tagsToAdd === 'function') {
+      const tags = tagsToAdd(response.value)
+      
+      return addTags(tags)
+    }
+
+    tagsToAdd.forEach(tag => tags.add(tag.key))
+  }
+
+  function hasTag(tag: QueryTag): boolean {
+    return tags.has(tag.key)
+  }
+
   function addSubscription(options?: QueryOptions<TAction>): () => void {
     const id = nextId()
 
     subscriptions.set(id, options ?? {})  
 
     setNextExecution()
+    addTags(options?.tags)
 
     return () => {
       subscriptions.delete(id)
+      setTags()
     }
   }
 
@@ -122,7 +159,7 @@ export function createChannel<
 
     const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
       response: computed(() => response.value ?? options?.placeholder),
-      executed: computed(() => lastExecuted.value !== undefined),
+      executed,
       error,
       errored,
       executing,
@@ -154,6 +191,7 @@ export function createChannel<
 
   return {
     subscribe,
+    hasTag,
     get active() {
       return subscriptions.size > 0
     },

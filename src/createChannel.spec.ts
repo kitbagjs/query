@@ -1,5 +1,6 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest"
 import { createChannel } from "./createChannel"
+import { tag } from "./tag"
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -255,5 +256,34 @@ describe('given channel with interval', () => {
 
       expect(action).toHaveBeenCalledTimes(2)
     })
+  })
+})
+
+describe('given channel with tags', () => {
+  test('can check if it has a tag', () => {
+    const channel = createChannel(vi.fn(), [])
+    const tag1 = tag('tag1')
+    const tag2 = tag('tag2', (value: string) => value)
+
+    expect(channel.hasTag(tag1)).toBe(false)
+
+    const query1 = channel.subscribe({ tags: [tag1] })
+    const query2 = channel.subscribe({ tags: [tag1, tag2('foo')] })
+
+    expect(channel.hasTag(tag1)).toBe(true)
+    expect(channel.hasTag(tag2('foo'))).toBe(true)
+    expect(channel.hasTag(tag2('bar'))).toBe(false)
+
+    query1.dispose()
+
+    expect(channel.hasTag(tag1)).toBe(false)
+    expect(channel.hasTag(tag2('foo'))).toBe(true)
+    expect(channel.hasTag(tag2('bar'))).toBe(false)
+
+    query2.dispose()
+
+    expect(channel.hasTag(tag1)).toBe(false)
+    expect(channel.hasTag(tag2('foo'))).toBe(false)
+    expect(channel.hasTag(tag2('bar'))).toBe(false)
   })
 })

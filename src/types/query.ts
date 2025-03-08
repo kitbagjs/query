@@ -1,4 +1,5 @@
 import { Getter, MaybeGetter } from "./getters";
+import { QueryTag } from "@/types/tags";
 
 export type QueryAction = (...args: any[]) => any
 
@@ -13,7 +14,12 @@ export type QueryOptions<
   interval?: number,
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
+  tags?: QueryTag[] | ((value: Awaited<ReturnType<TAction>>) => QueryTag[])
 }
+
+export type ExtractQueryOptionsFromQuery<
+  TQuery extends Query<any, any>
+> = TQuery extends Query<any, infer TOptions> ? TOptions : never
 
 export type Query<
   TAction extends QueryAction,
