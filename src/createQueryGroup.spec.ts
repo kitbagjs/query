@@ -262,7 +262,7 @@ describe('given group with interval', () => {
 })
 
 describe('given group with tags', () => {
-  test('can check if it has a tag', () => {
+  test('can check if it has a tag', async () => {
     const group = createQueryGroup(vi.fn(), [])
     const tag1 = tag('tag1')
     const tag2 = tag('tag2', (value: string) => value)
@@ -270,7 +270,10 @@ describe('given group with tags', () => {
     expect(group.hasTag(tag1)).toBe(false)
 
     const query1 = group.subscribe({ tags: [tag1] })
-    const query2 = group.subscribe({ tags: [tag1, tag2('foo')] })
+    const query2 = group.subscribe({ tags: [tag2('foo')] })
+
+    // need executed to happen for tag factories
+    await vi.advanceTimersByTimeAsync(0)
 
     expect(group.hasTag(tag1)).toBe(true)
     expect(group.hasTag(tag2('foo'))).toBe(true)

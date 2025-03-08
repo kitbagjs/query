@@ -39,7 +39,6 @@ export function createQueryGroup<
       const value = await action(...parameters)
       
       setResponse(value)
-      setTags()
       
       error.value = undefined
       errored.value = false
@@ -50,6 +49,7 @@ export function createQueryGroup<
     lastExecuted.value = Date.now()
     executing.value = false
     
+    setTags()
     setNextExecution()
   }
 
@@ -86,7 +86,7 @@ export function createQueryGroup<
     if(!executed.value) {
       return
     }
-
+    
     if(!tagsToAdd) {
       return
     }
