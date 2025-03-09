@@ -325,4 +325,13 @@ describe('execute', () => {
 
     expect(result).toBe(response)
   })
+
+  test('if an error is thrown, actually throws', async () => {
+    const action = vi.fn(() => { throw new Error('Expected error') })
+    const group = createQueryGroup(action, [])
+
+    const response: () => void = () => group.execute()
+
+    await expect(response).rejects.toThrow('Expected error')
+  })
 })
