@@ -262,7 +262,7 @@ describe('given group with interval', () => {
 })
 
 describe('given group with tags', () => {
-  test('can check if it has a tag', () => {
+  test('can check if it has a tag', async () => {
     const group = createQueryGroup(vi.fn(), [])
     const tag1 = tag('tag1')
     const tag2 = tag('tag2', (value: string) => value)
@@ -270,7 +270,10 @@ describe('given group with tags', () => {
     expect(group.hasTag(tag1)).toBe(false)
 
     const query1 = group.subscribe({ tags: [tag1] })
-    const query2 = group.subscribe({ tags: [tag1, tag2('foo')] })
+    const query2 = group.subscribe({ tags: [tag2('foo')] })
+
+    // need executed to happen for tag factories
+    await vi.advanceTimersByTimeAsync(0)
 
     expect(group.hasTag(tag1)).toBe(true)
     expect(group.hasTag(tag2('foo'))).toBe(true)
@@ -287,5 +290,48 @@ describe('given group with tags', () => {
     expect(group.hasTag(tag1)).toBe(false)
     expect(group.hasTag(tag2('foo'))).toBe(false)
     expect(group.hasTag(tag2('bar'))).toBe(false)
+  })
+})
+
+describe('execute', () => {
+  test('sets immediate execution', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const group = createQueryGroup(action, [])
+
+    group.subscribe()
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    // initial execution
+    expect(action).toHaveBeenCalledOnce()
+
+    for(let i = 0; i < 10; i++) { 
+      vi.resetAllMocks()
+      group.execute()
+
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(action).toHaveBeenCalledOnce()
+    }
+  })
+
+  test('returns the response', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const group = createQueryGroup(action, [])
+
+    const result = await group.execute()
+
+    expect(result).toBe(response)
+  })
+
+  test('if an error is thrown, actually throws', async () => {
+    const action = vi.fn(() => { throw new Error('Expected error') })
+    const group = createQueryGroup(action, [])
+
+    const response: () => void = () => group.execute()
+
+    await expect(response).rejects.toThrow('Expected error')
   })
 })
