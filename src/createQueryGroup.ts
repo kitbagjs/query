@@ -38,11 +38,11 @@ export function createQueryGroup<
     try {
       const value = await action(...parameters)
       
-      setResponse(value)
-      setTags()
-      
       error.value = undefined
       errored.value = false
+      
+      setResponse(value)
+      setTags()
     } catch(err) {
       setError(err)
     }
@@ -110,7 +110,10 @@ export function createQueryGroup<
     subscriptions.set(id, options ?? {})  
 
     setNextExecution()
-    addTags(options?.tags)
+    
+    if(executed.value) {
+      addTags(options?.tags)
+    }
 
     return () => {
       subscriptions.delete(id)
