@@ -39,6 +39,7 @@ export function createQueryGroup<
       const value = await action(...parameters)
       
       setResponse(value)
+      setTags()
       
       error.value = undefined
       errored.value = false
@@ -49,7 +50,6 @@ export function createQueryGroup<
     lastExecuted.value = Date.now()
     executing.value = false
     
-    setTags()
     setNextExecution()
   }
 
@@ -82,15 +82,7 @@ export function createQueryGroup<
     }
   }
 
-  function addTags(tagsToAdd: QueryOptions<TAction>['tags']): void {
-    if(!executed.value) {
-      return
-    }
-    
-    if(!tagsToAdd) {
-      return
-    }
-
+  function addTags(tagsToAdd: QueryOptions<TAction>['tags'] = []): void {
     if(typeof tagsToAdd === 'function') {
       const tags = tagsToAdd(response.value)
       
@@ -110,11 +102,18 @@ export function createQueryGroup<
     subscriptions.set(id, options ?? {})  
 
     setNextExecution()
-    addTags(options?.tags)
+
+    if(executed.value) {
+      addTags(options?.tags)
+    }
+
 
     return () => {
       subscriptions.delete(id)
-      setTags()
+      
+      if(executed.value) {
+        setTags()
+      }
     }
   }
 
