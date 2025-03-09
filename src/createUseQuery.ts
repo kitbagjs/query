@@ -13,8 +13,7 @@ export function createUseQuery<
   TOptions extends QueryCompositionOptions<TAction>
 >(createQuery: CreateQuery, action: TAction, parameters: TArgs, options?: TOptions): Query<TAction, TOptions>
 export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: QueryCompositionOptions): Query<QueryAction, QueryOptions<QueryAction>> {
-  const { ttl, immediate, ...queryOptions } = options ?? {}
-  const query = createQuery(noop, [], queryOptions)
+  const query = createQuery(noop, [], options)
 
   watch(() => toValue(parameters), (parameters, previousParameters) => {
     if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
