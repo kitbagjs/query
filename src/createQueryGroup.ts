@@ -38,11 +38,10 @@ export function createQueryGroup<
     try {
       const value = await action(...parameters)
       
+      setResponse(value)
+      
       error.value = undefined
       errored.value = false
-      
-      setResponse(value)
-      setTags()
     } catch(err) {
       setError(err)
     }
@@ -51,6 +50,7 @@ export function createQueryGroup<
     executing.value = false
     
     setNextExecution()
+    setTags()
   }
 
   function setResponse(value: Awaited<ReturnType<TAction>>): void {
@@ -76,6 +76,10 @@ export function createQueryGroup<
 
   function setTags(): void {
     tags.clear()
+
+    if(!executed.value) {
+      return
+    }
 
     for(const { tags } of subscriptions.values()) {
       addTags(tags)
