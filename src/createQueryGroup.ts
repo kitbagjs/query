@@ -166,6 +166,7 @@ export function createQueryGroup<
       error,
       errored,
       executing,
+      execute,
       dispose,
     })
 

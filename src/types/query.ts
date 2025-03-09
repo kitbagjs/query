@@ -30,6 +30,7 @@ export type Query<
   errored: boolean,
   executed: boolean,
   executing: boolean,
+  execute: () => Promise<AwaitedQuery<TAction>>,
   dispose: () => void,
   [Symbol.dispose](): void;
 }
@@ -42,6 +43,7 @@ export type AwaitedQuery<
   errored: boolean,
   executed: boolean,
   executing: boolean,
+  execute: () => Promise<AwaitedQuery<TAction>>,
   dispose: () => void,
   [Symbol.dispose](): void;
 }
