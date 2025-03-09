@@ -289,3 +289,37 @@ describe('given group with tags', () => {
     expect(group.hasTag(tag2('bar'))).toBe(false)
   })
 })
+
+describe('execute', () => {
+  test('sets immediate execution', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const group = createQueryGroup(action, [])
+
+    group.subscribe()
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    // initial execution
+    expect(action).toHaveBeenCalledOnce()
+
+    for(let i = 0; i < 10; i++) { 
+      vi.resetAllMocks()
+      group.execute()
+
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(action).toHaveBeenCalledOnce()
+    }
+  })
+
+  test('returns the response', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const group = createQueryGroup(action, [])
+
+    const result = await group.execute()
+
+    expect(result).toBe(response)
+  })
+})

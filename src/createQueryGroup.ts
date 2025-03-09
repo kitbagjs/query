@@ -1,5 +1,5 @@
 import { computed, reactive, ref, toRefs } from "vue";
-import { Query, QueryAction, QueryOptions } from "./types/query";
+import { AwaitedQuery, Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
@@ -10,6 +10,7 @@ export type QueryGroup<
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   hasTag: (tag: QueryTag) => boolean,
+  execute: () => Promise<AwaitedQuery<TAction>>,
   active: boolean,
 }
 
@@ -32,7 +33,7 @@ export function createQueryGroup<
   const nextId = createSequence()
   const tags = new Set<QueryTagKey>()
 
-  async function execute(): Promise<void> {
+  async function execute(): Promise<AwaitedQuery<TAction>> {
     executing.value = true
 
     try {
@@ -51,6 +52,8 @@ export function createQueryGroup<
     executing.value = false
     
     setNextExecution()
+
+    return response.value
   }
 
   function setResponse(value: Awaited<ReturnType<TAction>>): void {
@@ -192,6 +195,7 @@ export function createQueryGroup<
   return {
     subscribe,
     hasTag,
+    execute,
     get active() {
       return subscriptions.size > 0
     },
