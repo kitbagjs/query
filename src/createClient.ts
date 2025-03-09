@@ -1,7 +1,4 @@
-import { onScopeDispose, toRef, toRefs, toValue, watch } from "vue";
 import { QueryAction, QueryOptions } from "./types/query";
-import isEqual from 'lodash.isequal'
-import { isDefined } from "./utilities";
 import { ClientOptions } from "./types/clientOptions";
 import { 
   DefinedQueryComposition,
@@ -12,8 +9,7 @@ import {
   QueryFunction,
 } from "./types/client";
 import { createQueryGroups } from "./createQueryGroups";
-
-const noop = () => undefined
+import { createUseQuery } from "./createUseQuery";
 
 export function createClient(options?: ClientOptions): QueryClient {
   const { createQuery } = createQueryGroups()
@@ -22,38 +18,8 @@ export function createClient(options?: ClientOptions): QueryClient {
     return createQuery(action, args, options)
   }
 
-  const useQuery: QueryComposition = (action, parameters, options) => {
-    const query = createQuery(noop, [], options)
-
-    watch(() => toValue(parameters), (parameters, previousParameters) => {
-      if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
-        return
-      }
-
-      query.dispose()
-
-      if(parameters === null) {
-        Object.assign(query, {
-          response: toRef(() => options?.placeholder),
-          executed: toRef(() => false),
-          executing: false,
-        })
-
-        return
-      }
-
-      const newValue = createQuery(action, parameters, options)
-      const previousResponse = query.response
-
-      Object.assign(query, toRefs(newValue), {
-        response: toRef(() => newValue.response ?? previousResponse)
-      })
-          
-    }, { deep: true, immediate: true })
-
-    onScopeDispose(() => query.dispose())
-
-    return query
+  const useQuery: QueryComposition = (action, parameters, options) => {    
+    return createUseQuery(createQuery, action, parameters, options)
   }
 
   const defineQuery: DefineQuery = <
