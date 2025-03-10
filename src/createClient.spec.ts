@@ -353,14 +353,8 @@ describe('useQuery', () => {
   })
 
   testInEffectScope('immediate false, acts like null parameters', async () => {
-    const response = Symbol('response')
     const input = ref<boolean | null>(null)
-
-    const action = vi.fn(async (_value: boolean) => {
-      await timeout(100)
-      return response
-    })
-    
+    const action = vi.fn((_value: boolean) => Symbol())
     const { useQuery } = createClient()
 
     const query = useQuery(action, () => {
@@ -379,6 +373,19 @@ describe('useQuery', () => {
     expect(action).not.toHaveBeenCalled()
 
     input.value = true
+
+    await vi.runAllTimersAsync()
+
+    expect(query.response).toBeUndefined()
+    expect(query.executed).toBe(false)
+    expect(query.executing).toBe(false)
+    expect(action).not.toHaveBeenCalled()
+  })
+
+  testInEffectScope('immediate false, also prevents interval', async () => {
+    const action = vi.fn(() => Symbol())
+    const { useQuery } = createClient()
+    const query = useQuery(action, [], { immediate: false, interval: 100 })
 
     await vi.runAllTimersAsync()
 
