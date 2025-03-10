@@ -1,5 +1,4 @@
 import { CreateQuery } from "./createQueryGroups"
-import { QueryCompositionOptions } from "./types/client"
 import { Query, QueryAction, QueryActionArgs, QueryOptions } from "./types/query"
 import { onScopeDispose, toRef, toRefs, toValue, watch } from "vue"
 import isEqual from 'lodash.isequal'
@@ -10,9 +9,9 @@ const noop = () => undefined
 export function createUseQuery<
   TAction extends QueryAction,
   TArgs extends QueryActionArgs<TAction>,
-  TOptions extends QueryCompositionOptions<TAction>
+  TOptions extends QueryOptions<TAction>
 >(createQuery: CreateQuery, action: TAction, parameters: TArgs, options?: TOptions): Query<TAction, TOptions>
-export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: QueryCompositionOptions): Query<QueryAction, QueryOptions<QueryAction>> {
+export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: QueryOptions<QueryAction>): Query<QueryAction, QueryOptions<QueryAction>> {
   const query = createQuery(noop, [], options)
 
   watch(() => toValue(parameters), (parameters, previousParameters) => {
