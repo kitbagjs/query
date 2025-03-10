@@ -1,15 +1,17 @@
 import { computed, reactive, ref, toRefs } from "vue";
-import { Query, QueryAction, QueryOptions } from "./types/query";
+import { AwaitedQuery, Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
 import { QueryTagKey, QueryTag } from "./types/tags";
+import { log } from "./services/loggingService";
 
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   hasTag: (tag: QueryTag) => boolean,
+  execute: () => Promise<AwaitedQuery<TAction>>,
   active: boolean,
 }
 
@@ -19,20 +21,21 @@ export function createQueryGroup<
   type Group = Query<TAction, QueryOptions<TAction>>
 
   const intervalController = createIntervalController()
-
+  let lastExecuted: number | undefined = undefined
+  
   const response = ref<Group['response']>()
   const error = ref<Group['error']>()
   const errored = ref<Group['errored']>(false)
-  const lastExecuted = ref<number>()
   const executing = ref<Group['executing']>(false)
-  const executed = computed<Group['executed']>(() => lastExecuted.value !== undefined)
+  const executed = ref<Group['executed']>(false)
   const { promise, resolve } = Promise.withResolvers()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
   const nextId = createSequence()
   const tags = new Set<QueryTagKey>()
 
-  async function execute(): Promise<void> {
+  async function execute(): Promise<AwaitedQuery<TAction>> {
+    lastExecuted = Date.now()
     executing.value = true
 
     try {
@@ -40,20 +43,30 @@ export function createQueryGroup<
       
       setResponse(value)
       setTags()
-      
-      error.value = undefined
-      errored.value = false
-    } catch(err) {
-      setError(err)
+      setNextExecution()
+
+      return response.value
+    } catch(error) {
+      setError(error)
+
+      throw error
+    } finally {
+      executing.value = false
+      executed.value = true
+    } 
+  }
+
+  async function safeExecute(): Promise<void> {
+    try {
+      await execute()
+    } catch(error) {
+      log(error)
     }
-    
-    lastExecuted.value = Date.now()
-    executing.value = false
-    
-    setNextExecution()
   }
 
   function setResponse(value: Awaited<ReturnType<TAction>>): void {
+    error.value = undefined
+    errored.value = false
     response.value = value
 
     for(const { onSuccess } of subscriptions.values()) {
@@ -82,8 +95,8 @@ export function createQueryGroup<
     }
   }
 
-  function addTags(tagsToAdd: QueryOptions<TAction>['tags']): void {
-    if(!executed.value) {
+  function addTags(tagsToAdd: QueryOptions<TAction>['tags'] = []): void {
+    if(lastExecuted === undefined) {
       return
     }
 
@@ -119,22 +132,18 @@ export function createQueryGroup<
   }
 
   function setNextExecution(): void {
-    if(executing.value) {
-      return
-    }
-
     const interval = getNextSubscriptionInterval()
 
-    intervalController.set(execute, interval)
+    intervalController.set(safeExecute, interval)
   }
 
   function getNextSubscriptionInterval(): number {
-    if(lastExecuted.value === undefined) {
+    if(lastExecuted === undefined) {
       return 0
     }
 
     const interval = getSubscriptionInterval()
-    const timeLeftSinceLastExecution = Date.now() - lastExecuted.value
+    const timeLeftSinceLastExecution = Date.now() - lastExecuted
 
     return interval - timeLeftSinceLastExecution
   }
@@ -163,6 +172,7 @@ export function createQueryGroup<
       error,
       errored,
       executing,
+      execute,
       dispose,
     })
 
@@ -192,6 +202,7 @@ export function createQueryGroup<
   return {
     subscribe,
     hasTag,
+    execute,
     get active() {
       return subscriptions.size > 0
     },
