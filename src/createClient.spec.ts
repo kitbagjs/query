@@ -351,6 +351,42 @@ describe('useQuery', () => {
 
     expect(value.response).toBe(response)
   })
+
+  testInEffectScope('immediate false, acts like null parameters', async () => {
+    const response = Symbol('response')
+    const input = ref<boolean | null>(null)
+
+    const action = vi.fn(async (_value: boolean) => {
+      await timeout(100)
+      return response
+    })
+    
+    const { useQuery } = createClient()
+
+    const query = useQuery(action, () => {
+      if(input.value === null) {
+        return null
+      }
+
+      return [input.value]
+    }, { immediate: false })
+
+    await vi.runAllTimersAsync()
+
+    expect(query.response).toBeUndefined()
+    expect(query.executed).toBe(false)
+    expect(query.executing).toBe(false)
+    expect(action).not.toHaveBeenCalled()
+
+    input.value = true
+
+    await vi.runAllTimersAsync()
+
+    expect(query.response).toBeUndefined()
+    expect(query.executed).toBe(false)
+    expect(query.executing).toBe(false)
+    expect(action).not.toHaveBeenCalled()
+  })
 })
 
 describe('defineQuery', () => {

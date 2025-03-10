@@ -1,4 +1,5 @@
 import { CreateQuery } from "./createQueryGroups"
+import { QueryCompositionOptions } from "./types/client"
 import { Query, QueryAction, QueryActionArgs, QueryOptions } from "./types/query"
 import { onScopeDispose, toRef, toRefs, toValue, watch } from "vue"
 import isEqual from 'lodash.isequal'
@@ -9,10 +10,11 @@ const noop = () => undefined
 export function createUseQuery<
   TAction extends QueryAction,
   TArgs extends QueryActionArgs<TAction>,
-  TOptions extends QueryOptions<TAction>
+  TOptions extends QueryCompositionOptions<TAction>
 >(createQuery: CreateQuery, action: TAction, parameters: TArgs, options?: TOptions): Query<TAction, TOptions>
-export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: QueryOptions<QueryAction>): Query<QueryAction, QueryOptions<QueryAction>> {
-  const query = createQuery(noop, [], options)
+export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: QueryCompositionOptions<QueryAction>): Query<QueryAction, QueryOptions<QueryAction>> {
+  const { immediate = true, ...queryOptions } = options ?? {}
+  const query = createQuery(noop, [], queryOptions)
 
   watch(() => toValue(parameters), (parameters, previousParameters) => {
     if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
@@ -21,7 +23,7 @@ export function createUseQuery(createQuery: CreateQuery, action: QueryAction, pa
 
     query.dispose()
 
-    if(parameters === null) {
+    if(parameters === null || !immediate) {
       Object.assign(query, {
         response: toRef(() => options?.placeholder),
         executed: toRef(() => false),
