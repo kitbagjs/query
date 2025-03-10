@@ -4,6 +4,7 @@ import { createSequence } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
 import { QueryTagKey, QueryTag } from "./types/tags";
+import { log } from "./services/loggingService";
 
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
@@ -20,11 +21,11 @@ export function createQueryGroup<
   type Group = Query<TAction, QueryOptions<TAction>>
 
   const intervalController = createIntervalController()
-
+  let lastExecuted: number | undefined = undefined
+  
   const response = ref<Group['response']>()
   const error = ref<Group['error']>()
   const errored = ref<Group['errored']>(false)
-  const lastExecuted = ref<number>()
   const executing = ref<Group['executing']>(false)
   const executed = ref<Group['executed']>(false)
   const { promise, resolve } = Promise.withResolvers()
@@ -34,7 +35,7 @@ export function createQueryGroup<
   const tags = new Set<QueryTagKey>()
 
   async function execute(): Promise<AwaitedQuery<TAction>> {
-    lastExecuted.value = Date.now()
+    lastExecuted = Date.now()
     executing.value = true
 
     try {
@@ -58,8 +59,8 @@ export function createQueryGroup<
   async function safeExecute(): Promise<void> {
     try {
       await execute()
-    } catch {
-      // suppress error
+    } catch(error) {
+      log(error)
     }
   }
 
@@ -95,7 +96,7 @@ export function createQueryGroup<
   }
 
   function addTags(tagsToAdd: QueryOptions<TAction>['tags'] = []): void {
-    if(lastExecuted.value === undefined) {
+    if(lastExecuted === undefined) {
       return
     }
 
@@ -137,12 +138,12 @@ export function createQueryGroup<
   }
 
   function getNextSubscriptionInterval(): number {
-    if(lastExecuted.value === undefined) {
+    if(lastExecuted === undefined) {
       return 0
     }
 
     const interval = getSubscriptionInterval()
-    const timeLeftSinceLastExecution = Date.now() - lastExecuted.value
+    const timeLeftSinceLastExecution = Date.now() - lastExecuted
 
     return interval - timeLeftSinceLastExecution
   }
