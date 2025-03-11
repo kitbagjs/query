@@ -153,6 +153,65 @@ describe('query', () => {
 
     expect(value.response).toBe(response)
   })
+
+  test('immediate false, acts like null parameters', async () => {
+    const action = vi.fn(() => Symbol())
+    const { query } = createClient()
+
+    const value = query(action, [], { immediate: false })
+
+    await vi.runAllTimersAsync()
+
+    expect(value.response).toBeUndefined()
+    expect(value.executed).toBe(false)
+    expect(value.executing).toBe(false)
+    expect(action).not.toHaveBeenCalled()
+  })
+
+  test('immediate false, also prevents interval', async () => {
+    const action = vi.fn(() => Symbol())
+    const { query } = createClient()
+
+    const value = query(action, [], { immediate: false, interval: 100 })
+
+    await vi.runAllTimersAsync()
+
+    expect(value.response).toBeUndefined()
+    expect(value.executed).toBe(false)
+    expect(value.executing).toBe(false)
+    expect(action).not.toHaveBeenCalled()
+  })
+
+  test('immediate false has no effect after calling execute', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const { query } = createClient()
+
+    const value = query(action, [], { immediate: false, interval: 100 })
+
+    await vi.runAllTimersAsync()
+
+    expect(value.response).toBeUndefined()
+    expect(value.executed).toBe(false)
+    expect(value.executing).toBe(false)
+    expect(action).not.toHaveBeenCalled()
+
+    const result = await value.execute()
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(result).toBe(response)
+    expect(value.response).toBe(response)
+    expect(value.executed).toBe(true)
+    expect(action).toHaveBeenCalledTimes(1)
+
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(result).toBe(response)
+    expect(value.response).toBe(response)
+    expect(value.executed).toBe(true)
+    expect(action).toHaveBeenCalledTimes(2)
+  })
 })
 
 describe('useQuery', () => {
