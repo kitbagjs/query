@@ -12,6 +12,7 @@ export type QueryOptions<
 > = {
   placeholder?: any,
   interval?: number,
+  immediate?: boolean,
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
   tags?: QueryTag[] | ((value: Awaited<ReturnType<TAction>>) => QueryTag[])

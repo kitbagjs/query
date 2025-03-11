@@ -120,7 +120,7 @@ export function createQueryGroup<
   function addSubscription(options?: QueryOptions<TAction>): () => void {
     const id = nextId()
 
-    subscriptions.set(id, options ?? {})  
+    subscriptions.set(id, { immediate: true, ...options })  
 
     setNextExecution()
     addTags(options?.tags)
@@ -139,7 +139,7 @@ export function createQueryGroup<
 
   function getNextSubscriptionInterval(): number {
     if(lastExecuted === undefined) {
-      return 0
+      return getIsImmediate() ? 0 : Infinity
     }
 
     const interval = getSubscriptionInterval()
@@ -154,6 +154,12 @@ export function createQueryGroup<
       .map(subscription => subscription.interval ?? Infinity)
   
     return Math.min(...intervals)
+  }
+
+  function getIsImmediate(): boolean {
+    return Array
+      .from(subscriptions.values())
+      .some(subscription => subscription.immediate)
   }
 
   function subscribe<
