@@ -212,6 +212,21 @@ describe('query', () => {
     expect(value.executed).toBe(true)
     expect(action).toHaveBeenCalledTimes(2)
   })
+
+  test('immediate false has no effect when other queries in same group are immediate', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const { query } = createClient()
+
+    const value = query(action, [], { immediate: false })
+    query(action, [])
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(value.response).toBe(response)
+    expect(value.executed).toBe(true)
+    expect(action).toHaveBeenCalledOnce()
+  })
 })
 
 describe('useQuery', () => {
@@ -465,6 +480,21 @@ describe('useQuery', () => {
     expect(query.response).toBe(response)
     expect(query.executed).toBe(true)
     expect(action).toHaveBeenCalledTimes(2)
+  })
+
+  testInEffectScope('immediate false has no effect when other queries in same group are immediate', async () => {
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+    const { useQuery } = createClient()
+
+    const query = useQuery(action, [], { immediate: false })
+    useQuery(action, [])
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(query.response).toBe(response)
+    expect(query.executed).toBe(true)
+    expect(action).toHaveBeenCalledOnce()
   })
 })
 
