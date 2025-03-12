@@ -1,5 +1,5 @@
 import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
-import { createClient } from './createClient'
+import { createQueryClient } from './createQueryClient'
 import { effectScope, ref } from 'vue'
 import { timeout } from './utilities'
 
@@ -22,7 +22,7 @@ function testInEffectScope(name: string, fn: () => Promise<void>) {
 describe('query', () => {
   test('multiple queries with the same action only executes the action once', async () => {
     const action = vi.fn()
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     query(action, [])
     query(action, [])
@@ -35,7 +35,7 @@ describe('query', () => {
 
   test.fails('using a query automatically disposes of the query', () => {
     const action = vi.fn(() => true)
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     async function test() {
       using value = await query(action, [])
@@ -53,7 +53,7 @@ describe('query', () => {
   test('data is set after action is executed', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { query } = createClient()
+    const { query } = createQueryClient()
     const value = query(action, [])
 
     expect(value.data).toBeUndefined()
@@ -73,7 +73,7 @@ describe('query', () => {
     [undefined],
   ])('error is set after action throws: %s', async (error) => {
     const action = vi.fn(() => { throw error })
-    const { query } = createClient()
+    const { query } = createQueryClient()
     const value = query(action, [])
 
     await vi.runOnlyPendingTimersAsync()
@@ -88,7 +88,7 @@ describe('query', () => {
       return response
     })
 
-    const { query } = createClient()
+    const { query } = createQueryClient()
     const value = query(action, [])
 
     expect(value.data).toBeUndefined()
@@ -108,7 +108,7 @@ describe('query', () => {
     [undefined],
   ])('awaiting a query throws an error if the action throws: %s', async (error) => {
     const action = vi.fn(() => { throw error })
-    const { query } = createClient()
+    const { query } = createQueryClient()
     const value = query(action, [])
 
     await vi.runOnlyPendingTimersAsync()
@@ -119,7 +119,7 @@ describe('query', () => {
   test('onSuccess', async () => {
     const action = vi.fn()
     const onSuccess = vi.fn()
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     query(action, [], { onSuccess })
 
@@ -131,7 +131,7 @@ describe('query', () => {
   test('onError', async () => {
     const action = vi.fn(() => { throw new Error('test') })
     const onError = vi.fn()
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     query(action, [], { onError })
 
@@ -143,7 +143,7 @@ describe('query', () => {
   test('placeholder', async () => {
     const placeholder = Symbol('placeholder')
     const response = Symbol('response')
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     const value = query(() => response, [], { placeholder })
 
@@ -162,7 +162,7 @@ describe('useQuery', () => {
       const responseFalse = Symbol('responseFalse')
 
       const action = vi.fn((value: boolean) => value ? responseTrue : responseFalse)
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
 
       const input = ref(false)
 
@@ -191,7 +191,7 @@ describe('useQuery', () => {
         return value ? responseTrue : responseFalse
       })
 
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
 
       const input = ref(false)
 
@@ -231,7 +231,7 @@ describe('useQuery', () => {
         return value ? responseTrue : responseFalse
       })
 
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
 
       const parameters = ref<[boolean] | null>([false])
 
@@ -259,7 +259,7 @@ describe('useQuery', () => {
     vi.useRealTimers()
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
 
     const query = await useQuery(action, [])
 
@@ -269,7 +269,7 @@ describe('useQuery', () => {
   testInEffectScope('awaiting a query throws an error if the action throws an error', async () => {
     vi.useRealTimers()
     const action = vi.fn(() => { throw new Error('test') })
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
     const value = useQuery(action, [])
   
     await expect(value).rejects.toThrow('test')
@@ -285,7 +285,7 @@ describe('useQuery', () => {
       return value ? responseTrue : responseFalse
     })
 
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
 
     const query = useQuery(action, () => {
       if(input.value === null) {
@@ -327,7 +327,7 @@ describe('useQuery', () => {
   testInEffectScope('queries do not interfere with each other', async () => {
     const action1 = vi.fn(() => true)
     const action2 = vi.fn(() => false)
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
 
     const query1 = useQuery(action1, [])
     const query2 = useQuery(action2, [])
@@ -341,7 +341,7 @@ describe('useQuery', () => {
   testInEffectScope('placeholder', async () => {
     const placeholder = Symbol('placeholder')
     const response = Symbol('response')
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
 
     const value = useQuery(() => response, [], { placeholder })
 
@@ -357,7 +357,7 @@ describe('defineQuery', () => {
   test('returns a defined query function', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { defineQuery } = createClient()
+    const { defineQuery } = createQueryClient()
 
     const { query } = defineQuery(action)
 
@@ -371,7 +371,7 @@ describe('defineQuery', () => {
   testInEffectScope('returns a defined query composition', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { defineQuery } = createClient()
+    const { defineQuery } = createQueryClient()
 
     const { useQuery } = defineQuery(action)
 
