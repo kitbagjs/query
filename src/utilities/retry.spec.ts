@@ -9,56 +9,60 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-test('should not retry callback if it does not throw an error and resolve the promise', async () => {
-  const callback = vi.fn()
+describe('retry', () => {
 
-  const result = retry(callback, { count: 0, delay: 0 })
+  test('should not retry callback if it does not throw an error and resolve the promise', async () => {
+    const callback = vi.fn()
 
-  expect(callback).toHaveBeenCalledOnce()
+    const result = retry(callback, { count: 0, delay: 0 })
 
-  await expect(result).resolves.toBeUndefined()
-})
+    expect(callback).toHaveBeenCalledOnce()
 
-test('should retry callback if it throws an error and resolve the promise if it then succeeds', async () => {
-  let count = 1
-
-  const callback = vi.fn(() => {
-    if(count === 1) {
-      count++
-      throw new Error('test')
-    }
-
-    return 'success'
+    await expect(result).resolves.toBeUndefined()
   })
 
-  const result = retry(callback, { count: 1, delay: 100 })
+  test('should retry callback if it throws an error and resolve the promise if it then succeeds', async () => {
+    let count = 1
 
-  await vi.advanceTimersByTimeAsync(100)
+    const callback = vi.fn(() => {
+      if(count === 1) {
+        count++
+        throw new Error('test')
+      }
 
-  expect(callback).toHaveBeenCalledTimes(2)
+      return 'success'
+    })
 
-  await expect(result).resolves.toBe('success')
-})
+    const result = retry(callback, { count: 1, delay: 100 })
 
-test('should retry callback if it throws an error and reject the promise if it then fails', async () => {
-  const error = new Error('test')
-  const callback = vi.fn(() => {
-    throw error
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(callback).toHaveBeenCalledTimes(2)
+
+    await expect(result).resolves.toBe('success')
   })
 
-  retry(callback, { count: 3, delay: 100 }).catch(error => {
-    expect(error).toBe(error)
+  test('should retry callback if it throws an error and reject the promise if it then fails', async () => {
+    const error = new Error('test')
+    const callback = vi.fn(() => {
+      throw error
+    })
 
-    return 'error'
+    retry(callback, { count: 3, delay: 100 }).catch(error => {
+      expect(error).toBe(error)
+
+      return 'error'
+    })
+    
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(callback).toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(300)
+
+    expect(callback).toHaveBeenCalledTimes(4)
   })
-  
-  await vi.advanceTimersByTimeAsync(0)
 
-  expect(callback).toHaveBeenCalled()
-
-  await vi.advanceTimersByTimeAsync(300)
-
-  expect(callback).toHaveBeenCalledTimes(4)
 })
 
 describe('reduceRetryOptions', () => {
