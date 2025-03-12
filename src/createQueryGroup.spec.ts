@@ -335,3 +335,26 @@ describe('execute', () => {
     await expect(response).rejects.toThrow('Expected error')
   })
 })
+
+describe('retries', () => {
+  test('retries the action', async () => {
+    const action = vi.fn(() => { throw new Error('Expected error') })
+    const group = createQueryGroup(action, [])
+
+    const result = group.subscribe({ retries: { count: 1, delay: 100 }})
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(result.error).toBeUndefined()
+    expect(result.errored).toBe(false)
+    expect(result.executed).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(action).toHaveBeenCalledTimes(2)
+    expect(result.error).toBeDefined()
+    expect(result.errored).toBe(true)
+    expect(result.executed).toBe(true)
+  })
+})

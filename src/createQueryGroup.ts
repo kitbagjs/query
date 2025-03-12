@@ -5,6 +5,7 @@ import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
 import { QueryTagKey, QueryTag } from "./types/tags";
 import { log } from "./services/loggingService";
+import { reduceRetryOptions, retry, RetryOptions } from "./utilities/retry";
 
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
@@ -39,7 +40,7 @@ export function createQueryGroup<
     executing.value = true
 
     try {
-      const value = await action(...parameters)
+      const value = await retry(() => action(...parameters), getRetryOptions())
       
       setResponse(value)
       setTags()
@@ -154,6 +155,14 @@ export function createQueryGroup<
       .map(subscription => subscription.interval ?? Infinity)
   
     return Math.min(...intervals)
+  }
+
+  function getRetryOptions(): RetryOptions {
+    const retries = Array
+      .from(subscriptions.values())
+      .map(subscription => subscription.retries)
+
+    return reduceRetryOptions(retries)
   }
 
   function subscribe<
