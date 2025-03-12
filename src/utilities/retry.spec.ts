@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { retry } from "./retry";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { reduceRetryOptions, retry } from "./retry";
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -12,7 +12,7 @@ afterEach(() => {
 test('should not retry callback if it does not throw an error and resolve the promise', async () => {
   const callback = vi.fn()
 
-  const result = retry(callback)
+  const result = retry(callback, { count: 0, delay: 0 })
 
   expect(callback).toHaveBeenCalledOnce()
 
@@ -31,7 +31,7 @@ test('should retry callback if it throws an error and resolve the promise if it 
     return 'success'
   })
 
-  const result = retry(callback, { retries: 1, delay: 100 })
+  const result = retry(callback, { count: 1, delay: 100 })
 
   await vi.advanceTimersByTimeAsync(100)
 
@@ -46,7 +46,7 @@ test('should retry callback if it throws an error and reject the promise if it t
     throw error
   })
 
-  retry(callback, { retries: 3, delay: 100 }).catch(error => {
+  retry(callback, { count: 3, delay: 100 }).catch(error => {
     expect(error).toBe(error)
 
     return 'error'
@@ -59,4 +59,19 @@ test('should retry callback if it throws an error and reject the promise if it t
   await vi.advanceTimersByTimeAsync(300)
 
   expect(callback).toHaveBeenCalledTimes(4)
+})
+
+describe('reduceRetryOptions', () => {
+  test('should return the highest count and lowest delay', () => {
+    const options = [
+      { count: 1, delay: 100 },
+      2,
+      { count: 3, delay: 300 },
+      undefined,
+    ]
+
+    const result = reduceRetryOptions(options)
+
+    expect(result).toStrictEqual({ count: 3, delay: 100 })
+  })
 })

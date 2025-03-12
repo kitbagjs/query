@@ -2,16 +2,47 @@ import { timeout } from "./timeout"
 
 type RetryCallback<T> = () => T
 
-type RetryOptions = {
-  retries?: number,
-  delay?: number,
+export type RetryOptions = {
+  count: number,
+  delay: number,
 }
 
-const DEFAULT_RETRIES = 0
-const DEFAULT_DELAY = 1000
+export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
+  count: 0,
+  delay: 500,
+}
 
-export async function retry<T>(action: RetryCallback<T>, options: RetryOptions = {}, count: number = 0): Promise<T> {
-  const { retries = DEFAULT_RETRIES, delay = DEFAULT_DELAY } = options
+function normalizeRetryOptions(options: Partial<RetryOptions> | number | undefined): RetryOptions {
+  if(typeof options === 'number') {
+    return {
+      ...DEFAULT_RETRY_OPTIONS,
+      count: options,
+    }
+  }
+
+  if(typeof options === 'object') {
+    return {
+      ...DEFAULT_RETRY_OPTIONS,
+      ...options,
+    }
+  }
+
+  return DEFAULT_RETRY_OPTIONS
+}
+
+export function reduceRetryOptions(options: (Partial<RetryOptions> | number | undefined)[]): RetryOptions {
+  return options.reduce<RetryOptions>((response, options) => {
+    const { count: retries, delay } = normalizeRetryOptions(options)
+
+    return {
+      count: Math.max(retries, response.count),
+      delay: Math.min(delay, response.delay),
+    }
+  }, DEFAULT_RETRY_OPTIONS)
+}
+
+export async function retry<T>(action: RetryCallback<T>, options: RetryOptions, count: number = 0): Promise<T> {
+  const { count: retries, delay } = options
 
   try {
     return await action()
