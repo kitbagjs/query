@@ -13,12 +13,14 @@ export function createUseQuery<
 >(createQuery: CreateQuery, action: TAction, parameters: TArgs, options?: TOptions): Query<TAction, TOptions>
 export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: QueryOptions<QueryAction>): Query<QueryAction, QueryOptions<QueryAction>> {
   const query = createQuery(noop, [], options)
+  let hasExecuted = false
 
   watch(() => toValue(parameters), (parameters, previousParameters) => {
     if(isDefined(previousParameters) && isEqual(previousParameters, parameters)) {
       return
     }
 
+    hasExecuted = query.executed
     query.dispose()
 
     if(parameters === null) {
@@ -31,7 +33,7 @@ export function createUseQuery(createQuery: CreateQuery, action: QueryAction, pa
       return
     }
 
-    const newValue = createQuery(action, parameters, options)
+    const newValue = createQuery(action, parameters, hasExecuted ? {...options, immediate: true} : options)
     const previousResponse = query.response
 
     Object.assign(query, toRefs(newValue), {

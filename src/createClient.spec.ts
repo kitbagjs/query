@@ -482,6 +482,36 @@ describe('useQuery', () => {
     expect(action).toHaveBeenCalledTimes(2)
   })
 
+  testInEffectScope('immediate false has no effect after calling execute, even when args change', async () => {
+    const responseTrue = Symbol('responseTrue')
+    const responseFalse = Symbol('responseFalse')
+    const input = ref(false)
+
+    const action = vi.fn((value: boolean) => value ? responseTrue : responseFalse)
+
+    const { useQuery } = createClient()
+    const query = useQuery(action, () => [input.value], { immediate: false })
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(query.response).toBeUndefined()
+    expect(action).not.toHaveBeenCalled()
+
+    await query.execute()
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(query.response).toBe(responseFalse)
+    expect(action).toHaveBeenCalledTimes(1)
+
+    input.value = true
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(query.response).toBe(responseTrue)
+    expect(action).toHaveBeenCalledTimes(2)
+  })
+
   testInEffectScope('immediate false has no effect when other queries in same group are immediate', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
