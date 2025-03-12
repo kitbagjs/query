@@ -40,7 +40,7 @@ describe('query', () => {
     async function test() {
       using value = await query(action, [])
 
-      return value.response
+      return value.data
     }
 
     test()
@@ -50,17 +50,17 @@ describe('query', () => {
     expect(action).toHaveBeenCalledTimes(2)
   })
 
-  test('response is set after action is executed', async () => {
+  test('data is set after action is executed', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
     const { query } = createClient()
     const value = query(action, [])
 
-    expect(value.response).toBeUndefined()
+    expect(value.data).toBeUndefined()
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 
   test.each([
@@ -81,7 +81,7 @@ describe('query', () => {
     expect(value.error).toBe(error)
   })
 
-  test('awaiting a query returns the response', async () => {
+  test('awaiting a query returns the data', async () => {
     const response = Symbol('response')
     const action = vi.fn(async () => {
       await timeout(100)
@@ -91,11 +91,11 @@ describe('query', () => {
     const { query } = createClient()
     const value = query(action, [])
 
-    expect(value.response).toBeUndefined()
+    expect(value.data).toBeUndefined()
 
     await vi.runAllTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 
   test.each([
@@ -147,17 +147,17 @@ describe('query', () => {
 
     const value = query(() => response, [], { placeholder })
 
-    expect(value.response).toBe(placeholder)
+    expect(value.data).toBe(placeholder)
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 })
 
 describe('useQuery', () => {
   describe('when parameters change', () => {
-    testInEffectScope('response is updated', async () => {
+    testInEffectScope('data is updated', async () => {
       const responseTrue = Symbol('responseTrue')
       const responseFalse = Symbol('responseFalse')
 
@@ -168,17 +168,17 @@ describe('useQuery', () => {
 
       const query = useQuery(action, () => [input.value])
 
-      expect(query.response).toBe(undefined)
+      expect(query.data).toBe(undefined)
 
       await vi.runOnlyPendingTimersAsync()
 
-      expect(query.response).toBe(responseFalse)
+      expect(query.data).toBe(responseFalse)
 
       input.value = true
 
       await vi.runOnlyPendingTimersAsync()
 
-      expect(query.response).toBe(responseTrue)
+      expect(query.data).toBe(responseTrue)
     })
 
     testInEffectScope('executed and executing are updated', async () => {
@@ -220,7 +220,7 @@ describe('useQuery', () => {
       expect(query.executed).toBe(true)
     })
 
-    testInEffectScope('when parameters become null, response is set to placeholder', async () => {
+    testInEffectScope('when parameters become null, data is set to placeholder', async () => {
       const responseTrue = Symbol('responseTrue')
       const responseFalse = Symbol('responseFalse')
       const placeholder = Symbol('placeholder')
@@ -239,7 +239,7 @@ describe('useQuery', () => {
 
       await vi.runAllTimersAsync()
 
-      expect(query.response).toBe(responseFalse)
+      expect(query.data).toBe(responseFalse)
 
       parameters.value = [true]
 
@@ -249,13 +249,13 @@ describe('useQuery', () => {
 
       await vi.runOnlyPendingTimersAsync()
 
-      expect(query.response).toBe(placeholder)
+      expect(query.data).toBe(placeholder)
       expect(query.executing).toBe(false)
       expect(query.executed).toBe(false)
     })
   })
 
-  testInEffectScope('awaiting a query returns the response', async () => {
+  testInEffectScope('awaiting a query returns the data', async () => {
     vi.useRealTimers()
     const response = Symbol('response')
     const action = vi.fn(() => response)
@@ -263,7 +263,7 @@ describe('useQuery', () => {
 
     const query = await useQuery(action, [])
 
-    expect(query.response).toBe(response)
+    expect(query.data).toBe(response)
   })
 
   testInEffectScope('awaiting a query throws an error if the action throws an error', async () => {
@@ -275,7 +275,7 @@ describe('useQuery', () => {
     await expect(value).rejects.toThrow('test')
   })
 
-  testInEffectScope('changing parameters preserves previous response', async () => {
+  testInEffectScope('changing parameters preserves previous data', async () => {
     const responseTrue = Symbol('responseTrue')
     const responseFalse = Symbol('responseFalse')
     const input = ref<boolean | null>(false)
@@ -295,33 +295,33 @@ describe('useQuery', () => {
       return [input.value]
     })
 
-    expect(query.response).toBeUndefined()
+    expect(query.data).toBeUndefined()
 
     await vi.runAllTimersAsync()
 
-    expect(query.response).toBe(responseFalse)
+    expect(query.data).toBe(responseFalse)
 
     input.value = true
 
     await vi.advanceTimersByTimeAsync(0)
 
-    expect(query.response).toBe(responseFalse)
+    expect(query.data).toBe(responseFalse)
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBe(responseTrue)
+    expect(query.data).toBe(responseTrue)
 
     input.value = true
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBe(responseTrue)
+    expect(query.data).toBe(responseTrue)
 
     input.value = null
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBeUndefined()
+    expect(query.data).toBeUndefined()
   })
 
   testInEffectScope('queries do not interfere with each other', async () => {
@@ -334,8 +334,8 @@ describe('useQuery', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query1.response).toBe(true)
-    expect(query2.response).toBe(false)
+    expect(query1.data).toBe(true)
+    expect(query2.data).toBe(false)
   })
 
   testInEffectScope('placeholder', async () => {
@@ -345,11 +345,11 @@ describe('useQuery', () => {
 
     const value = useQuery(() => response, [], { placeholder })
 
-    expect(value.response).toBe(placeholder)
+    expect(value.data).toBe(placeholder)
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 })
 
@@ -365,7 +365,7 @@ describe('defineQuery', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 
   testInEffectScope('returns a defined query composition', async () => {
@@ -379,6 +379,6 @@ describe('defineQuery', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 })

@@ -25,7 +25,7 @@ export type Query<
   TAction extends QueryAction,
   TOptions extends QueryOptions<TAction>
 > = PromiseLike<AwaitedQuery<TAction>> & {
-  response: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
+  data: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
   error: unknown,
   errored: boolean,
   executed: boolean,
@@ -38,7 +38,7 @@ export type Query<
 export type AwaitedQuery<
   TAction extends QueryAction,
 > = {
-  response: Awaited<ReturnType<TAction>>,
+  data: Awaited<ReturnType<TAction>>,
   error: unknown,
   errored: boolean,
   executed: boolean,

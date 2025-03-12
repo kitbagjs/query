@@ -36,13 +36,13 @@ test('query from query function with tags are preserved', () => {
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
 
-test('query from query function with tags callback is called with the query response', () => {
+test('query from query function with tags callback is called with the query data', () => {
   const { query } = createClient()
   const action = vi.fn(() => 'foo')
 
   query(action, [], {
-    tags: (response) => {
-      expectTypeOf(response).toMatchTypeOf<string>()
+    tags: (data) => {
+      expectTypeOf(data).toMatchTypeOf<string>()
 
       return []
     }
@@ -65,13 +65,13 @@ test('query from query composition with tags are preserved', () => {
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
 
-test('query from query composition with tags callback is called with the query response', () => {
+test('query from query composition with tags callback is called with the query data', () => {
   const { useQuery } = createClient()
   const action = vi.fn(() => 'foo')
 
   useQuery(action, [], {
-    tags: (response) => {
-      expectTypeOf(response).toMatchTypeOf<string>()
+    tags: (data) => {
+      expectTypeOf(data).toMatchTypeOf<string>()
 
       return []
     }

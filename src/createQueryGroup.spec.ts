@@ -20,7 +20,7 @@ test('subscribing to new group, always executes the action', async () => {
 
   await vi.runOnlyPendingTimersAsync()
 
-  expect(query.response).toBe(response)
+  expect(query.data).toBe(response)
   expect(query.error).toBeUndefined()
   expect(query.errored).toBe(false)
   expect(query.executing).toBe(false)
@@ -61,7 +61,7 @@ describe('when action executes successfully', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBe(response)
+    expect(query.data).toBe(response)
     expect(query.error).toBeUndefined()
     expect(query.errored).toBe(false)
     expect(query.executing).toBe(false)
@@ -98,7 +98,7 @@ describe('when action throws an error', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBe(response)
+    expect(query.data).toBe(response)
     expect(query.error).toBeUndefined()
     expect(query.errored).toBe(false)
     expect(query.executing).toBe(false)
