@@ -16,9 +16,13 @@ export type QueryGroup<
   active: boolean,
 }
 
+export type QueryGroupOptions = {
+  retries?: number | Partial<RetryOptions>
+}
+
 export function createQueryGroup<
   TAction extends QueryAction,
->(action: TAction, parameters: Parameters<TAction>): QueryGroup<TAction> {
+>(action: TAction, parameters: Parameters<TAction>, options?: QueryGroupOptions): QueryGroup<TAction> {
   type Group = Query<TAction, QueryOptions<TAction>>
 
   const intervalController = createIntervalController()
@@ -161,6 +165,8 @@ export function createQueryGroup<
     const retries = Array
       .from(subscriptions.values())
       .map(subscription => subscription.retries)
+    
+    retries.push(options?.retries)
 
     return reduceRetryOptions(retries)
   }
