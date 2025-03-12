@@ -56,7 +56,7 @@ describe('retry', () => {
     
     await vi.advanceTimersByTimeAsync(0)
 
-    expect(callback).toHaveBeenCalled()
+    expect(callback).toHaveBeenCalledOnce()
 
     await vi.advanceTimersByTimeAsync(300)
 
