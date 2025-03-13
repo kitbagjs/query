@@ -53,6 +53,6 @@ export async function retry<T>(action: RetryCallback<T>, options: RetryOptions, 
 
     await timeout(delay)
 
-    return await retry(action, options, count + 1)
+    return retry(action, options, count + 1)
   }
 }
