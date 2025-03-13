@@ -1,7 +1,7 @@
 import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
 import { createQueryClient } from './createQueryClient'
 import { effectScope, ref } from 'vue'
-import { timeout } from './utilities'
+import { timeout } from './utilities/timeout'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -380,5 +380,28 @@ describe('defineQuery', () => {
     await vi.runOnlyPendingTimersAsync()
 
     expect(value.data).toBe(response)
+  })
+})
+
+describe('options', () => {
+  test('retries', async () => {
+    const action = vi.fn(() => { throw new Error('test') })
+    const { query } = createClient({ retries: { count: 1, delay: 100 }})
+
+    const result = query(action, [])
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(result.error).toBeUndefined()
+    expect(result.errored).toBe(false)
+    expect(result.executed).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(action).toHaveBeenCalledTimes(2)
+    expect(result.error).toBeDefined()
+    expect(result.errored).toBe(true)
+    expect(result.executed).toBe(true)
   })
 })
