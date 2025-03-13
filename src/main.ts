@@ -1,11 +1,11 @@
-import { createClient } from './createClient'
+import { createQueryClient } from './createQueryClient'
 import { tag } from './tag'
 
-const { query, useQuery } = createClient()
+const { query, useQuery } = createQueryClient()
 
 export {
   query,
   useQuery,
-  createClient,
+  createQueryClient,
   tag,
 }

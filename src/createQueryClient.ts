@@ -11,8 +11,8 @@ import {
 import { createQueryGroups } from "./createQueryGroups";
 import { createUseQuery } from "./createUseQuery";
 
-export function createClient(options?: ClientOptions): QueryClient {
-  const { createQuery } = createQueryGroups()
+export function createQueryClient(options?: ClientOptions): QueryClient {
+  const { createQuery } = createQueryGroups(options)
 
   const query: QueryFunction = (action, args, options) => {
     return createQuery(action, args, options)

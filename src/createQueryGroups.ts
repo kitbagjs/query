@@ -1,4 +1,4 @@
-import { QueryGroup, createQueryGroup } from "./createQueryGroup";
+import { QueryGroup, QueryGroupOptions, createQueryGroup } from "./createQueryGroup";
 import { createSequence } from "./createSequence";
 import { Query, QueryAction, QueryOptions } from "./types/query";
 
@@ -13,7 +13,7 @@ export type CreateQueryGroups = {
   createQuery: CreateQuery
 }
 
-export function createQueryGroups() {
+export function createQueryGroups(options?: QueryGroupOptions) {
   const createActionId = createSequence()
   const actions = new Map<QueryAction, number>()
   const groups = new Map<QueryGroupKey, QueryGroup>()
@@ -34,7 +34,7 @@ export function createQueryGroups() {
     const queryKey = createGroupKey(action, parameters)
 
     if(!groups.has(queryKey)) {
-      groups.set(queryKey, createQueryGroup(action, parameters))
+      groups.set(queryKey, createQueryGroup(action, parameters, options))
     }
 
     return groups.get(queryKey)!

@@ -5,6 +5,7 @@ import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
 import { QueryTagKey, QueryTag } from "./types/tags";
 import { log } from "./services/loggingService";
+import { reduceRetryOptions, retry, RetryOptions } from "./utilities/retry";
 
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
@@ -15,15 +16,19 @@ export type QueryGroup<
   active: boolean,
 }
 
+export type QueryGroupOptions = {
+  retries?: number | Partial<RetryOptions>
+}
+
 export function createQueryGroup<
   TAction extends QueryAction,
->(action: TAction, parameters: Parameters<TAction>): QueryGroup<TAction> {
+>(action: TAction, parameters: Parameters<TAction>, options?: QueryGroupOptions): QueryGroup<TAction> {
   type Group = Query<TAction, QueryOptions<TAction>>
 
   const intervalController = createIntervalController()
   let lastExecuted: number | undefined = undefined
   
-  const response = ref<Group['response']>()
+  const data = ref<Group['data']>()
   const error = ref<Group['error']>()
   const errored = ref<Group['errored']>(false)
   const executing = ref<Group['executing']>(false)
@@ -39,13 +44,13 @@ export function createQueryGroup<
     executing.value = true
 
     try {
-      const value = await action(...parameters)
+      const value = await retry(() => action(...parameters), getRetryOptions())
       
-      setResponse(value)
+      setData(value)
       setTags()
       setNextExecution()
 
-      return response.value
+      return data.value
     } catch(error) {
       setError(error)
 
@@ -64,10 +69,10 @@ export function createQueryGroup<
     }
   }
 
-  function setResponse(value: Awaited<ReturnType<TAction>>): void {
+  function setData(value: Awaited<ReturnType<TAction>>): void {
     error.value = undefined
     errored.value = false
-    response.value = value
+    data.value = value
 
     for(const { onSuccess } of subscriptions.values()) {
       onSuccess?.(value)
@@ -105,7 +110,7 @@ export function createQueryGroup<
     }
 
     if(typeof tagsToAdd === 'function') {
-      const tags = tagsToAdd(response.value)
+      const tags = tagsToAdd(data.value)
       
       return addTags(tags)
     }
@@ -156,6 +161,16 @@ export function createQueryGroup<
     return Math.min(...intervals)
   }
 
+  function getRetryOptions(): RetryOptions {
+    const retries = Array
+      .from(subscriptions.values())
+      .map(subscription => subscription.retries)
+    
+    retries.push(options?.retries)
+
+    return reduceRetryOptions(retries)
+  }
+
   function subscribe<
     TOptions extends QueryOptions<TAction>
   >(options?: TOptions): Query<TAction, TOptions> {
@@ -167,7 +182,7 @@ export function createQueryGroup<
     }
 
     const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
-      response: computed(() => response.value ?? options?.placeholder),
+      data: computed(() => data.value ?? options?.placeholder),
       executed,
       error,
       errored,

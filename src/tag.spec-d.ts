@@ -1,6 +1,6 @@
 import { expectTypeOf, test, vi } from "vitest";
 import { QueryTag, QueryTagFactory } from "@/types/tags";
-import { createClient } from "./createClient";
+import { createQueryClient } from "./createQueryClient";
 import { ExtractQueryOptionsFromQuery } from "./types/query";
 import { tag } from "./tag";
 
@@ -21,7 +21,7 @@ test('tag function returns a tag factory when a callback is provided', () => {
 })
 
 test('query from query function with tags are preserved', () => {
-  const { query } = createClient()
+  const { query } = createQueryClient()
   const action = vi.fn()
   const tag1 = tag('tag1')
   const tag2 = tag('tag2')
@@ -36,13 +36,13 @@ test('query from query function with tags are preserved', () => {
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
 
-test('query from query function with tags callback is called with the query response', () => {
-  const { query } = createClient()
+test('query from query function with tags callback is called with the query data', () => {
+  const { query } = createQueryClient()
   const action = vi.fn(() => 'foo')
 
   query(action, [], {
-    tags: (response) => {
-      expectTypeOf(response).toMatchTypeOf<string>()
+    tags: (data) => {
+      expectTypeOf(data).toMatchTypeOf<string>()
 
       return []
     }
@@ -50,7 +50,7 @@ test('query from query function with tags callback is called with the query resp
 })
 
 test('query from query composition with tags are preserved', () => {
-  const { useQuery } = createClient()
+  const { useQuery } = createQueryClient()
   const action = vi.fn()
   const tag1 = tag('tag1')
   const tag2 = tag('tag2')
@@ -65,13 +65,13 @@ test('query from query composition with tags are preserved', () => {
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
 
-test('query from query composition with tags callback is called with the query response', () => {
-  const { useQuery } = createClient()
+test('query from query composition with tags callback is called with the query data', () => {
+  const { useQuery } = createQueryClient()
   const action = vi.fn(() => 'foo')
 
   useQuery(action, [], {
-    tags: (response) => {
-      expectTypeOf(response).toMatchTypeOf<string>()
+    tags: (data) => {
+      expectTypeOf(data).toMatchTypeOf<string>()
 
       return []
     }
@@ -79,7 +79,7 @@ test('query from query composition with tags callback is called with the query r
 })
 
 test('query from defined query with tags are preserved', () => {
-  const { defineQuery } = createClient()
+  const { defineQuery } = createQueryClient()
   const action = vi.fn()
   const tag1 = tag('tag1')
   const tag2 = tag('tag2')
@@ -97,7 +97,7 @@ test('query from defined query with tags are preserved', () => {
 })
 
 test('query from defined query composition with tags are preserved', () => {
-  const { defineQuery } = createClient()
+  const { defineQuery } = createQueryClient()
   const action = vi.fn()
   const tag1 = tag('tag1')
   const tag2 = tag('tag2')

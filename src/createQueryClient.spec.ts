@@ -1,7 +1,7 @@
 import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
-import { createClient } from './createClient'
-import { effectScope, nextTick, ref } from 'vue'
-import { timeout } from './utilities'
+import { createQueryClient } from './createQueryClient'
+import { effectScope, ref } from 'vue'
+import { timeout } from './utilities/timeout'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -22,7 +22,7 @@ function testInEffectScope(name: string, fn: () => Promise<void>) {
 describe('query', () => {
   test('multiple queries with the same action only executes the action once', async () => {
     const action = vi.fn()
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     query(action, [])
     query(action, [])
@@ -35,12 +35,12 @@ describe('query', () => {
 
   test.fails('using a query automatically disposes of the query', () => {
     const action = vi.fn(() => true)
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     async function test() {
       using value = await query(action, [])
 
-      return value.response
+      return value.data
     }
 
     test()
@@ -50,17 +50,17 @@ describe('query', () => {
     expect(action).toHaveBeenCalledTimes(2)
   })
 
-  test('response is set after action is executed', async () => {
+  test('data is set after action is executed', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { query } = createClient()
+    const { query } = createQueryClient()
     const value = query(action, [])
 
-    expect(value.response).toBeUndefined()
+    expect(value.data).toBeUndefined()
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 
   test.each([
@@ -73,7 +73,7 @@ describe('query', () => {
     [undefined],
   ])('error is set after action throws: %s', async (error) => {
     const action = vi.fn(() => { throw error })
-    const { query } = createClient()
+    const { query } = createQueryClient()
     const value = query(action, [])
 
     await vi.runOnlyPendingTimersAsync()
@@ -81,21 +81,21 @@ describe('query', () => {
     expect(value.error).toBe(error)
   })
 
-  test('awaiting a query returns the response', async () => {
+  test('awaiting a query returns the data', async () => {
     const response = Symbol('response')
     const action = vi.fn(async () => {
       await timeout(100)
       return response
     })
 
-    const { query } = createClient()
+    const { query } = createQueryClient()
     const value = query(action, [])
 
-    expect(value.response).toBeUndefined()
+    expect(value.data).toBeUndefined()
 
     await vi.runAllTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 
   test.each([
@@ -108,7 +108,7 @@ describe('query', () => {
     [undefined],
   ])('awaiting a query throws an error if the action throws: %s', async (error) => {
     const action = vi.fn(() => { throw error })
-    const { query } = createClient()
+    const { query } = createQueryClient()
     const value = query(action, [])
 
     await vi.runOnlyPendingTimersAsync()
@@ -119,7 +119,7 @@ describe('query', () => {
   test('onSuccess', async () => {
     const action = vi.fn()
     const onSuccess = vi.fn()
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     query(action, [], { onSuccess })
 
@@ -131,7 +131,7 @@ describe('query', () => {
   test('onError', async () => {
     const action = vi.fn(() => { throw new Error('test') })
     const onError = vi.fn()
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     query(action, [], { onError })
 
@@ -143,42 +143,42 @@ describe('query', () => {
   test('placeholder', async () => {
     const placeholder = Symbol('placeholder')
     const response = Symbol('response')
-    const { query } = createClient()
+    const { query } = createQueryClient()
 
     const value = query(() => response, [], { placeholder })
 
-    expect(value.response).toBe(placeholder)
+    expect(value.data).toBe(placeholder)
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 })
 
 describe('useQuery', () => {
   describe('when parameters change', () => {
-    testInEffectScope('response is updated', async () => {
+    testInEffectScope('data is updated', async () => {
       const responseTrue = Symbol('responseTrue')
       const responseFalse = Symbol('responseFalse')
 
       const action = vi.fn((value: boolean) => value ? responseTrue : responseFalse)
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
 
       const input = ref(false)
 
       const query = useQuery(action, () => [input.value])
 
-      expect(query.response).toBe(undefined)
+      expect(query.data).toBe(undefined)
 
       await vi.runOnlyPendingTimersAsync()
 
-      expect(query.response).toBe(responseFalse)
+      expect(query.data).toBe(responseFalse)
 
       input.value = true
 
       await vi.runOnlyPendingTimersAsync()
 
-      expect(query.response).toBe(responseTrue)
+      expect(query.data).toBe(responseTrue)
     })
 
     testInEffectScope('executed and executing are updated', async () => {
@@ -191,7 +191,7 @@ describe('useQuery', () => {
         return value ? responseTrue : responseFalse
       })
 
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
 
       const input = ref(false)
 
@@ -220,7 +220,7 @@ describe('useQuery', () => {
       expect(query.executed).toBe(true)
     })
 
-    testInEffectScope('when parameters become null, response is set to placeholder', async () => {
+    testInEffectScope('when parameters become null, data is set to placeholder', async () => {
       const responseTrue = Symbol('responseTrue')
       const responseFalse = Symbol('responseFalse')
       const placeholder = Symbol('placeholder')
@@ -231,7 +231,7 @@ describe('useQuery', () => {
         return value ? responseTrue : responseFalse
       })
 
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
 
       const parameters = ref<[boolean] | null>([false])
 
@@ -239,7 +239,7 @@ describe('useQuery', () => {
 
       await vi.runAllTimersAsync()
 
-      expect(query.response).toBe(responseFalse)
+      expect(query.data).toBe(responseFalse)
 
       parameters.value = [true]
 
@@ -249,33 +249,33 @@ describe('useQuery', () => {
 
       await vi.runOnlyPendingTimersAsync()
 
-      expect(query.response).toBe(placeholder)
+      expect(query.data).toBe(placeholder)
       expect(query.executing).toBe(false)
       expect(query.executed).toBe(false)
     })
   })
 
-  testInEffectScope('awaiting a query returns the response', async () => {
+  testInEffectScope('awaiting a query returns the data', async () => {
     vi.useRealTimers()
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
 
     const query = await useQuery(action, [])
 
-    expect(query.response).toBe(response)
+    expect(query.data).toBe(response)
   })
 
   testInEffectScope('awaiting a query throws an error if the action throws an error', async () => {
     vi.useRealTimers()
     const action = vi.fn(() => { throw new Error('test') })
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
     const value = useQuery(action, [])
   
     await expect(value).rejects.toThrow('test')
   })
 
-  testInEffectScope('changing parameters preserves previous response', async () => {
+  testInEffectScope('changing parameters preserves previous data', async () => {
     const responseTrue = Symbol('responseTrue')
     const responseFalse = Symbol('responseFalse')
     const input = ref<boolean | null>(false)
@@ -285,7 +285,7 @@ describe('useQuery', () => {
       return value ? responseTrue : responseFalse
     })
 
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
 
     const query = useQuery(action, () => {
       if(input.value === null) {
@@ -295,61 +295,61 @@ describe('useQuery', () => {
       return [input.value]
     })
 
-    expect(query.response).toBeUndefined()
+    expect(query.data).toBeUndefined()
 
     await vi.runAllTimersAsync()
 
-    expect(query.response).toBe(responseFalse)
+    expect(query.data).toBe(responseFalse)
 
     input.value = true
 
     await vi.advanceTimersByTimeAsync(0)
 
-    expect(query.response).toBe(responseFalse)
+    expect(query.data).toBe(responseFalse)
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBe(responseTrue)
+    expect(query.data).toBe(responseTrue)
 
     input.value = true
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBe(responseTrue)
+    expect(query.data).toBe(responseTrue)
 
     input.value = null
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBeUndefined()
+    expect(query.data).toBeUndefined()
   })
 
   testInEffectScope('queries do not interfere with each other', async () => {
     const action1 = vi.fn(() => true)
     const action2 = vi.fn(() => false)
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
 
     const query1 = useQuery(action1, [])
     const query2 = useQuery(action2, [])
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query1.response).toBe(true)
-    expect(query2.response).toBe(false)
+    expect(query1.data).toBe(true)
+    expect(query2.data).toBe(false)
   })
 
   testInEffectScope('placeholder', async () => {
     const placeholder = Symbol('placeholder')
     const response = Symbol('response')
-    const { useQuery } = createClient()
+    const { useQuery } = createQueryClient()
 
     const value = useQuery(() => response, [], { placeholder })
 
-    expect(value.response).toBe(placeholder)
+    expect(value.data).toBe(placeholder)
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 
   describe('immediate', () => {
@@ -357,47 +357,47 @@ describe('useQuery', () => {
     testInEffectScope('when true, action is executed', async () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
   
       const query = useQuery(action, [], { immediate: true })
 
       await vi.runOnlyPendingTimersAsync()
 
       expect(action).toHaveBeenCalled()
-      expect(query.response).toBe(response)
+      expect(query.data).toBe(response)
     })
 
     testInEffectScope('when false, action is not executed', async () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
   
       const query =useQuery(action, [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
 
       expect(action).not.toHaveBeenCalled()
-      expect(query.response).toBe(undefined)
+      expect(query.data).toBe(undefined)
     })
 
     testInEffectScope('when false, placeholder is used', async () => {
       const response = Symbol('response')
       const placeholder = Symbol('placeholder')
       const action = vi.fn(() => response)
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
   
       const query = useQuery(action, [], { immediate: false, placeholder })
 
       await vi.runOnlyPendingTimersAsync()
 
       expect(action).not.toHaveBeenCalled()
-      expect(query.response).toBe(placeholder)
+      expect(query.data).toBe(placeholder)
     })
 
     testInEffectScope('when false, action is executed when executed is called', async () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
   
       const query = useQuery(action, [], { immediate: false })
 
@@ -415,7 +415,7 @@ describe('useQuery', () => {
     testInEffectScope('when false, execute resolves with the response', async () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
   
       const query = useQuery(action, [], { immediate: false })
 
@@ -428,14 +428,14 @@ describe('useQuery', () => {
       await vi.runOnlyPendingTimersAsync()
 
       expect(action).toHaveBeenCalled()
-      expect(query.response).toBe(response)
+      expect(query.data).toBe(response)
       expect(result).resolves.toBe(response)
     })
 
     testInEffectScope('when false, execute rejects with the error', async () => {
       const error = new Error('test')
       const action = vi.fn(() => { throw error })
-      const { useQuery } = createClient()
+      const { useQuery } = createQueryClient()
   
       const query = useQuery(action, [], { immediate: false })
 
@@ -462,7 +462,7 @@ describe('defineQuery', () => {
   test('returns a defined query function', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { defineQuery } = createClient()
+    const { defineQuery } = createQueryClient()
 
     const { query } = defineQuery(action)
 
@@ -470,13 +470,13 @@ describe('defineQuery', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
   })
 
   testInEffectScope('returns a defined query composition', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
-    const { defineQuery } = createClient()
+    const { defineQuery } = createQueryClient()
 
     const { useQuery } = defineQuery(action)
 
@@ -484,6 +484,29 @@ describe('defineQuery', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(value.response).toBe(response)
+    expect(value.data).toBe(response)
+  })
+})
+
+describe('options', () => {
+  test('retries', async () => {
+    const action = vi.fn(() => { throw new Error('test') })
+    const { query } = createQueryClient({ retries: { count: 1, delay: 100 }})
+
+    const result = query(action, [])
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(result.error).toBeUndefined()
+    expect(result.errored).toBe(false)
+    expect(result.executed).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(action).toHaveBeenCalledTimes(2)
+    expect(result.error).toBeDefined()
+    expect(result.errored).toBe(true)
+    expect(result.executed).toBe(true)
   })
 })

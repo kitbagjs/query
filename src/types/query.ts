@@ -1,3 +1,4 @@
+import { RetryOptions } from "@/utilities/retry";
 import { Getter, MaybeGetter } from "./getters";
 import { QueryTag } from "@/types/tags";
 
@@ -15,6 +16,7 @@ export type QueryOptions<
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
   tags?: QueryTag[] | ((value: Awaited<ReturnType<TAction>>) => QueryTag[])
+  retries?: number | Partial<RetryOptions>,
 }
 
 export type ExtractQueryOptionsFromQuery<
@@ -25,7 +27,7 @@ export type Query<
   TAction extends QueryAction,
   TOptions extends QueryOptions<TAction>
 > = PromiseLike<AwaitedQuery<TAction>> & {
-  response: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
+  data: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
   error: unknown,
   errored: boolean,
   executed: boolean,
@@ -38,7 +40,7 @@ export type Query<
 export type AwaitedQuery<
   TAction extends QueryAction,
 > = {
-  response: Awaited<ReturnType<TAction>>,
+  data: Awaited<ReturnType<TAction>>,
   error: unknown,
   errored: boolean,
   executed: boolean,

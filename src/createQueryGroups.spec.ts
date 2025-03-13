@@ -55,6 +55,7 @@ test('when createQuery is called, it should pass options through to the group', 
     subscribe,
     active: true,
     hasTag: vi.fn(),
+    execute: vi.fn(),
   })
 
   const { createQuery } = createQueryGroups()

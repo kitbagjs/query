@@ -34,7 +34,7 @@ export function createUseQuery(createQuery: CreateQuery, action: QueryAction, pa
 
     if(parameters === null) {
       Object.assign(query, {
-        response: toRef(() => options?.placeholder),
+        data: toRef(() => options?.placeholder),
         executed: toRef(() => false),
         executing: false,
       })
@@ -74,10 +74,10 @@ export function createUseQuery(createQuery: CreateQuery, action: QueryAction, pa
       },
     })
 
-    const previousResponse = query.response
+    const previousData = query.data
 
     Object.assign(query, toRefs(newValue), {
-      response: toRef(() => newValue.response ?? previousResponse)
+      data: toRef(() => newValue.data ?? previousData)
     })
         
   }, { deep: true, immediate: true })

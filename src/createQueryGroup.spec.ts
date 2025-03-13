@@ -20,7 +20,7 @@ test('subscribing to new group, always executes the action', async () => {
 
   await vi.runOnlyPendingTimersAsync()
 
-  expect(query.response).toBe(response)
+  expect(query.data).toBe(response)
   expect(query.error).toBeUndefined()
   expect(query.errored).toBe(false)
   expect(query.executing).toBe(false)
@@ -61,7 +61,7 @@ describe('when action executes successfully', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBe(response)
+    expect(query.data).toBe(response)
     expect(query.error).toBeUndefined()
     expect(query.errored).toBe(false)
     expect(query.executing).toBe(false)
@@ -98,7 +98,7 @@ describe('when action throws an error', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    expect(query.response).toBe(response)
+    expect(query.data).toBe(response)
     expect(query.error).toBeUndefined()
     expect(query.errored).toBe(false)
     expect(query.executing).toBe(false)
@@ -333,5 +333,28 @@ describe('execute', () => {
     const response: () => void = () => group.execute()
 
     await expect(response).rejects.toThrow('Expected error')
+  })
+})
+
+describe('retries', () => {
+  test('retries the action', async () => {
+    const action = vi.fn(() => { throw new Error('Expected error') })
+    const group = createQueryGroup(action, [])
+
+    const result = group.subscribe({ retries: { count: 1, delay: 100 }})
+
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(result.error).toBeUndefined()
+    expect(result.errored).toBe(false)
+    expect(result.executed).toBe(false)
+
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(action).toHaveBeenCalledTimes(2)
+    expect(result.error).toBeDefined()
+    expect(result.errored).toBe(true)
+    expect(result.executed).toBe(true)
   })
 })

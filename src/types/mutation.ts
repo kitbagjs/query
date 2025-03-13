@@ -13,7 +13,7 @@ export type Mutation<
   TAction extends MutationAction,
   TOptions extends MutationOptions<TAction>
 > = {
-  response: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
+  data: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
   executing: boolean,
   executed: boolean,
   error: unknown,
@@ -23,7 +23,7 @@ export type Mutation<
 export type AwaitedMutation<
   TAction extends MutationAction,
 > = {
-  response: Awaited<ReturnType<TAction>>,
+  data: Awaited<ReturnType<TAction>>,
   error: unknown,
   errored: boolean,
   executed: boolean,
