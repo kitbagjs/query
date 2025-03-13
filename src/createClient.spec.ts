@@ -1,6 +1,6 @@
 import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
 import { createClient } from './createClient'
-import { effectScope, ref } from 'vue'
+import { effectScope, nextTick, ref } from 'vue'
 import { timeout } from './utilities'
 
 beforeEach(() => {
@@ -351,6 +351,111 @@ describe('useQuery', () => {
 
     expect(value.response).toBe(response)
   })
+
+  describe('immediate', () => {
+
+    testInEffectScope('when true, action is executed', async () => {
+      const response = Symbol('response')
+      const action = vi.fn(() => response)
+      const { useQuery } = createClient()
+  
+      const query = useQuery(action, [], { immediate: true })
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).toHaveBeenCalled()
+      expect(query.response).toBe(response)
+    })
+
+    testInEffectScope('when false, action is not executed', async () => {
+      const response = Symbol('response')
+      const action = vi.fn(() => response)
+      const { useQuery } = createClient()
+  
+      const query =useQuery(action, [], { immediate: false })
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).not.toHaveBeenCalled()
+      expect(query.response).toBe(undefined)
+    })
+
+    testInEffectScope('when false, placeholder is used', async () => {
+      const response = Symbol('response')
+      const placeholder = Symbol('placeholder')
+      const action = vi.fn(() => response)
+      const { useQuery } = createClient()
+  
+      const query = useQuery(action, [], { immediate: false, placeholder })
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).not.toHaveBeenCalled()
+      expect(query.response).toBe(placeholder)
+    })
+
+    testInEffectScope('when false, action is executed when executed is called', async () => {
+      const response = Symbol('response')
+      const action = vi.fn(() => response)
+      const { useQuery } = createClient()
+  
+      const query = useQuery(action, [], { immediate: false })
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).not.toHaveBeenCalled()
+
+      query.execute()
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).toHaveBeenCalled()
+    })
+
+    testInEffectScope('when false, execute resolves with the response', async () => {
+      const response = Symbol('response')
+      const action = vi.fn(() => response)
+      const { useQuery } = createClient()
+  
+      const query = useQuery(action, [], { immediate: false })
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).not.toHaveBeenCalled()
+
+      const result = query.execute()
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).toHaveBeenCalled()
+      expect(query.response).toBe(response)
+      expect(result).resolves.toBe(response)
+    })
+
+    testInEffectScope('when false, execute rejects with the error', async () => {
+      const error = new Error('test')
+      const action = vi.fn(() => { throw error })
+      const { useQuery } = createClient()
+  
+      const query = useQuery(action, [], { immediate: false })
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).not.toHaveBeenCalled()
+
+      query.execute().catch(error => {
+        expect(error).toBe(error)
+      })
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(action).toHaveBeenCalled()
+      expect(query.error).toBe(error)
+      expect(query.errored).toBe(true)
+    })
+
+  })
+
 })
 
 describe('defineQuery', () => {

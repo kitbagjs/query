@@ -3,20 +3,17 @@ import { Query, QueryAction, QueryActionArgs, QueryOptions } from "./types/query
 import { onScopeDispose, ref, toRef, toRefs, toValue, watch } from "vue"
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities"
-
-type UseQueryOptions = {
-  immediate?: boolean,
-}
+import { UseQueryOptions } from "./types/client"
 
 const noop = () => undefined
 
 export function createUseQuery<
   TAction extends QueryAction,
   TArgs extends QueryActionArgs<TAction>,
-  TOptions extends QueryOptions<TAction> & UseQueryOptions
+  TOptions extends UseQueryOptions<TAction>
 >(createQuery: CreateQuery, action: TAction, parameters: TArgs, options?: TOptions): Query<TAction, TOptions>
 
-export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: QueryOptions<QueryAction> & UseQueryOptions = {}): Query<QueryAction, QueryOptions<QueryAction>> {
+export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: UseQueryOptions<QueryAction> = {}): Query<QueryAction, QueryOptions<QueryAction>> {
   const query = createQuery(noop, [], options)
   const enabled = ref(options?.immediate ?? true)
   const { promise, resolve, reject } = Promise.withResolvers()
@@ -26,7 +23,10 @@ export function createUseQuery(createQuery: CreateQuery, action: QueryAction, pa
   }
 
   watch(() => ({ enabled: enabled.value, parameters: toValue(parameters) }) as const, ({ enabled, parameters }, previous) => {
-    if(previous && isDefined(previous.parameters) && isEqual(previous.parameters, parameters)) {
+    const isSameParameters = previous && isDefined(previous.parameters) && isEqual(previous.parameters, parameters)
+    const isSameEnabled = previous && previous.enabled === enabled
+
+    if(isSameParameters && isSameEnabled) {
       return
     }
 
@@ -44,6 +44,8 @@ export function createUseQuery(createQuery: CreateQuery, action: QueryAction, pa
 
     if(!enabled) {
       Object.assign(query, {
+        executed: toRef(() => false),
+        executing: false,
         execute: () => {
           enable()
 
