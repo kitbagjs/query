@@ -19,10 +19,14 @@ export type DefinedQueryFunction<
   TOptions extends QueryOptions<TAction>
 > = (args: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
 
+export type UseQueryOptions<TAction extends QueryAction> = QueryOptions<TAction> & {
+  immediate?: boolean,
+}
+
 export type QueryComposition = <
   const TAction extends QueryAction,
   const Args extends QueryActionArgs<TAction>,
-  const TOptions extends QueryOptions<TAction>
+  const TOptions extends UseQueryOptions<TAction>
 >(action: TAction, args: Args, options?: TOptions) => Query<TAction, TOptions>
 
 export type DefinedQueryComposition<
