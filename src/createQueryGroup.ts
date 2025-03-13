@@ -28,7 +28,7 @@ export function createQueryGroup<
   const intervalController = createIntervalController()
   let lastExecuted: number | undefined = undefined
   
-  const response = ref<Group['response']>()
+  const data = ref<Group['data']>()
   const error = ref<Group['error']>()
   const errored = ref<Group['errored']>(false)
   const executing = ref<Group['executing']>(false)
@@ -46,11 +46,11 @@ export function createQueryGroup<
     try {
       const value = await retry(() => action(...parameters), getRetryOptions())
       
-      setResponse(value)
+      setData(value)
       setTags()
       setNextExecution()
 
-      return response.value
+      return data.value
     } catch(error) {
       setError(error)
 
@@ -69,10 +69,10 @@ export function createQueryGroup<
     }
   }
 
-  function setResponse(value: Awaited<ReturnType<TAction>>): void {
+  function setData(value: Awaited<ReturnType<TAction>>): void {
     error.value = undefined
     errored.value = false
-    response.value = value
+    data.value = value
 
     for(const { onSuccess } of subscriptions.values()) {
       onSuccess?.(value)
@@ -110,7 +110,7 @@ export function createQueryGroup<
     }
 
     if(typeof tagsToAdd === 'function') {
-      const tags = tagsToAdd(response.value)
+      const tags = tagsToAdd(data.value)
       
       return addTags(tags)
     }
@@ -182,7 +182,7 @@ export function createQueryGroup<
     }
 
     const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
-      response: computed(() => response.value ?? options?.placeholder),
+      data: computed(() => data.value ?? options?.placeholder),
       executed,
       error,
       errored,
