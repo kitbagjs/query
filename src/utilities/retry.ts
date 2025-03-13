@@ -14,10 +14,7 @@ export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
 
 function normalizeRetryOptions(options: Partial<RetryOptions> | number | undefined): RetryOptions {
   if(typeof options === 'number') {
-    return {
-      ...DEFAULT_RETRY_OPTIONS,
-      count: options,
-    }
+     return normalizeRetryOptions({count: options})
   }
 
   if(typeof options === 'object') {
