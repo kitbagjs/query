@@ -1,3 +1,4 @@
+import { RetryOptions } from "@/utilities/retry";
 import { Getter, MaybeGetter } from "./getters";
 import { QueryTag } from "@/types/tags";
 
@@ -15,6 +16,7 @@ export type QueryOptions<
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
   tags?: QueryTag[] | ((value: Awaited<ReturnType<TAction>>) => QueryTag[])
+  retries?: number | Partial<RetryOptions>,
 }
 
 export type ExtractQueryOptionsFromQuery<
