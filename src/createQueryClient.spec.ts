@@ -429,7 +429,7 @@ describe('useQuery', () => {
 
       expect(action).toHaveBeenCalled()
       expect(query.data).toBe(response)
-      expect(result).resolves.toBe(response)
+      await expect(result).resolves.toBe(response)
     })
 
     testInEffectScope('when false, execute rejects with the error', async () => {
