@@ -37,7 +37,7 @@ export function createQueryGroup<
   const { promise, resolve } = Promise.withResolvers()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
-  const nextId = createSequence()
+  const createSubscriptionId = createSequence()
   const tags = createQueryGroupTags()
 
   async function execute(): Promise<AwaitedQuery<TAction>> {
@@ -116,7 +116,7 @@ export function createQueryGroup<
       return addTags(tags, id)
     }
 
-    tags.addAll(tagsToAdd, id)
+    tags.addAllTags(tagsToAdd, id)
   }
 
   function hasTag(tag: QueryTag): boolean {
@@ -124,16 +124,16 @@ export function createQueryGroup<
   }
 
   function addSubscription(options?: QueryOptions<TAction>): () => void {
-    const id = nextId()
+    const subscriptionId = createSubscriptionId()
 
-    subscriptions.set(id, options ?? {})  
+    subscriptions.set(subscriptionId, options ?? {})  
 
     setNextExecution()
-    addTags(options?.tags, id)
+    addTags(options?.tags, subscriptionId)
 
     return () => {
-      subscriptions.delete(id)
-      tags.removeAllById(id)
+      subscriptions.delete(subscriptionId)
+      tags.removeAllTagsBySubscriptionId(subscriptionId)
     }
   }
 

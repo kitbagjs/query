@@ -13,7 +13,7 @@ export function createQueryGroupTags() {
     return tags.has(tag.key)
   }
 
-  function getTag(tag: QueryTag): Set<number> {
+  function getSubscriptionIdsByTag(tag: QueryTag): Set<number> {
     if(!tags.has(tag.key)) {
       tags.set(tag.key, new Set())
     }
@@ -21,24 +21,24 @@ export function createQueryGroupTags() {
     return tags.get(tag.key)!
   }
 
-  function getSubscription(id: number): Set<QueryTag> {
-    if(!subscriptions.has(id)) {
-      subscriptions.set(id, new Set())
+  function getTagsBySubscriptionId(subscriptionId: number): Set<QueryTag> {
+    if(!subscriptions.has(subscriptionId)) {
+      subscriptions.set(subscriptionId, new Set())
     }
 
-    return subscriptions.get(id)!
+    return subscriptions.get(subscriptionId)!
   }
 
-  function add(tag: QueryTag, id: number): void {
-    getTag(tag).add(id)
-    getSubscription(id).add(tag)
+  function addTag(tag: QueryTag, subscriptionId: number): void {
+    getSubscriptionIdsByTag(tag).add(subscriptionId)
+    getTagsBySubscriptionId(subscriptionId).add(tag)
   }
 
-  function remove(tag: QueryTag, id: number): void {
-    const tagSet = getTag(tag)
-    const subscriptionSet = getSubscription(id)
+  function removeTag(tag: QueryTag, subscriptionId: number): void {
+    const tagSet = getSubscriptionIdsByTag(tag)
+    const subscriptionSet = getTagsBySubscriptionId(subscriptionId)
 
-    tagSet.delete(id)
+    tagSet.delete(subscriptionId)
     subscriptionSet.delete(tag)
 
     if(tagSet.size === 0) {
@@ -46,40 +46,40 @@ export function createQueryGroupTags() {
     }
 
     if(subscriptionSet.size === 0) {
-      subscriptions.delete(id)
+      subscriptions.delete(subscriptionId)
     }
   }
 
-  function addAll(tags: QueryTag[] | undefined, id: number): void {
+  function addAllTags(tags: QueryTag[] | undefined, subscriptionId: number): void {
     if(!tags) {
       return
     }
 
     for(const tag of tags) {
-      add(tag, id)
+      addTag(tag, subscriptionId)
     }
   }
 
-  function removeAll(tags: QueryTag[] | undefined, id: number): void {
+  function removeAllTags(tags: QueryTag[] | undefined, subscriptionId: number): void {
     if(!tags) {
       return
     }
 
     for(const tag of tags) {
-      remove(tag, id)
+      removeTag(tag, subscriptionId)
     }
   }
 
-  function removeAllById(id: number): void {
-    const tags = Array.from(getSubscription(id))
+  function removeAllTagsBySubscriptionId(subscriptionId: number): void {
+    const tags = Array.from(getTagsBySubscriptionId(subscriptionId))
 
-    removeAll(tags, id)
+    removeAllTags(tags, subscriptionId)
   }
 
   return {
     clear,
     has,
-    addAll,
-    removeAllById,
+    addAllTags,
+    removeAllTagsBySubscriptionId,
   }
 }
