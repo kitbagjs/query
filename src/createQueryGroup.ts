@@ -3,9 +3,10 @@ import { AwaitedQuery, Query, QueryAction, QueryOptions } from "./types/query";
 import { createSequence } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
-import { QueryTagKey, QueryTag } from "./types/tags";
+import { QueryTag } from "./types/tags";
 import { log } from "./services/loggingService";
 import { reduceRetryOptions, retry, RetryOptions } from "./utilities/retry";
+import { createQueryGroupTags } from "./createQueryGroupTags";
 
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
@@ -36,8 +37,8 @@ export function createQueryGroup<
   const { promise, resolve } = Promise.withResolvers()
 
   const subscriptions = new Map<number, QueryOptions<TAction>>()
-  const nextId = createSequence()
-  const tags = new Set<QueryTagKey>()
+  const createSubscriptionId = createSequence()
+  const tags = createQueryGroupTags()
 
   async function execute(): Promise<AwaitedQuery<TAction>> {
     lastExecuted = Date.now()
@@ -95,12 +96,12 @@ export function createQueryGroup<
   function setTags(): void {
     tags.clear()
 
-    for(const { tags } of subscriptions.values()) {
-      addTags(tags)
+    for(const [id, { tags }] of subscriptions.entries()) {
+      addTags(tags, id)
     }
   }
 
-  function addTags(tagsToAdd: QueryOptions<TAction>['tags'] = []): void {
+  function addTags(tagsToAdd: QueryOptions<TAction>['tags'], id: number): void {
     if(lastExecuted === undefined) {
       return
     }
@@ -112,27 +113,27 @@ export function createQueryGroup<
     if(typeof tagsToAdd === 'function') {
       const tags = tagsToAdd(data.value)
       
-      return addTags(tags)
+      return addTags(tags, id)
     }
 
-    tagsToAdd.forEach(tag => tags.add(tag.key))
+    tags.addAllTags(tagsToAdd, id)
   }
 
   function hasTag(tag: QueryTag): boolean {
-    return tags.has(tag.key)
+    return tags.has(tag)
   }
 
   function addSubscription(options?: QueryOptions<TAction>): () => void {
-    const id = nextId()
+    const subscriptionId = createSubscriptionId()
 
-    subscriptions.set(id, options ?? {})  
+    subscriptions.set(subscriptionId, options ?? {})  
 
     setNextExecution()
-    addTags(options?.tags)
+    addTags(options?.tags, subscriptionId)
 
     return () => {
-      subscriptions.delete(id)
-      setTags()
+      subscriptions.delete(subscriptionId)
+      tags.removeAllTagsBySubscriptionId(subscriptionId)
     }
   }
 
