@@ -1,7 +1,6 @@
 export type QueryTag<
- TName extends string = string,
+ TData = unknown,
 > = {
-  name: TName,
   key: QueryTagKey
 }
 
@@ -17,7 +16,7 @@ export type QueryTagCallback<
 > = (input: TInput) => any
 
 export type QueryTagFactory<
-  TName extends string = string,
+  TData = unknown,
   TInput = unknown,
-> = (value: TInput) => QueryTag<TName>
+> = (value: TInput) => QueryTag<TData>
 

@@ -1,23 +1,22 @@
 import { createSequence } from "./createSequence";
 import { QueryTagFactory, QueryTagCallback, QueryTag } from "./types/tags";
 
-function createQueryTag(id: number, name: string, value: unknown): QueryTag {
+function createQueryTag(id: number, value: unknown): QueryTag {
   return {
-    name,
     key: `${id}-${JSON.stringify(value)}`
   }
 }
 
 const getId = createSequence()
 
-export function tag<const TName extends string>(name: TName): QueryTag<TName>
-export function tag<const TName extends string, TInput>(name: TName, callback: QueryTagCallback<TInput>): QueryTagFactory<TName, TInput>
-export function tag(name: string, callback?: QueryTagCallback): QueryTag | QueryTagFactory {
+export function tag<const TData>(): QueryTag<TData>
+export function tag<const TData, TInput>(callback: QueryTagCallback<TInput>): QueryTagFactory<TData, TInput>
+export function tag(callback?: QueryTagCallback): QueryTag | QueryTagFactory {
   const id = getId();
 
   if (callback) {
-    return (value) => createQueryTag(id, name, callback(value))
+    return (value) => createQueryTag(id, callback(value))
   }
 
-  return createQueryTag(id, name, undefined)
+  return createQueryTag(id, undefined)
 }

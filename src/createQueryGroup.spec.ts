@@ -264,8 +264,8 @@ describe('given group with interval', () => {
 describe('given group with tags', () => {
   test('can check if it has a tag', async () => {
     const group = createQueryGroup(vi.fn(), [])
-    const tag1 = tag('tag1')
-    const tag2 = tag('tag2', (value: string) => value)
+    const tag1 = tag()
+    const tag2 = tag((value: string) => value)
 
     expect(group.hasTag(tag1)).toBe(false)
 
