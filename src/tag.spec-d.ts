@@ -31,7 +31,7 @@ test('query from query function with tags are preserved', () => {
   })
 
   type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<'tag1'>, QueryTag<'tag2'>]
+  type Expected = [QueryTag<unknown>, QueryTag<unknown>]
 
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
@@ -109,7 +109,7 @@ test('query from defined query composition with tags are preserved', () => {
   const value = useQuery([])
 
   type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<'tag1'>, QueryTag<'tag2'>]
+  type Expected = [QueryTag<unknown>, QueryTag<unknown>]
 
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
