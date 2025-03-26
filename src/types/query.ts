@@ -23,10 +23,6 @@ export type QueryOptions<
   retries?: number | Partial<RetryOptions>,
 }
 
-export type ExtractQueryOptionsFromQuery<
-  TQuery extends Query<any, any>
-> = TQuery extends Query<any, infer TOptions> ? TOptions : never
-
 export type Query<
   TAction extends QueryAction,
   TOptions extends QueryOptions<TAction>
