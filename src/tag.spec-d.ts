@@ -1,5 +1,5 @@
 import { expectTypeOf, test, vi } from "vitest";
-import { QueryTag, QueryTagFactory } from "@/types/tags";
+import { QueryTag, QueryTagFactory, Unset } from "@/types/tags";
 import { createQueryClient } from "./createQueryClient";
 import { ExtractQueryOptionsFromQuery } from "./types/query";
 import { tag } from "./tag";
@@ -17,7 +17,23 @@ test('tag function returns a tag factory when a callback is provided', () => {
 
   const value = factory('foo')
 
-  expectTypeOf(value).toMatchTypeOf<QueryTag<unknown>>()
+  expectTypeOf(value).toMatchTypeOf<QueryTag<Unset>>()
+})
+
+test('tag function returns a typed tag when data generic is provided', () => {
+  const value = tag<string>()
+
+  expectTypeOf(value).toMatchTypeOf<QueryTag<string>>()
+})
+
+test('tag factory returns a typed tag when data generic is provided', () => {
+  const factory = tag<string, string>((value: string) => value)
+
+  expectTypeOf(factory).toMatchTypeOf<QueryTagFactory<string, string>>()
+
+  const value = factory('foo')
+
+  expectTypeOf(value).toMatchTypeOf<QueryTag<string>>()
 })
 
 test('query from query function with tags are preserved', () => {
@@ -31,7 +47,7 @@ test('query from query function with tags are preserved', () => {
   })
 
   type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<unknown>, QueryTag<unknown>]
+  type Expected = [QueryTag<Unset>, QueryTag<Unset>]
 
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
@@ -60,7 +76,7 @@ test('query from query composition with tags are preserved', () => {
   })
 
   type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<unknown>, QueryTag<unknown>]
+  type Expected = [QueryTag<Unset>, QueryTag<Unset>]
 
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
@@ -91,7 +107,7 @@ test('query from defined query with tags are preserved', () => {
   const value = query([])
 
   type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<unknown>, QueryTag<unknown>]
+  type Expected = [QueryTag<Unset>, QueryTag<Unset>]
 
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
@@ -109,7 +125,7 @@ test('query from defined query composition with tags are preserved', () => {
   const value = useQuery([])
 
   type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<unknown>, QueryTag<unknown>]
+  type Expected = [QueryTag<Unset>, QueryTag<Unset>]
 
   expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })
