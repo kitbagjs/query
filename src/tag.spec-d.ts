@@ -1,39 +1,38 @@
 import { expectTypeOf, test, vi } from "vitest";
-import { QueryTag, QueryTagFactory } from "@/types/tags";
+import { QueryTag, QueryTagFactory, Unset } from "@/types/tags";
 import { createQueryClient } from "./createQueryClient";
-import { ExtractQueryOptionsFromQuery } from "./types/query";
 import { tag } from "./tag";
 
 test('tag function returns a tag when no callback is provided', () => {
-  const value = tag('test')
+  const value = tag()
 
-  expectTypeOf(value).toMatchTypeOf<QueryTag<'test'>>()  
+  expectTypeOf(value).toMatchTypeOf<QueryTag>()  
 })
 
 test('tag function returns a tag factory when a callback is provided', () => {
-  const factory = tag('test', (string: string) => string)
+  const factory = tag((string: string) => string)
 
-  expectTypeOf(factory).toMatchTypeOf<QueryTagFactory<'test',string>>()
+  expectTypeOf(factory).toMatchTypeOf<QueryTagFactory<unknown, string>>()
 
   const value = factory('foo')
 
-  expectTypeOf(value).toMatchTypeOf<QueryTag<'test'>>()
+  expectTypeOf(value).toMatchTypeOf<QueryTag<Unset>>()
 })
 
-test('query from query function with tags are preserved', () => {
-  const { query } = createQueryClient()
-  const action = vi.fn()
-  const tag1 = tag('tag1')
-  const tag2 = tag('tag2')
+test('tag function returns a typed tag when data generic is provided', () => {
+  const value = tag<string>()
 
-  const value = query(action, [], {
-    tags: [tag1, tag2]
-  })
+  expectTypeOf(value).toMatchTypeOf<QueryTag<string>>()
+})
 
-  type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<'tag1'>, QueryTag<'tag2'>]
+test('tag factory returns a typed tag when data generic is provided', () => {
+  const factory = tag<string, string>((value: string) => value)
 
-  expectTypeOf<Source>().toMatchTypeOf<Expected>()
+  expectTypeOf(factory).toMatchTypeOf<QueryTagFactory<string, string>>()
+
+  const value = factory('foo')
+
+  expectTypeOf(value).toMatchTypeOf<QueryTag<string>>()
 })
 
 test('query from query function with tags callback is called with the query data', () => {
@@ -49,22 +48,6 @@ test('query from query function with tags callback is called with the query data
   })
 })
 
-test('query from query composition with tags are preserved', () => {
-  const { useQuery } = createQueryClient()
-  const action = vi.fn()
-  const tag1 = tag('tag1')
-  const tag2 = tag('tag2')
-
-  const value = useQuery(action, [], {
-    tags: [tag1, tag2]
-  })
-
-  type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<'tag1'>, QueryTag<'tag2'>]
-
-  expectTypeOf<Source>().toMatchTypeOf<Expected>()
-})
-
 test('query from query composition with tags callback is called with the query data', () => {
   const { useQuery } = createQueryClient()
   const action = vi.fn(() => 'foo')
@@ -76,40 +59,4 @@ test('query from query composition with tags callback is called with the query d
       return []
     }
   })
-})
-
-test('query from defined query with tags are preserved', () => {
-  const { defineQuery } = createQueryClient()
-  const action = vi.fn()
-  const tag1 = tag('tag1')
-  const tag2 = tag('tag2')
-
-  const { query } = defineQuery(action, {
-    tags: [tag1, tag2]
-  })
-
-  const value = query([])
-
-  type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<'tag1'>, QueryTag<'tag2'>]
-
-  expectTypeOf<Source>().toMatchTypeOf<Expected>()
-})
-
-test('query from defined query composition with tags are preserved', () => {
-  const { defineQuery } = createQueryClient()
-  const action = vi.fn()
-  const tag1 = tag('tag1')
-  const tag2 = tag('tag2')
-
-  const { useQuery } = defineQuery(action, {
-    tags: [tag1, tag2]
-  })
-
-  const value = useQuery([])
-
-  type Source = ExtractQueryOptionsFromQuery<typeof value>['tags']
-  type Expected = [QueryTag<'tag1'>, QueryTag<'tag2'>]
-
-  expectTypeOf<Source>().toMatchTypeOf<Expected>()
 })

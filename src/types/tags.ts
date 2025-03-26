@@ -1,7 +1,15 @@
+export const unset = Symbol('unset')
+export type Unset = typeof unset
+
 export type QueryTag<
- TName extends string = string,
+ TData extends unknown = Unset,
 > = {
-  name: TName,
+  /**
+   * @private
+   * @internal
+   * This property is unused, but necessary to preserve the type for TData because unused generics are ignored by typescript.
+   */
+  data: TData,
   key: QueryTagKey
 }
 
@@ -17,7 +25,7 @@ export type QueryTagCallback<
 > = (input: TInput) => any
 
 export type QueryTagFactory<
-  TName extends string = string,
+  TData = unknown,
   TInput = unknown,
-> = (value: TInput) => QueryTag<TName>
+> = (value: TInput) => QueryTag<TData>
 

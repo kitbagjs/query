@@ -1,12 +1,16 @@
 import { RetryOptions } from "@/utilities/retry";
 import { Getter, MaybeGetter } from "./getters";
-import { QueryTag } from "@/types/tags";
+import { QueryTag, Unset } from "@/types/tags";
 
 export type QueryAction = (...args: any[]) => any
 
 export type QueryActionArgs<
   TAction extends QueryAction
 > = MaybeGetter<Parameters<TAction>> | Getter<Parameters<TAction> | null> | Getter<null>
+
+export type QueryTags<
+  TAction extends QueryAction,
+> = QueryTag<Awaited<ReturnType<TAction>> | Unset>[] | ((value: Awaited<ReturnType<TAction>>) => QueryTag<Awaited<ReturnType<TAction>> | Unset>[])
 
 export type QueryOptions<
   TAction extends QueryAction,
@@ -15,13 +19,9 @@ export type QueryOptions<
   interval?: number,
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
   onError?: (error: unknown) => void,
-  tags?: QueryTag[] | ((value: Awaited<ReturnType<TAction>>) => QueryTag[])
+  tags?: QueryTags<TAction>,
   retries?: number | Partial<RetryOptions>,
 }
-
-export type ExtractQueryOptionsFromQuery<
-  TQuery extends Query<any, any>
-> = TQuery extends Query<any, infer TOptions> ? TOptions : never
 
 export type Query<
   TAction extends QueryAction,

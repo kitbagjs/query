@@ -4,7 +4,7 @@ import { tag } from '@/tag'
 
 test('should add and check tags correctly', () => {
   const tags = createQueryGroupTags()
-  const tag1 = tag('test')
+  const tag1 = tag()
   
   tags.addAllTags([tag1], 1)
 
@@ -13,7 +13,7 @@ test('should add and check tags correctly', () => {
 
 test('should remove tags correctly', () => {
   const tags = createQueryGroupTags()
-  const tag1 = tag('test')
+  const tag1 = tag()
   
   tags.addAllTags([tag1], 1)
   tags.removeAllTagsBySubscriptionId(1)
@@ -23,8 +23,8 @@ test('should remove tags correctly', () => {
 
 test('should handle multiple tags and ids', () => {
   const tags = createQueryGroupTags()
-  const tag1 = tag('test1')
-  const tag2 = tag('test2')
+  const tag1 = tag()
+  const tag2 = tag()
   
   tags.addAllTags([tag1, tag2], 1)
   tags.addAllTags([tag1], 2)
@@ -40,9 +40,9 @@ test('should handle multiple tags and ids', () => {
 
 test('should clear all tags', () => {
   const tags = createQueryGroupTags()
-  const tag1 = tag('test1')
-  const tag2 = tag('test2')
-  const tag3 = tag('test3')
+  const tag1 = tag()
+  const tag2 = tag()
+  const tag3 = tag()
   
   tags.addAllTags([tag1, tag2], 1)
   tags.addAllTags([tag1, tag2, tag3], 2)
