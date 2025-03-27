@@ -2,7 +2,7 @@ export const unset = Symbol('unset')
 export type Unset = typeof unset
 
 export type QueryTag<
- TData extends unknown = Unset,
+ TData extends unknown = unknown,
 > = {
   /**
    * @private
@@ -13,7 +13,7 @@ export type QueryTag<
   key: QueryTagKey
 }
 
-export type QueryTagType<TQueryTag extends QueryTag<unknown>> = TQueryTag extends QueryTag<infer TData> 
+export type QueryTagType<TQueryTag extends QueryTag> = TQueryTag extends QueryTag<infer TData> 
   ? TData extends Unset
     ? unknown
     : TData
