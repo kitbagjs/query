@@ -2,6 +2,7 @@ import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
 import { createQueryClient } from './createQueryClient'
 import { effectScope, ref } from 'vue'
 import { timeout } from './utilities/timeout'
+import { tag } from './tag'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -508,5 +509,44 @@ describe('options', () => {
     expect(result.error).toBeDefined()
     expect(result.errored).toBe(true)
     expect(result.executed).toBe(true)
+  })
+})
+
+describe('setQueryData', () => {
+  test('updates the query data', async () => {
+    const { setQueryData } = createQueryClient()
+    const untypedTag = tag()
+    const numberTag = tag<number>()
+    const stringTag = tag<string>()
+
+    const action = (arg: number) => 'foo'
+
+    setQueryData(action, (data) => {
+      return 'hello world'
+    })
+
+    setQueryData(action, [1], (data) => {
+      return 'hello world'
+    })
+
+    setQueryData(stringTag, (data) => {
+      return 'hello world'
+    })
+
+    setQueryData(numberTag, (data) => {
+      return 2
+    })
+
+    setQueryData(untypedTag, (data) => {
+      return 'hello world'
+    })
+
+    setQueryData([stringTag, numberTag], (data) => {
+      return 'hello world'
+    })
+
+    setQueryData([stringTag, numberTag, untypedTag], (data) => {
+      return 'hello world'
+    })
   })
 })

@@ -3,6 +3,7 @@ import { Getter, MaybeGetter } from "./getters";
 import { QueryTag, Unset } from "@/types/tags";
 
 export type QueryAction = (...args: any[]) => any
+export type QueryData<TAction extends QueryAction> = Awaited<ReturnType<TAction>>
 
 export type QueryActionArgs<
   TAction extends QueryAction
@@ -10,14 +11,14 @@ export type QueryActionArgs<
 
 export type QueryTags<
   TAction extends QueryAction,
-> = QueryTag<Awaited<ReturnType<TAction>> | Unset>[] | ((value: Awaited<ReturnType<TAction>>) => QueryTag<Awaited<ReturnType<TAction>> | Unset>[])
+> = QueryTag<QueryData<TAction> | Unset>[] | ((value: QueryData<TAction>) => QueryTag<QueryData<TAction> | Unset>[])
 
 export type QueryOptions<
   TAction extends QueryAction,
 > = {
   placeholder?: any,
   interval?: number,
-  onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
+  onSuccess?: (value: QueryData<TAction>) => void,
   onError?: (error: unknown) => void,
   tags?: QueryTags<TAction>,
   retries?: number | Partial<RetryOptions>,
@@ -27,7 +28,7 @@ export type Query<
   TAction extends QueryAction,
   TOptions extends QueryOptions<TAction>
 > = PromiseLike<AwaitedQuery<TAction>> & {
-  data: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
+  data: QueryData<TAction> | TOptions['placeholder'],
   error: unknown,
   errored: boolean,
   executed: boolean,
@@ -40,7 +41,7 @@ export type Query<
 export type AwaitedQuery<
   TAction extends QueryAction,
 > = {
-  data: Awaited<ReturnType<TAction>>,
+  data: QueryData<TAction>,
   error: unknown,
   errored: boolean,
   executed: boolean,

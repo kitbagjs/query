@@ -13,6 +13,20 @@ export type QueryTag<
   key: QueryTagKey
 }
 
+export type QueryTagType<TQueryTag extends QueryTag<unknown>> = TQueryTag extends QueryTag<infer TData> 
+  ? TData extends Unset
+    ? unknown
+    : TData
+   : never
+
+export function isQueryTag(tag: unknown): tag is QueryTag {
+  return typeof tag === 'object' && tag !== null && 'data' in tag && 'key' in tag
+}
+
+export function isQueryTags(tags: unknown): tags is QueryTag[] {
+  return Array.isArray(tags) && tags.every(isQueryTag)
+}
+
 /**
  * QueryTagKey is a unique identifier for a query tag.
  * It is the combination of the tag id, and the tag value.
