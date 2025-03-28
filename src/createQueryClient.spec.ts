@@ -2,7 +2,6 @@ import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
 import { createQueryClient } from './createQueryClient'
 import { effectScope, ref } from 'vue'
 import { timeout } from './utilities/timeout'
-import { tag } from './tag'
 
 beforeEach(() => {
   vi.useFakeTimers()
