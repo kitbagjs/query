@@ -3,6 +3,11 @@ import { Getter, MaybeGetter } from "./getters";
 import { QueryTag, Unset } from "@/types/tags";
 
 export type QueryAction = (...args: any[]) => any
+
+export function isQueryAction(value: any): value is QueryAction {
+  return typeof value === 'function'
+}
+
 export type QueryData<TAction extends QueryAction> = Awaited<ReturnType<TAction>>
 
 export type QueryActionArgs<

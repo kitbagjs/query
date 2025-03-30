@@ -48,7 +48,7 @@ export type DefinedQuery<
 
 export type QueryDataSetter<TAction extends QueryAction = QueryAction> = (data: QueryData<TAction>) => QueryData<TAction>
 
-export type QueryTagSetter<TQueryTag extends QueryTag> = (data: QueryTagType<TQueryTag>) => QueryTagType<TQueryTag>
+export type QueryTagSetter<TQueryTag extends QueryTag = QueryTag> = (data: QueryTagType<TQueryTag>) => QueryTagType<TQueryTag>
 
 export type SetQueryData = {
   <TQueryTag extends QueryTag>(tag: TQueryTag, setter: QueryTagSetter<TQueryTag>): void

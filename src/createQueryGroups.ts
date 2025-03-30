@@ -1,9 +1,7 @@
 import { QueryGroup, QueryGroupOptions, createQueryGroup } from "./createQueryGroup";
 import { createSequence } from "./createSequence";
-import { SetQueryData } from "./types/client";
 import { isQueryTags } from "./types/tags";
 import { isQueryTag } from "./types/tags";
-import { QueryDataSetter } from "./types/client";
 import { Query, QueryAction, QueryOptions } from "./types/query";
 import { QueryTag } from "./types/tags";
 import { assert } from "./utilities/assert";
@@ -15,9 +13,16 @@ export type CreateQuery = <
   const TOptions extends QueryOptions<TAction>
 >(action: TAction, parameters: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
 
+export type GetQueryGroups = {
+  <TQueryTag extends QueryTag>(tag: TQueryTag): QueryGroup[]
+  <TQueryTag extends QueryTag>(tags: TQueryTag[]): QueryGroup[]
+  <TAction extends QueryAction>(action: TAction): QueryGroup[]
+  <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): QueryGroup[]
+}
+
 export type CreateQueryGroups = {
   createQuery: CreateQuery
-  setQueryData: SetQueryData
+  getQueryGroups: GetQueryGroups
 }
 
 export function createQueryGroups(options?: QueryGroupOptions) {
@@ -63,66 +68,33 @@ export function createQueryGroups(options?: QueryGroupOptions) {
     return group.subscribe(options)
   }
 
-  const setQueryData: SetQueryData = (
+  const getQueryGroups: GetQueryGroups = (
     tagOrAction: QueryTag | QueryTag[] | QueryAction,
-    parametersOrSetter: QueryDataSetter | Parameters<QueryAction>,
-    maybeSetter?: QueryDataSetter
-  ) => {
+    parameters?:  Parameters<QueryAction>,
+  ): QueryGroup[] => {
     if (isQueryTag(tagOrAction) || isQueryTags(tagOrAction)) {
-      return setQueryDataByTag(tagOrAction, parametersOrSetter as QueryDataSetter)
+      return Array.from(groups.values()).filter(group => group.hasTag(tagOrAction))
     }
 
     if (typeof tagOrAction === 'function') {
-      if (typeof parametersOrSetter === 'function') {
-        return setQueryDataByAction(tagOrAction, parametersOrSetter as QueryDataSetter)
-      }
+      const actionKey = getActionKey(tagOrAction)
 
-      return setQueryDataByActionAndParameters(tagOrAction, parametersOrSetter as Parameters<QueryAction>, maybeSetter as QueryDataSetter)
+      if(parameters) {
+        const key = getQueryGroupKey(actionKey, parameters)
+        const group = groups.get(key)
+
+        return group ? [group] : []
+      }
+      
+      const groupKeys = actionGroups.get(actionKey)
+      return groupKeys ? Array.from(groupKeys).map(key => groups.get(key)!) : []
     }
 
     assert(tagOrAction, 'Invalid arguments given to setQueryData')
   }
 
-
-  function setQueryDataByTag(tag: QueryTag | QueryTag[], setter: QueryDataSetter) {
-    for (const group of groups.values()) {
-      if (group.hasTag(tag)) {
-        group.setQueryData(setter)
-      }
-    }
-  }
-
-  function setQueryDataByAction(action: QueryAction, setter: QueryDataSetter) {
-    const keys = actionGroups.get(getActionKey(action))
-
-    if(!keys) {
-      return
-    }
-
-    for(const key of keys) {
-      const group = groups.get(key)
-
-      if(!group) {
-        continue
-      }
-
-      group.setQueryData(setter)
-    }
-  }
-
-  function setQueryDataByActionAndParameters(action: QueryAction, parameters: Parameters<QueryAction>, setter: QueryDataSetter) {
-    const key = getQueryGroupKey(getActionKey(action), parameters)
-    const group = groups.get(key)
-
-    if(!group) {
-      return
-    }
-
-    group.setQueryData(setter)
-  }
-
   return {
     createQuery,
-    setQueryData,
+    getQueryGroups,
   }
 }
