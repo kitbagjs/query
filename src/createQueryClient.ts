@@ -40,7 +40,6 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
     }
   }
 
-
   return {
     query,
     useQuery,
