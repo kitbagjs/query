@@ -12,7 +12,7 @@ import { createQueryGroups } from "./createQueryGroups";
 import { createUseQuery } from "./createUseQuery";
 
 export function createQueryClient(options?: ClientOptions): QueryClient {
-  const { createQuery, setQueryData } = createQueryGroups(options)
+  const { createQuery } = createQueryGroups(options)
 
   const query: QueryFunction = (action, args, options) => {
     return createQuery(action, args, options)
@@ -45,6 +45,5 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
     query,
     useQuery,
     defineQuery,
-    setQueryData,
   }
 }
