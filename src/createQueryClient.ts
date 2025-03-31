@@ -1,6 +1,6 @@
 import { QueryAction, QueryOptions } from "./types/query";
 import { ClientOptions } from "./types/clientOptions";
-import {
+import { 
   DefinedQueryComposition,
   DefinedQueryFunction,
   DefineQuery,
@@ -18,7 +18,7 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
     return createQuery(action, args, options)
   }
 
-  const useQuery: QueryComposition = (action, parameters, options) => {
+  const useQuery: QueryComposition = (action, parameters, options) => {    
     return createUseQuery(createQuery, action, parameters, options)
   }
 
