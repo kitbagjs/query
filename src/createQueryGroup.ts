@@ -121,11 +121,15 @@ export function createQueryGroup<
     tags.addAllTags(tagsToAdd, id)
   }
 
+  function isActive(): boolean {
+    return subscriptions.size > 0
+  }
+
   function removeSubscription(subscriptionId: number): void {
     tags.removeAllTagsBySubscriptionId(subscriptionId)
     subscriptions.delete(subscriptionId)
 
-    if(subscriptions.size === 0) {
+    if(!isActive()) {
       abortController.abort()
     }
   }
@@ -231,7 +235,7 @@ export function createQueryGroup<
     execute,
     abortSignal: abortController.signal,
     get active() {
-      return subscriptions.size > 0
+      return isActive()
     },
   }
 }
