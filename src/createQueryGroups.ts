@@ -2,9 +2,10 @@ import { QueryGroup, QueryGroupOptions, createQueryGroup } from "./createQueryGr
 import { createSequence } from "./createSequence";
 import { isQueryTags } from "./types/tags";
 import { isQueryTag } from "./types/tags";
-import { Query, QueryAction, QueryOptions } from "./types/query";
+import { isQueryAction, Query, QueryAction, QueryOptions } from "./types/query";
 import { QueryTag } from "./types/tags";
-import { assert } from "./utilities/assert";
+import { assertNever } from "./utilities/assert";
+import { isArray } from "./types/arrays";
 
 type QueryGroupKey = `${number}-${string}`
 
@@ -76,21 +77,22 @@ export function createQueryGroups(options?: QueryGroupOptions) {
       return Array.from(groups.values()).filter(group => group.hasTag(tagOrAction))
     }
 
-    if (typeof tagOrAction === 'function') {
+    if(isQueryAction(tagOrAction) && isArray(parameters)) {
       const actionKey = getActionKey(tagOrAction)
+      const queryGroupKey = getQueryGroupKey(actionKey, parameters)
+      const group = groups.get(queryGroupKey)
 
-      if(parameters) {
-        const key = getQueryGroupKey(actionKey, parameters)
-        const group = groups.get(key)
+      return group ? [group] : []
+    }
 
-        return group ? [group] : []
-      }
-      
+    if(isQueryAction(tagOrAction)) {
+      const actionKey = getActionKey(tagOrAction)
       const groupKeys = actionGroups.get(actionKey)
+
       return groupKeys ? Array.from(groupKeys).map(key => groups.get(key)!) : []
     }
 
-    assert(tagOrAction, 'Invalid arguments given to setQueryData')
+    assertNever(tagOrAction, 'Invalid arguments given to setQueryData')
   }
 
   return {
