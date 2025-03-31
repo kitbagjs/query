@@ -34,10 +34,22 @@ export function createQueryGroups(options?: QueryGroupOptions) {
     const queryKey = createGroupKey(action, parameters)
 
     if(!groups.has(queryKey)) {
-      groups.set(queryKey, createQueryGroup(action, parameters, options))
+      const group = createQueryGroup(action, parameters, options)
+
+      group.abortSignal.addEventListener('abort', () => {
+        groups.delete(queryKey)
+      })
+
+      groups.set(queryKey, group)
     }
 
     return groups.get(queryKey)!
+  }
+
+  function hasQueryGroup(action: QueryAction, parameters: Parameters<QueryAction>): boolean {
+    const queryKey = createGroupKey(action, parameters)
+
+    return groups.has(queryKey)
   }
 
   const createQuery: CreateQuery = (action, parameters, options) => {
@@ -48,5 +60,6 @@ export function createQueryGroups(options?: QueryGroupOptions) {
 
   return {
     createQuery,
+    hasQueryGroup,
   }
 }

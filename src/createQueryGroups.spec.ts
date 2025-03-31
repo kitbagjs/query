@@ -1,10 +1,19 @@
-import { test, expect, vi } from "vitest"
+import { test, expect, vi, afterEach, beforeEach } from "vitest"
 import { createQueryGroups } from "./createQueryGroups"
 import * as CreateQueryGroupExports from './createQueryGroup'
 import { QueryAction } from "./types/query"
 
 const getRandomNumber = () => Math.random()
 const multipleByTwo = (value: number) => value * 2
+
+beforeEach(() => {
+  vi.resetModules()
+  vi.clearAllMocks()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 test('whenever createQuery is called with a new action, it should create a group', () => {
   const createQueryGroup = vi.spyOn(CreateQueryGroupExports, 'createQueryGroup')
@@ -54,6 +63,7 @@ test('when createQuery is called, it should pass options through to the group', 
   vi.spyOn(CreateQueryGroupExports, 'createQueryGroup').mockReturnValue({
     subscribe,
     active: true,
+    abortSignal: new AbortController().signal,
     hasTag: vi.fn(),
     execute: vi.fn(),
   })
@@ -68,4 +78,15 @@ test('when createQuery is called, it should pass options through to the group', 
 
   expect(subscribe).toHaveBeenCalledOnce()
   expect(subscribe).toHaveBeenCalledWith(options)
+})
+
+test('disposing of all queries should delete the group', () => {
+  const { createQuery, hasQueryGroup } = createQueryGroups()
+  const query = createQuery(getRandomNumber, [])
+
+  expect(hasQueryGroup(getRandomNumber, [])).toBe(true)
+
+  query.dispose()
+
+  expect(hasQueryGroup(getRandomNumber, [])).toBe(false)
 })

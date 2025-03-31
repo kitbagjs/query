@@ -15,6 +15,7 @@ export type QueryGroup<
   hasTag: (tag: QueryTag) => boolean,
   execute: () => Promise<AwaitedQuery<TAction>>,
   active: boolean,
+  abortSignal: AbortSignal,
 }
 
 export type QueryGroupOptions = {
@@ -26,6 +27,7 @@ export function createQueryGroup<
 >(action: TAction, parameters: Parameters<TAction>, options?: QueryGroupOptions): QueryGroup<TAction> {
   type Group = Query<TAction, QueryOptions<TAction>>
 
+  const abortController = new AbortController()
   const intervalController = createIntervalController()
   let lastExecuted: number | undefined = undefined
   
@@ -119,6 +121,15 @@ export function createQueryGroup<
     tags.addAllTags(tagsToAdd, id)
   }
 
+  function removeSubscription(subscriptionId: number): void {
+    tags.removeAllTagsBySubscriptionId(subscriptionId)
+    subscriptions.delete(subscriptionId)
+
+    if(subscriptions.size === 0) {
+      abortController.abort()
+    }
+  }
+
   function hasTag(tag: QueryTag): boolean {
     return tags.has(tag)
   }
@@ -132,8 +143,7 @@ export function createQueryGroup<
     addTags(options?.tags, subscriptionId)
 
     return () => {
-      subscriptions.delete(subscriptionId)
-      tags.removeAllTagsBySubscriptionId(subscriptionId)
+      removeSubscription(subscriptionId)
     }
   }
 
@@ -219,6 +229,7 @@ export function createQueryGroup<
     subscribe,
     hasTag,
     execute,
+    abortSignal: abortController.signal,
     get active() {
       return subscriptions.size > 0
     },
