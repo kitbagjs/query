@@ -3,7 +3,6 @@ import { createQueryGroups } from "./createQueryGroups"
 import * as CreateQueryGroupExports from './createQueryGroup'
 import { QueryAction } from "./types/query"
 import { tag } from "./tag"
-import { timeout } from "./utilities/timeout"
 
 const getRandomNumber = () => Math.random()
 const multipleByTwo = (value: number) => value * 2
