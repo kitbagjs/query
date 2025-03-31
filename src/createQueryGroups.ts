@@ -1,11 +1,9 @@
+import { isArray } from "./types/arrays";
 import { QueryGroup, QueryGroupOptions, createQueryGroup } from "./createQueryGroup";
 import { createSequence } from "./createSequence";
-import { isQueryTags } from "./types/tags";
-import { isQueryTag } from "./types/tags";
 import { isQueryAction, Query, QueryAction, QueryOptions } from "./types/query";
-import { QueryTag } from "./types/tags";
+import { isQueryTag, isQueryTags, QueryTag } from "./types/tags";
 import { assertNever } from "./utilities/assert";
-import { isArray } from "./types/arrays";
 
 type QueryGroupKey = `${number}-${string}`
 
