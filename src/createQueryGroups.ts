@@ -77,8 +77,8 @@ export function createQueryGroups(options?: QueryGroupOptions) {
 
     if(isQueryAction(tagOrAction) && isArray(parameters)) {
       const actionKey = getActionKey(tagOrAction)
-      const queryGroupKey = getQueryGroupKey(actionKey, parameters)
-      const group = groups.get(queryGroupKey)
+      const groupKey = getQueryGroupKey(actionKey, parameters)
+      const group = groups.get(groupKey)
 
       return group ? [group] : []
     }
