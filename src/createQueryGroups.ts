@@ -1,4 +1,4 @@
-import { isArray } from "./types/arrays";
+import { isArray } from "./utilities/arrays";
 import { QueryGroup, QueryGroupOptions, createQueryGroup } from "./createQueryGroup";
 import { createSequence } from "./createSequence";
 import { isQueryAction, Query, QueryAction, QueryOptions } from "./types/query";
