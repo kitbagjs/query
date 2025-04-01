@@ -12,7 +12,7 @@ export type QueryGroup<
   TAction extends QueryAction = QueryAction,
 > = {
   subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
-  hasTag: (tag: QueryTag) => boolean,
+  hasTag: (tag: QueryTag | QueryTag[]) => boolean,
   execute: () => Promise<AwaitedQuery<TAction>>,
   active: boolean,
 }
@@ -119,7 +119,11 @@ export function createQueryGroup<
     tags.addAllTags(tagsToAdd, id)
   }
 
-  function hasTag(tag: QueryTag): boolean {
+  function hasTag(tag: QueryTag | QueryTag[]): boolean {
+    if(Array.isArray(tag)) {
+      return tag.some(t => tags.has(t))
+    }
+
     return tags.has(tag)
   }
 

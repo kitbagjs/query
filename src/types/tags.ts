@@ -2,7 +2,7 @@ export const unset = Symbol('unset')
 export type Unset = typeof unset
 
 export type QueryTag<
- TData extends unknown = Unset,
+ TData extends unknown = unknown,
 > = {
   /**
    * @private
@@ -11,6 +11,20 @@ export type QueryTag<
    */
   data: TData,
   key: QueryTagKey
+}
+
+export type QueryTagType<TQueryTag extends QueryTag> = TQueryTag extends QueryTag<infer TData> 
+  ? TData extends Unset
+    ? unknown
+    : TData
+   : never
+
+export function isQueryTag(tag: unknown): tag is QueryTag {
+  return typeof tag === 'object' && tag !== null && 'data' in tag && 'key' in tag
+}
+
+export function isQueryTags(tags: unknown): tags is QueryTag[] {
+  return Array.isArray(tags) && tags.every(isQueryTag)
 }
 
 /**
