@@ -25,6 +25,7 @@ export type QueryOptions<
   interval?: number,
   onSuccess?: (value: QueryData<TAction>) => void,
   onError?: (error: unknown) => void,
+  onDispose?: () => void,
   tags?: QueryTags<TAction>,
   retries?: number | Partial<RetryOptions>,
 }

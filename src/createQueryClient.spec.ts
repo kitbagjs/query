@@ -140,6 +140,20 @@ describe('query', () => {
     expect(onError).toHaveBeenCalledOnce()
   })
 
+  test('onDispose', async () => {
+    const action = vi.fn()
+    const onDispose = vi.fn()
+    const { query } = createQueryClient()
+
+    const {dispose} = query(action, [], { onDispose })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    dispose()
+
+    expect(onDispose).toHaveBeenCalledOnce()
+  })
+
   test('placeholder', async () => {
     const placeholder = Symbol('placeholder')
     const response = Symbol('response')

@@ -17,13 +17,13 @@ export type QueryGroup<
   active: boolean,
 }
 
-export type QueryGroupOptions = {
+export type QueryGroupOptions = QueryOptions<any> & {
   retries?: number | Partial<RetryOptions>
 }
 
 export function createQueryGroup<
   TAction extends QueryAction,
->(action: TAction, parameters: Parameters<TAction>, options?: QueryGroupOptions): QueryGroup<TAction> {
+>(action: TAction, parameters: Parameters<TAction>, groupOptions?: QueryGroupOptions): QueryGroup<TAction> {
   type Group = Query<TAction, QueryOptions<TAction>>
 
   const intervalController = createIntervalController()
@@ -171,7 +171,7 @@ export function createQueryGroup<
       .from(subscriptions.values())
       .map(subscription => subscription.retries)
     
-    retries.push(options?.retries)
+    retries.push(groupOptions?.retries)
 
     return reduceRetryOptions(retries)
   }
@@ -179,11 +179,22 @@ export function createQueryGroup<
   function subscribe<
     TOptions extends QueryOptions<TAction>
   >(options?: TOptions): Query<TAction, TOptions> {
-    const removeSubscription = addSubscription(options)
+    const mergedOptions = {
+      ...groupOptions,
+      ...options,
+    }
+
+    const removeSubscription = addSubscription(mergedOptions)
 
     function dispose(): void {
+      const current = Array.from(subscriptions.values())
+      
       removeSubscription()
       setNextExecution()
+
+      for(const { onDispose } of current) {
+        onDispose?.()
+      }
     }
 
     const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
