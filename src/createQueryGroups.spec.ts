@@ -167,17 +167,15 @@ describe('getQueryGroups', () => {
     
     expect(groups.length).toBe(3)
   })
-})
 
-describe('hasQueryGroup', () => {
-  test('returns false after disposing of all queries', () => {
-    const { createQuery, hasQueryGroup } = createQueryGroups()
+  test('disposing of all queries for a group, removes a previously created group', () => {
+    const { createQuery, getQueryGroups } = createQueryGroups()
     const query = createQuery(getRandomNumber, [])
   
-    expect(hasQueryGroup(getRandomNumber, [])).toBe(true)
+    expect(getQueryGroups(getRandomNumber, [])).toHaveLength(1)
   
     query.dispose()
   
-    expect(hasQueryGroup(getRandomNumber, [])).toBe(false)
+    expect(getQueryGroups(getRandomNumber, [])).toHaveLength(0)
   })
 })

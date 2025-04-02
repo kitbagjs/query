@@ -19,17 +19,9 @@ export type GetQueryGroups = {
   <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): QueryGroup[]
 }
 
-export type HasQueryGroup = {
-  <TQueryTag extends QueryTag>(tag: TQueryTag): boolean
-  <TQueryTag extends QueryTag>(tags: TQueryTag[]): boolean
-  <TAction extends QueryAction>(action: TAction): boolean
-  <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): boolean
-}
-
 export type CreateQueryGroups = {
   createQuery: CreateQuery
   getQueryGroups: GetQueryGroups
-  hasQueryGroup: HasQueryGroup
 }
 
 export function createQueryGroups(options?: QueryGroupOptions) {
@@ -111,18 +103,8 @@ export function createQueryGroups(options?: QueryGroupOptions) {
     assertNever(tagOrAction, 'Invalid arguments given to setQueryData')
   }
 
-  function hasQueryGroup (
-    tagOrAction: QueryTag | QueryTag[] | QueryAction,
-    parameters?:  Parameters<QueryAction>,
-  ): boolean {
-    const groups = getQueryGroups(tagOrAction, parameters)
-
-    return groups.length > 0
-  }
-
   return {
     createQuery,
     getQueryGroups,
-    hasQueryGroup,
   }
 }
