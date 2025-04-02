@@ -19,9 +19,17 @@ export type GetQueryGroups = {
   <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): QueryGroup[]
 }
 
+export type HasQueryGroup = {
+  <TQueryTag extends QueryTag>(tag: TQueryTag): boolean
+  <TQueryTag extends QueryTag>(tags: TQueryTag[]): boolean
+  <TAction extends QueryAction>(action: TAction): boolean
+  <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): boolean
+}
+
 export type CreateQueryGroups = {
   createQuery: CreateQuery
   getQueryGroups: GetQueryGroups
+  hasQueryGroup: HasQueryGroup
 }
 
 export function createQueryGroups(options?: QueryGroupOptions) {
@@ -54,8 +62,18 @@ export function createQueryGroups(options?: QueryGroupOptions) {
 
     actionGroups.get(actionKey)!.add(groupKey)
 
+    const onDispose = () => {
+      if (!groups.get(groupKey)?.active) {
+        groups.delete(groupKey)
+      }
+
+      options?.onDispose?.()
+    }
+
     if(!groups.has(groupKey)) {
-      groups.set(groupKey, createQueryGroup(action, parameters, options))
+      const group = createQueryGroup(action, parameters, {...options, onDispose})
+
+      groups.set(groupKey, group)
     }
 
     return groups.get(groupKey)!
@@ -67,10 +85,10 @@ export function createQueryGroups(options?: QueryGroupOptions) {
     return group.subscribe(options)
   }
 
-  const getQueryGroups: GetQueryGroups = (
+  function getQueryGroups(
     tagOrAction: QueryTag | QueryTag[] | QueryAction,
     parameters?:  Parameters<QueryAction>,
-  ): QueryGroup[] => {
+  ): QueryGroup[] {
     if (isQueryTag(tagOrAction) || isQueryTags(tagOrAction)) {
       return Array.from(groups.values()).filter(group => group.hasTag(tagOrAction))
     }
@@ -93,8 +111,18 @@ export function createQueryGroups(options?: QueryGroupOptions) {
     assertNever(tagOrAction, 'Invalid arguments given to setQueryData')
   }
 
+  function hasQueryGroup (
+    tagOrAction: QueryTag | QueryTag[] | QueryAction,
+    parameters?:  Parameters<QueryAction>,
+  ): boolean {
+    const groups = getQueryGroups(tagOrAction, parameters)
+
+    return groups.length > 0
+  }
+
   return {
     createQuery,
     getQueryGroups,
+    hasQueryGroup,
   }
 }
