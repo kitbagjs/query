@@ -2,18 +2,18 @@ import { QueryTag, QueryTagKey } from "./types/tags"
 
 export function createQueryGroupTags() {
   const tags = new Map<QueryTagKey, Set<number>>()
-  const subscriptions = new Map<number, Set<QueryTag>>()
+  const queries = new Map<number, Set<QueryTag>>()
 
   function clear(): void {
     tags.clear()
-    subscriptions.clear()
+    queries.clear()
   }
 
   function has(tag: QueryTag): boolean {
     return tags.has(tag.key)
   }
 
-  function getSubscriptionIdsByTag(tag: QueryTag): Set<number> {
+  function getQueryIdsByTag(tag: QueryTag): Set<number> {
     if(!tags.has(tag.key)) {
       tags.set(tag.key, new Set())
     }
@@ -21,65 +21,65 @@ export function createQueryGroupTags() {
     return tags.get(tag.key)!
   }
 
-  function getTagsBySubscriptionId(subscriptionId: number): Set<QueryTag> {
-    if(!subscriptions.has(subscriptionId)) {
-      subscriptions.set(subscriptionId, new Set())
+  function getTagsByQueryId(queryId: number): Set<QueryTag> {
+    if(!queries.has(queryId)) {
+      queries.set(queryId, new Set())
     }
 
-    return subscriptions.get(subscriptionId)!
+    return queries.get(queryId)!
   }
 
-  function addTag(tag: QueryTag, subscriptionId: number): void {
-    getSubscriptionIdsByTag(tag).add(subscriptionId)
-    getTagsBySubscriptionId(subscriptionId).add(tag)
+  function addTag(tag: QueryTag, queryId: number): void {
+    getQueryIdsByTag(tag).add(queryId)
+    getTagsByQueryId(queryId).add(tag)
   }
 
-  function removeTag(tag: QueryTag, subscriptionId: number): void {
-    const tagSet = getSubscriptionIdsByTag(tag)
-    const subscriptionSet = getTagsBySubscriptionId(subscriptionId)
+  function removeTag(tag: QueryTag, queryId: number): void {
+    const queryTags = getQueryIdsByTag(tag)
+    const tagQueries = getTagsByQueryId(queryId)
 
-    tagSet.delete(subscriptionId)
-    subscriptionSet.delete(tag)
+    queryTags.delete(queryId)
+    tagQueries.delete(tag)
 
-    if(tagSet.size === 0) {
+    if(queryTags.size === 0) {
       tags.delete(tag.key)
     }
 
-    if(subscriptionSet.size === 0) {
-      subscriptions.delete(subscriptionId)
+    if(tagQueries.size === 0) {
+      queries.delete(queryId)
     }
   }
 
-  function addAllTags(tags: QueryTag[] | undefined, subscriptionId: number): void {
+  function addAllTags(tags: QueryTag[] | undefined, queryId: number): void {
     if(!tags) {
       return
     }
 
     for(const tag of tags) {
-      addTag(tag, subscriptionId)
+      addTag(tag, queryId)
     }
   }
 
-  function removeAllTags(tags: QueryTag[] | undefined, subscriptionId: number): void {
+  function removeAllTags(tags: QueryTag[] | undefined, queryId: number): void {
     if(!tags) {
       return
     }
 
     for(const tag of tags) {
-      removeTag(tag, subscriptionId)
+      removeTag(tag, queryId)
     }
   }
 
-  function removeAllTagsBySubscriptionId(subscriptionId: number): void {
-    const tags = Array.from(getTagsBySubscriptionId(subscriptionId))
+  function removeAllTagsByQueryId(queryId: number): void {
+    const tags = Array.from(getTagsByQueryId(queryId))
 
-    removeAllTags(tags, subscriptionId)
+    removeAllTags(tags, queryId)
   }
 
   return {
     clear,
     has,
     addAllTags,
-    removeAllTagsBySubscriptionId,
+    removeAllTagsByQueryId,
   }
 }

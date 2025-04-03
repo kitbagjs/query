@@ -64,7 +64,7 @@ export function createQueryGroups(options?: QueryGroupOptions) {
   const createQuery: CreateQuery = (action, parameters, options) => {
     const group = getQueryGroup(action, parameters)
 
-    return group.subscribe(options)
+    return group.createQuery(options)
   }
 
   const getQueryGroups: GetQueryGroups = (

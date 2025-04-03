@@ -61,10 +61,10 @@ describe('createQuery', () => {
   })
 
   test('when createQuery is called, it should pass options through to the group', () => {
-    const subscribe = vi.fn()
+    const mock = vi.fn()
 
     vi.spyOn(CreateQueryGroupExports, 'createQueryGroup').mockReturnValue({
-      subscribe,
+      createQuery: mock,
       active: true,
       hasTag: vi.fn(),
       execute: vi.fn(),
@@ -78,8 +78,8 @@ describe('createQuery', () => {
 
     createQuery(getRandomNumber, [], options)
 
-    expect(subscribe).toHaveBeenCalledOnce()
-    expect(subscribe).toHaveBeenCalledWith(options)
+    expect(mock).toHaveBeenCalledOnce()
+    expect(mock).toHaveBeenCalledWith(options)
   })
 })
 
