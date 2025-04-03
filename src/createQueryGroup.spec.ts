@@ -10,13 +10,13 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-test('subscribing to new group, always executes the action', async () => {
+test('when creating a new group, always executes the action', async () => {
   const response = Symbol('response')
   const action = vi.fn((..._args) => response)
   const args = ['a', 'b']
   const group = createQueryGroup(action, args)
 
-  const query = group.subscribe()
+  const query = group.createQuery()
 
   await vi.runOnlyPendingTimersAsync()
 
@@ -29,20 +29,20 @@ test('subscribing to new group, always executes the action', async () => {
   expect(action).toHaveBeenCalledWith(...args)
 })
 
-test('additional subscription to existing group, does not execute the action', async () => {
+test('additional query to existing group, does not execute the action', async () => {
   const response = Symbol('response')
   const action = vi.fn(() => response)
   const group = createQueryGroup(action, [])
 
-  // initial subscription
-  group.subscribe()
+  // initial query
+  group.createQuery()
 
   await vi.runOnlyPendingTimersAsync()
   
   expect(action).toHaveBeenCalledOnce()
 
   for(let i = 0; i < 10; i++) {
-    group.subscribe()
+    group.createQuery()
   }
 
   await vi.runOnlyPendingTimersAsync()
@@ -57,7 +57,7 @@ describe('when action executes successfully', () => {
     const args = ['a', 'b']
     const group = createQueryGroup(action, args)
 
-    const query = group.subscribe()
+    const query = group.createQuery()
 
     await vi.runOnlyPendingTimersAsync()
 
@@ -70,7 +70,7 @@ describe('when action executes successfully', () => {
     expect(action).toHaveBeenCalledWith(...args)
   })
 
-  test('when subscriptions add callbacks, onSuccess is called', async () => {
+  test('when query adds callbacks, onSuccess is called', async () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
     const group = createQueryGroup(action, [])
@@ -78,7 +78,7 @@ describe('when action executes successfully', () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
   
-    group.subscribe({ onSuccess, onError })
+    group.createQuery({ onSuccess, onError })
   
     await vi.runOnlyPendingTimersAsync()
     
@@ -94,7 +94,7 @@ describe('when action throws an error', () => {
     const args = ['a', 'b']
     const group = createQueryGroup(action, args)
 
-    const query = group.subscribe()
+    const query = group.createQuery()
 
     await vi.runOnlyPendingTimersAsync()
 
@@ -107,7 +107,7 @@ describe('when action throws an error', () => {
     expect(action).toHaveBeenCalledWith(...args)
   })
   
-  test('when subscriptions add callbacks, onError is called', async () => {
+  test('when query adds callbacks, onError is called', async () => {
     const error = Symbol('error')
     const action = vi.fn(() => { throw error })
     const group = createQueryGroup(action, [])
@@ -115,7 +115,7 @@ describe('when action throws an error', () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
 
-    group.subscribe({ onSuccess, onError })
+    group.createQuery({ onSuccess, onError })
 
     await vi.runOnlyPendingTimersAsync()
     
@@ -124,18 +124,18 @@ describe('when action throws an error', () => {
   })
 })
 
-test('active property is true whenever there are 1+ subscriptions', async () => {
+test('active property is true whenever there are 1+ query', async () => {
   const response = Symbol('response')
   const action = vi.fn(() => response)
   const group = createQueryGroup(action, [])
 
-  const first = group.subscribe()
+  const first = group.createQuery()
 
   await vi.runOnlyPendingTimersAsync()
 
   expect(group.active).toBe(true)
   
-  const second = group.subscribe()
+  const second = group.createQuery()
 
   await vi.runOnlyPendingTimersAsync()
 
@@ -156,7 +156,7 @@ describe('given group with interval', () => {
     const action = vi.fn(() => response)
     const group = createQueryGroup(action, [])
 
-    group.subscribe({ interval: 5 })
+    group.createQuery({ interval: 5 })
 
     await vi.advanceTimersByTimeAsync(0)
 
@@ -172,9 +172,9 @@ describe('given group with interval', () => {
     const action = vi.fn(() => response)
     const group = createQueryGroup(action, [])
 
-    group.subscribe({ interval: 10 })
-    group.subscribe({ interval: 5 })
-    group.subscribe({ interval: 20 })
+    group.createQuery({ interval: 10 })
+    group.createQuery({ interval: 5 })
+    group.createQuery({ interval: 20 })
 
     await vi.advanceTimersByTimeAsync(0)
 
@@ -193,9 +193,9 @@ describe('given group with interval', () => {
       const action = vi.fn(() => response)
       const group = createQueryGroup(action, [])
 
-      group.subscribe({ interval: 10 })
-      const willRemove = group.subscribe({ interval: 5 })
-      group.subscribe({ interval: 20 })
+      group.createQuery({ interval: 10 })
+      const willRemove = group.createQuery({ interval: 5 })
+      group.createQuery({ interval: 20 })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -217,7 +217,7 @@ describe('given group with interval', () => {
       const action = vi.fn(() => response)
       const group = createQueryGroup(action, [])
 
-      group.subscribe({ interval: 20 })
+      group.createQuery({ interval: 20 })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -228,7 +228,7 @@ describe('given group with interval', () => {
       await vi.advanceTimersByTimeAsync(2)
 
       // add new, shorter interval
-      group.subscribe({ interval: 5 })
+      group.createQuery({ interval: 5 })
 
       // run for new shortest, not enough to hit previous shortest
       await vi.advanceTimersByTimeAsync(6)
@@ -241,7 +241,7 @@ describe('given group with interval', () => {
       const action = vi.fn(() => response)
       const group = createQueryGroup(action, [])
 
-      group.subscribe({ interval: 20 })
+      group.createQuery({ interval: 20 })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -252,7 +252,7 @@ describe('given group with interval', () => {
       await vi.advanceTimersByTimeAsync(8)
 
       // add new, shorter interval
-      group.subscribe({ interval: 5 })
+      group.createQuery({ interval: 5 })
 
       await vi.advanceTimersByTimeAsync(0)
 
@@ -269,8 +269,8 @@ describe('given group with tags', () => {
 
     expect(group.hasTag(tag1)).toBe(false)
 
-    const query1 = group.subscribe({ tags: [tag1] })
-    const query2 = group.subscribe({ tags: [tag2('foo')] })
+    const query1 = group.createQuery({ tags: [tag1] })
+    const query2 = group.createQuery({ tags: [tag2('foo')] })
 
     // need executed to happen for tag factories
     await vi.advanceTimersByTimeAsync(0)
@@ -299,7 +299,7 @@ describe('execute', () => {
     const action = vi.fn(() => response)
     const group = createQueryGroup(action, [])
 
-    group.subscribe()
+    group.createQuery()
 
     await vi.advanceTimersByTimeAsync(0)
 
@@ -341,7 +341,7 @@ describe('retries', () => {
     const action = vi.fn(() => { throw new Error('Expected error') })
     const group = createQueryGroup(action, [])
 
-    const result = group.subscribe({ retries: { count: 1, delay: 100 }})
+    const result = group.createQuery({ retries: { count: 1, delay: 100 }})
 
     await vi.advanceTimersByTimeAsync(0)
 

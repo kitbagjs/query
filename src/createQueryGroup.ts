@@ -11,7 +11,7 @@ import { createQueryGroupTags } from "./createQueryGroupTags";
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
 > = {
-  subscribe: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
+  createQuery: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   hasTag: (tag: QueryTag | QueryTag[]) => boolean,
   execute: () => Promise<AwaitedQuery<TAction>>,
   active: boolean,
@@ -36,8 +36,8 @@ export function createQueryGroup<
   const executed = ref<Group['executed']>(false)
   const { promise, resolve } = Promise.withResolvers()
 
-  const subscriptions = new Map<number, QueryOptions<TAction>>()
-  const createSubscriptionId = createSequence()
+  const queries = new Map<number, QueryOptions<TAction>>()
+  const createQueryId = createSequence()
   const tags = createQueryGroupTags()
 
   async function execute(): Promise<AwaitedQuery<TAction>> {
@@ -75,7 +75,7 @@ export function createQueryGroup<
     errored.value = false
     data.value = value
 
-    for(const { onSuccess } of subscriptions.values()) {
+    for(const { onSuccess } of queries.values()) {
       onSuccess?.(value)
     }
 
@@ -86,7 +86,7 @@ export function createQueryGroup<
     error.value = value
     errored.value = true
 
-    for(const { onError } of subscriptions.values()) {
+    for(const { onError } of queries.values()) {
       onError?.(value)
     }
 
@@ -96,7 +96,7 @@ export function createQueryGroup<
   function setTags(): void {
     tags.clear()
 
-    for(const [id, { tags }] of subscriptions.entries()) {
+    for(const [id, { tags }] of queries.entries()) {
       addTags(tags, id)
     }
   }
@@ -127,62 +127,62 @@ export function createQueryGroup<
     return tags.has(tag)
   }
 
-  function addSubscription(options?: QueryOptions<TAction>): () => void {
-    const subscriptionId = createSubscriptionId()
+  function addQuery(options?: QueryOptions<TAction>): () => void {
+    const queryId = createQueryId()
 
-    subscriptions.set(subscriptionId, options ?? {})  
+    queries.set(queryId, options ?? {})  
 
     setNextExecution()
-    addTags(options?.tags, subscriptionId)
+    addTags(options?.tags, queryId)
 
     return () => {
-      subscriptions.delete(subscriptionId)
-      tags.removeAllTagsBySubscriptionId(subscriptionId)
+      queries.delete(queryId)
+      tags.removeAllTagsByQueryId(queryId)
     }
   }
 
   function setNextExecution(): void {
-    const interval = getNextSubscriptionInterval()
+    const interval = getNextInterval()
 
     intervalController.set(safeExecute, interval)
   }
 
-  function getNextSubscriptionInterval(): number {
+  function getNextInterval(): number {
     if(lastExecuted === undefined) {
       return 0
     }
 
-    const interval = getSubscriptionInterval()
+    const interval = getInterval()
     const timeLeftSinceLastExecution = Date.now() - lastExecuted
 
     return interval - timeLeftSinceLastExecution
   }
 
-  function getSubscriptionInterval(): number {
+  function getInterval(): number {
     const intervals = Array
-      .from(subscriptions.values())
-      .map(subscription => subscription.interval ?? Infinity)
+      .from(queries.values())
+      .map(query => query.interval ?? Infinity)
   
     return Math.min(...intervals)
   }
 
   function getRetryOptions(): RetryOptions {
     const retries = Array
-      .from(subscriptions.values())
-      .map(subscription => subscription.retries)
+      .from(queries.values())
+      .map(query => query.retries)
     
     retries.push(options?.retries)
 
     return reduceRetryOptions(retries)
   }
 
-  function subscribe<
+  function createQuery<
     TOptions extends QueryOptions<TAction>
   >(options?: TOptions): Query<TAction, TOptions> {
-    const removeSubscription = addSubscription(options)
+    const removeQuery = addQuery(options)
 
     function dispose(): void {
-      removeSubscription()
+      removeQuery()
       setNextExecution()
     }
 
@@ -220,11 +220,11 @@ export function createQueryGroup<
   }
 
   return {
-    subscribe,
+    createQuery,
     hasTag,
     execute,
     get active() {
-      return subscriptions.size > 0
+      return queries.size > 0
     },
   }
 }

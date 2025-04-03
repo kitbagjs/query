@@ -16,7 +16,7 @@ test('should remove tags correctly', () => {
   const tag1 = tag()
   
   tags.addAllTags([tag1], 1)
-  tags.removeAllTagsBySubscriptionId(1)
+  tags.removeAllTagsByQueryId(1)
   
   expect(tags.has(tag1)).toBe(false)
 })
@@ -32,7 +32,7 @@ test('should handle multiple tags and ids', () => {
   expect(tags.has(tag1)).toBe(true)
   expect(tags.has(tag2)).toBe(true)
   
-  tags.removeAllTagsBySubscriptionId(1)
+  tags.removeAllTagsByQueryId(1)
 
   expect(tags.has(tag2)).toBe(false)
   expect(tags.has(tag1)).toBe(true)
