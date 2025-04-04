@@ -55,7 +55,13 @@ export function createQueryGroups(options?: QueryGroupOptions) {
     actionGroups.get(actionKey)!.add(groupKey)
 
     if(!groups.has(groupKey)) {
-      groups.set(groupKey, createQueryGroup(action, parameters, options))
+      const onDispose = () => {
+        groups.delete(groupKey)
+      }
+
+      const group = createQueryGroup(action, parameters, {...options, onDispose})
+
+      groups.set(groupKey, group)
     }
 
     return groups.get(groupKey)!

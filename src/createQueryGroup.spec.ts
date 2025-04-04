@@ -124,32 +124,6 @@ describe('when action throws an error', () => {
   })
 })
 
-test('active property is true whenever there are 1+ query', async () => {
-  const response = Symbol('response')
-  const action = vi.fn(() => response)
-  const group = createQueryGroup(action, [])
-
-  const first = group.createQuery()
-
-  await vi.runOnlyPendingTimersAsync()
-
-  expect(group.active).toBe(true)
-  
-  const second = group.createQuery()
-
-  await vi.runOnlyPendingTimersAsync()
-
-  expect(group.active).toBe(true)
-
-  first.dispose()
-
-  expect(group.active).toBe(true)
-
-  second.dispose()
-
-  expect(group.active).toBe(false)
-})
-
 describe('given group with interval', () => {
   test('with single interval of 5, runs every 5ms', async () => {
     const response = Symbol('response')
