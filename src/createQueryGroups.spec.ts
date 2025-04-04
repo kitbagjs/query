@@ -65,7 +65,6 @@ describe('createQuery', () => {
 
     vi.spyOn(CreateQueryGroupExports, 'createQueryGroup').mockReturnValue({
       createQuery: mock,
-      active: true,
       hasTag: vi.fn(),
       execute: vi.fn(),
     })
@@ -166,5 +165,16 @@ describe('getQueryGroups', () => {
     const groups = getQueryGroups([tag1, tag2])
     
     expect(groups.length).toBe(3)
+  })
+
+  test('disposing of all queries for a group, removes a previously created group', () => {
+    const { createQuery, getQueryGroups } = createQueryGroups()
+    const query = createQuery(getRandomNumber, [])
+
+    expect(getQueryGroups(getRandomNumber, [])).toHaveLength(1)
+
+    query.dispose()
+
+    expect(getQueryGroups(getRandomNumber, [])).toHaveLength(0)
   })
 })

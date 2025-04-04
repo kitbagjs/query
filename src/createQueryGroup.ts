@@ -14,11 +14,11 @@ export type QueryGroup<
   createQuery: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
   hasTag: (tag: QueryTag | QueryTag[]) => boolean,
   execute: () => Promise<AwaitedQuery<TAction>>,
-  active: boolean,
 }
 
 export type QueryGroupOptions = {
-  retries?: number | Partial<RetryOptions>
+  retries?: number | Partial<RetryOptions>,
+  onDispose?: () => void,
 }
 
 export function createQueryGroup<
@@ -127,6 +127,15 @@ export function createQueryGroup<
     return tags.has(tag)
   }
 
+  function removeQuery(queryId: number): void {
+    queries.delete(queryId)
+    tags.removeAllTagsByQueryId(queryId)
+
+    if(queries.size === 0) {
+      options?.onDispose?.()
+    }
+  }
+
   function addQuery(options?: QueryOptions<TAction>): () => void {
     const queryId = createQueryId()
 
@@ -135,10 +144,7 @@ export function createQueryGroup<
     setNextExecution()
     addTags(options?.tags, queryId)
 
-    return () => {
-      queries.delete(queryId)
-      tags.removeAllTagsByQueryId(queryId)
-    }
+    return () => removeQuery(queryId)
   }
 
   function setNextExecution(): void {
@@ -223,8 +229,5 @@ export function createQueryGroup<
     createQuery,
     hasTag,
     execute,
-    get active() {
-      return queries.size > 0
-    },
   }
 }
