@@ -49,13 +49,17 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
       }
 
       indexKeys.forEach(key => {
-        indexes[key].delete(item[key])
+        const collectionWithoutItem = indexes[key].get(item[key])!.filter(id => id !== collectionId)
+
+        if(collectionWithoutItem.length === 0) {
+          indexes[key].delete(item[key])
+        } else {
+          indexes[key].set(item[key], collectionWithoutItem)
+        }
       })
 
       collectionData.delete(collectionId)
     })
-
-    indexes[index].delete(value)
   }
 
   const findItem: IndexedCollection<TData, TKeys>['findItem'] = (index, value): TData[] => {
