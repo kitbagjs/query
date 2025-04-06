@@ -2,7 +2,7 @@ import { createSequence } from "@/createSequence"
 
 type IndexedCollectionId = number
 type CollectionData<TData> = Map<IndexedCollectionId, TData>
-type CollectionIndex<TData, TKey extends keyof TData> = Map<TData[TKey], IndexedCollectionId[]>
+type CollectionIndex<TData, TKey extends keyof TData> = Map<TData[TKey], Set<IndexedCollectionId>>
 
 type IndexedCollection<TData, TKeys extends keyof TData> = {
   addItem: (item: TData) => void
@@ -31,9 +31,9 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
 
     indexKeys.forEach(key => {
       if(!indexes[key].has(item[key])) {
-        indexes[key].set(item[key], [collectionId])
+        indexes[key].set(item[key], new Set([collectionId]))
       } else {
-        indexes[key].get(item[key])!.push(collectionId)
+        indexes[key].get(item[key])!.add(collectionId)
       }
     })
   }
@@ -49,12 +49,10 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
       }
 
       indexKeys.forEach(key => {
-        const collectionWithoutItem = indexes[key].get(item[key])!.filter(id => id !== collectionId)
+        indexes[key].get(item[key])!.delete(collectionId)
 
-        if(collectionWithoutItem.length === 0) {
+        if (indexes[key].get(item[key])?.size === 0) {
           indexes[key].delete(item[key])
-        } else {
-          indexes[key].set(item[key], collectionWithoutItem)
         }
       })
 
@@ -67,9 +65,9 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
       return Array.from(collectionData.values())
     }
 
-    const indexedCollectionIds = indexes[index].get(value) ?? []
-
-    return indexedCollectionIds.map(id => collectionData.get(id)!)
+    return Array
+      .from(indexes[index].get(value) ?? [])
+      .map(id => collectionData.get(id)!)
   }
 
   const clear: IndexedCollection<TData, TKeys>['clear'] = (): void => {
@@ -91,11 +89,11 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
 function createCollectionIndex<TData, TKey extends keyof TData>(items: CollectionData<TData>, key: TKey): CollectionIndex<TData, TKey> {
   return items.entries().reduce((index, [collectionId, item]) => {
     if(!index.has(item[key])) {
-      index.set(item[key], [collectionId])
+      index.set(item[key], new Set([collectionId]))
     } else {
-      index.get(item[key])!.push(collectionId)
+      index.get(item[key])!.add(collectionId)
     }
 
     return index
-  }, new Map<TData[TKey], IndexedCollectionId[]>())
+  }, new Map<TData[TKey], Set<IndexedCollectionId>>())
 }
