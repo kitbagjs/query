@@ -8,6 +8,7 @@ type IndexedCollection<TData, TKeys extends keyof TData> = {
   addItem: (item: TData) => void
   deleteItem: <TKey extends TKeys>(index: TKey, value: TData[TKey]) => void
   findItem: <TKey extends TKeys>(index: TKey, value?: TData[TKey]) => TData[]
+  clear: () => void
 }
 
 const getId = createSequence()
@@ -24,7 +25,7 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
     return indexes
   }, {} as Record<TKeys, CollectionIndex<TData, TKeys>>)
 
-  function addItem(item: TData): void {
+  const addItem: IndexedCollection<TData, TKeys>['addItem'] = (item): void => {
     const collectionId = getId()
     collectionData.set(collectionId, item)
 
@@ -37,7 +38,7 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
     })
   }
 
-  function deleteItem(index: TKeys, value: TData[TKeys]): void {
+  const deleteItem: IndexedCollection<TData, TKeys>['deleteItem'] = (index, value): void => {
     const collectionIds = indexes[index].get(value) ?? []
 
     collectionIds.forEach(collectionId => {
@@ -57,7 +58,7 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
     indexes[index].delete(value)
   }
 
-  function findItem(index: TKeys, value?: TData[TKeys]): TData[] {
+  const findItem: IndexedCollection<TData, TKeys>['findItem'] = (index, value): TData[] => {
     if(!value) {
       return Array.from(collectionData.values())
     }
@@ -67,10 +68,19 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
     return indexedCollectionIds.map(id => collectionData.get(id)!)
   }
 
+  const clear: IndexedCollection<TData, TKeys>['clear'] = (): void => {
+    collectionData.clear()
+
+    indexKeys.forEach(key => {
+      indexes[key].clear()
+    })
+  }
+
   return {
     addItem,
     deleteItem,
-    findItem    
+    findItem,
+    clear
   }
 }
 
