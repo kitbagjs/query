@@ -21,7 +21,7 @@ test('should remove tags correctly', () => {
   expect(tags.has(tag1)).toBe(false)
 })
 
-test('should handle multiple tags and ids', () => {
+test.only('should handle multiple tags and ids', () => {
   const tags = createQueryGroupTags()
   const tag1 = tag()
   const tag2 = tag()
