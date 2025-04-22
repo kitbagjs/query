@@ -1,6 +1,6 @@
 import { computed, reactive, ref, toRefs } from "vue";
 import { AwaitedQuery, Query, QueryAction, QueryOptions } from "./types/query";
-import { createSequence } from "./createSequence";
+import { createQueryId } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
 import { QueryTag } from "./types/tags";
@@ -37,7 +37,6 @@ export function createQueryGroup<
   const { promise, resolve } = Promise.withResolvers()
 
   const queries = new Map<number, QueryOptions<TAction>>()
-  const createQueryId = createSequence()
   const tags = createQueryGroupTags()
 
   async function execute(): Promise<AwaitedQuery<TAction>> {
