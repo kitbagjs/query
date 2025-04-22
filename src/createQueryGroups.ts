@@ -1,6 +1,6 @@
 import { isArray } from "./utilities/arrays";
 import { QueryGroup, QueryGroupOptions, createQueryGroup } from "./createQueryGroup";
-import { createSequence } from "./createSequence";
+import { createActionId } from "./createSequence";
 import { isQueryAction, Query, QueryAction, QueryOptions } from "./types/query";
 import { isQueryTag, isQueryTags, QueryTag } from "./types/tags";
 import { assertNever } from "./utilities/assert";
@@ -25,7 +25,6 @@ export type CreateQueryGroups = {
 }
 
 export function createQueryGroups(options?: QueryGroupOptions) {
-  const createActionId = createSequence()
   const actions = new Map<QueryAction, number>()
   const actionGroups = new Map<number, Set<QueryGroupKey>>()
   const groups = new Map<QueryGroupKey, QueryGroup>()

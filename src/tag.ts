@@ -1,4 +1,4 @@
-import { createSequence } from "./createSequence";
+import { createTagId } from "./createSequence";
 import { QueryTagFactory, QueryTagCallback, QueryTag, Unset, unset } from "./types/tags";
 
 function createQueryTag(id: number, value: unknown): QueryTag {
@@ -8,12 +8,10 @@ function createQueryTag(id: number, value: unknown): QueryTag {
   }
 }
 
-const getId = createSequence()
-
 export function tag<const TData = Unset>(): QueryTag<TData>
 export function tag<const TData = Unset, TInput = unknown>(callback: QueryTagCallback<TInput>): QueryTagFactory<TData, TInput>
 export function tag(callback?: QueryTagCallback): QueryTag | QueryTagFactory {
-  const id = getId();
+  const id = createTagId();
 
   if (callback) {
     return (value) => createQueryTag(id, callback(value))
