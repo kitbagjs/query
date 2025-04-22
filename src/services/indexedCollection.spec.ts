@@ -18,13 +18,13 @@ test('initializes indexes with correct values', () => {
 
   const collection = createIndexedCollection(items, ['name', 'age']);
 
-  expect(collection.findItem('name', 'John')).toEqual([john]);
-  expect(collection.findItem('name', 'Jane')).toEqual([jane]);
-  expect(collection.findItem('name', 'Jim')).toEqual([jim]);
-  expect(collection.findItem('name', 'Jack')).toEqual([jack]);
-  expect(collection.findItem('age', 25)).toEqual([john]);
-  expect(collection.findItem('age', 30)).toEqual([jane, jack]);
-  expect(collection.findItem('age', 35)).toEqual([jim]);
+  expect(collection.getItems('name', 'John')).toEqual([john]);
+  expect(collection.getItems('name', 'Jane')).toEqual([jane]);
+  expect(collection.getItems('name', 'Jim')).toEqual([jim]);
+  expect(collection.getItems('name', 'Jack')).toEqual([jack]);
+  expect(collection.getItems('age', 25)).toEqual([john]);
+  expect(collection.getItems('age', 30)).toEqual([jane, jack]);
+  expect(collection.getItems('age', 35)).toEqual([jim]);
 });
 
 test('adds item to indexes', () => {
@@ -34,10 +34,10 @@ test('adds item to indexes', () => {
 
   collection.addItem(jane);
 
-  expect(collection.findItem('name', 'John')).toEqual([john]);
-  expect(collection.findItem('name', 'Jane')).toEqual([jane]);
-  expect(collection.findItem('age', 25)).toEqual([john]);
-  expect(collection.findItem('age', 30)).toEqual([jane]);
+  expect(collection.getItems('name', 'John')).toEqual([john]);
+  expect(collection.getItems('name', 'Jane')).toEqual([jane]);
+  expect(collection.getItems('age', 25)).toEqual([john]);
+  expect(collection.getItems('age', 30)).toEqual([jane]);
 });
 
 test('can be initialized with an empty array', () => {
@@ -45,8 +45,8 @@ test('can be initialized with an empty array', () => {
 
   collection.addItem(john);
 
-  expect(collection.findItem('name', 'John')).toEqual([john]);
-  expect(collection.findItem('age', 25)).toEqual([john]);
+  expect(collection.getItems('name', 'John')).toEqual([john]);
+  expect(collection.getItems('age', 25)).toEqual([john]);
 });
 
 test('deletes item from indexes', () => {
@@ -57,15 +57,14 @@ test('deletes item from indexes', () => {
     jack,
   ], ['name', 'age']);
 
-  collection.deleteItem('name', 'John');
+  collection.deleteItems('name', 'John');
 
-  expect(collection.findItem('name', 'John')).toEqual([]);
-  expect(collection.findItem('name')).toEqual([jane, jim, jack]);
-  expect(collection.findItem('age', 25)).toEqual([]);
-  expect(collection.findItem('age')).toEqual([jane, jim, jack]);
+  expect(collection.getItems('name', 'John')).toEqual([]);
+  expect(collection.getItems('age', 25)).toEqual([]);
   
-  collection.deleteItem('age', 30);
+  collection.deleteItems('age', 30);
 
-  expect(collection.findItem('age')).toEqual([jim]);
-  expect(collection.findItem('name')).toEqual([jim]);
+  expect(collection.getItems('age', 30)).toEqual([]);
+  expect(collection.getItems('name', 'jane')).toEqual([]);
+  expect(collection.getItems('name', 'jack')).toEqual([]);
 });
