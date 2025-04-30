@@ -8,6 +8,7 @@ type IndexedCollection<TData, TKeys extends keyof TData> = {
   addItem: (item: TData) => void
   deleteItems: <TKey extends TKeys>(index: TKey, value: TData[TKey]) => void
   getItems: <TKey extends TKeys>(index: TKey, value: TData[TKey]) => TData[]
+  has: <TKey extends TKeys>(index: TKey, value: TData[TKey]) => boolean
   clear: () => void
 }
 
@@ -74,11 +75,16 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
     })
   }
 
+  const has: IndexedCollection<TData, TKeys>['has'] = (index, value): boolean => {
+    return indexes[index].has(value)
+  }
+
   return {
     addItem,
     deleteItems,
     getItems,
-    clear
+    clear,
+    has
   }
 }
 
