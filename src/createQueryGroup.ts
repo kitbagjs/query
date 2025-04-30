@@ -1,5 +1,5 @@
 import { computed, reactive, ref, toRefs } from "vue";
-import { AwaitedQuery, Query, QueryAction, QueryOptions } from "./types/query";
+import { AwaitedQuery, Query, QueryAction, QueryData, QueryOptions } from "./types/query";
 import { createQueryId } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
@@ -12,6 +12,8 @@ export type QueryGroup<
   TAction extends QueryAction = QueryAction,
 > = {
   createQuery: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
+  setData: (data: QueryData<TAction>) => void,
+  getData: () => QueryData<TAction>,
   hasTag: (tag: QueryTag | QueryTag[]) => boolean,
   execute: () => Promise<AwaitedQuery<TAction>>,
 }
@@ -79,6 +81,10 @@ export function createQueryGroup<
     }
 
     resolve(value)
+  }
+
+  function getData(): QueryData<TAction> {
+    return data.value
   }
 
   function setError(value: unknown): void {
@@ -226,6 +232,8 @@ export function createQueryGroup<
 
   return {
     createQuery,
+    setData,
+    getData,
     hasTag,
     execute,
   }
