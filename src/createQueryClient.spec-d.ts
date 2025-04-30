@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, test } from "vitest"
+import { describe, expectTypeOf, test } from "vitest"
 import { createQueryClient } from "./createQueryClient"
 import { tag } from "./tag"
 
