@@ -3,6 +3,7 @@ import { createQueryGroups } from "./createQueryGroups"
 import * as CreateQueryGroupExports from './createQueryGroup'
 import { QueryAction } from "./types/query"
 import { tag } from "./tag"
+import { getActionId } from "./actionIdentifier"
 
 const getRandomNumber = () => Math.random()
 const multipleByTwo = (value: number) => value * 2
@@ -58,27 +59,6 @@ describe('createQuery', () => {
     }
 
     expect(createQueryGroup).toHaveBeenCalledOnce()
-  })
-
-  test('when createQuery is called, it should pass options through to the group', () => {
-    const mock = vi.fn()
-
-    vi.spyOn(CreateQueryGroupExports, 'createQueryGroup').mockReturnValue({
-      createQuery: mock,
-      hasTag: vi.fn(),
-      execute: vi.fn(),
-    })
-
-    const { createQuery } = createQueryGroups()
-    const options = {
-      onSuccess: vi.fn(),
-      onError: vi.fn(),
-    }
-
-    createQuery(getRandomNumber, [], options)
-
-    expect(mock).toHaveBeenCalledOnce()
-    expect(mock).toHaveBeenCalledWith(options)
   })
 })
 

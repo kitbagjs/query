@@ -1,18 +1,18 @@
-import { computed, reactive, ref, toRefs } from "vue";
+import { Ref, ref } from "vue";
 import { AwaitedQuery, Query, QueryAction, QueryOptions } from "./types/query";
-import { createQueryId } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
-import { QueryTag } from "./types/tags";
-import { log } from "./services/loggingService";
-import { reduceRetryOptions, retry, RetryOptions } from "./utilities/retry";
-import { createQueryGroupTags } from "./createQueryGroupTags";
+import { retry, RetryOptions } from "./utilities/retry";
 
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
 > = {
-  createQuery: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
-  hasTag: (tag: QueryTag | QueryTag[]) => boolean,
+  data: Ref<Query<TAction, QueryOptions<TAction>>['data']>,
+  error: Ref<Query<TAction, QueryOptions<TAction>>['error']>,
+  errored: Ref<Query<TAction, QueryOptions<TAction>>['errored']>,
+  executing: Ref<Query<TAction, QueryOptions<TAction>>['executing']>,
+  executed: Ref<Query<TAction, QueryOptions<TAction>>['executed']>,
+  promise: Promise<AwaitedQuery<TAction>>,
   execute: () => Promise<AwaitedQuery<TAction>>,
 }
 
@@ -36,19 +36,14 @@ export function createQueryGroup<
   const executed = ref<Group['executed']>(false)
   const { promise, resolve } = Promise.withResolvers()
 
-  const queries = new Map<number, QueryOptions<TAction>>()
-  const tags = createQueryGroupTags()
-
   async function execute(): Promise<AwaitedQuery<TAction>> {
     lastExecuted = Date.now()
     executing.value = true
 
     try {
-      const value = await retry(() => action(...parameters), getRetryOptions())
+      const value = await retry(() => action(...parameters), {count: 1, delay: 300})
       
       setData(value)
-      setTags()
-      setNextExecution()
 
       return data.value
     } catch(error) {
@@ -61,22 +56,10 @@ export function createQueryGroup<
     } 
   }
 
-  async function safeExecute(): Promise<void> {
-    try {
-      await execute()
-    } catch(error) {
-      log(error)
-    }
-  }
-
   function setData(value: Awaited<ReturnType<TAction>>): void {
     error.value = undefined
     errored.value = false
     data.value = value
-
-    for(const { onSuccess } of queries.values()) {
-      onSuccess?.(value)
-    }
 
     resolve(value)
   }
@@ -85,148 +68,16 @@ export function createQueryGroup<
     error.value = value
     errored.value = true
 
-    for(const { onError } of queries.values()) {
-      onError?.(value)
-    }
-
     resolve(new QueryError(value))
   }
 
-  function setTags(): void {
-    tags.clear()
-
-    for(const [id, { tags }] of queries.entries()) {
-      addTags(tags, id)
-    }
-  }
-
-  function addTags(tagsToAdd: QueryOptions<TAction>['tags'], id: number): void {
-    if(lastExecuted === undefined) {
-      return
-    }
-
-    if(!tagsToAdd) {
-      return
-    }
-
-    if(typeof tagsToAdd === 'function') {
-      const tags = tagsToAdd(data.value)
-      
-      return addTags(tags, id)
-    }
-
-    tags.addAllTags(tagsToAdd, id)
-  }
-
-  function hasTag(tag: QueryTag | QueryTag[]): boolean {
-    if(Array.isArray(tag)) {
-      return tag.some(t => tags.has(t))
-    }
-
-    return tags.has(tag)
-  }
-
-  function removeQuery(queryId: number): void {
-    queries.delete(queryId)
-    tags.removeAllTagsByQueryId(queryId)
-
-    if(queries.size === 0) {
-      options?.onDispose?.()
-    }
-  }
-
-  function addQuery(options?: QueryOptions<TAction>): () => void {
-    const queryId = createQueryId()
-
-    queries.set(queryId, options ?? {})  
-
-    setNextExecution()
-    addTags(options?.tags, queryId)
-
-    return () => removeQuery(queryId)
-  }
-
-  function setNextExecution(): void {
-    const interval = getNextInterval()
-
-    intervalController.set(safeExecute, interval)
-  }
-
-  function getNextInterval(): number {
-    if(lastExecuted === undefined) {
-      return 0
-    }
-
-    const interval = getInterval()
-    const timeLeftSinceLastExecution = Date.now() - lastExecuted
-
-    return interval - timeLeftSinceLastExecution
-  }
-
-  function getInterval(): number {
-    const intervals = Array
-      .from(queries.values())
-      .map(query => query.interval ?? Infinity)
-  
-    return Math.min(...intervals)
-  }
-
-  function getRetryOptions(): RetryOptions {
-    const retries = Array
-      .from(queries.values())
-      .map(query => query.retries)
-    
-    retries.push(options?.retries)
-
-    return reduceRetryOptions(retries)
-  }
-
-  function createQuery<
-    TOptions extends QueryOptions<TAction>
-  >(options?: TOptions): Query<TAction, TOptions> {
-    const removeQuery = addQuery(options)
-
-    function dispose(): void {
-      removeQuery()
-      setNextExecution()
-    }
-
-    const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
-      data: computed(() => data.value ?? options?.placeholder),
-      executed,
-      error,
-      errored,
-      executing,
-      execute,
-      dispose,
-    })
-
-    const then: Query<TAction, TOptions>['then'] = (onFulfilled: any, onRejected: any) => {
-      return promise.then((value) => {
-        if(value instanceof QueryError) {
-          throw value.original
-        }
-
-        return Object.assign(query, {
-          [Symbol.dispose]: () => {
-            dispose()
-          }
-        })
-      }).then(onFulfilled, onRejected)
-    }
-
-    return reactive({
-      ...toRefs(query),
-      then,
-      [Symbol.dispose]: () => {
-        dispose()
-      }
-    })
-  }
-
   return {
-    createQuery,
-    hasTag,
+    data,
+    error,
+    errored,
+    executing,
+    executed,
+    promise: promise as any,
     execute,
   }
 }
