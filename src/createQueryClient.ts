@@ -60,17 +60,7 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
       })
     }
 
-    if(isQueryTag(param1)) {
-      const tag = param1
-      const setter = param2 as QueryDataSetter
-      const groups = getQueryGroups(tag)
-
-      setDataForGroups(groups, setter)
-
-      return
-    }
-
-    if(isQueryTags(param1)) {
+    if(isQueryTag(param1) || isQueryTags(param1)) {
       const tags = param1
       const setter = param2 as QueryDataSetter
       const groups = getQueryGroups(tags)

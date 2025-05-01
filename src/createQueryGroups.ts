@@ -13,8 +13,7 @@ export type CreateQuery = <
 >(action: TAction, parameters: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
 
 export type GetQueryGroups = {
-  <TQueryTag extends QueryTag>(tag: TQueryTag): QueryGroup[]
-  <TQueryTag extends QueryTag>(tags: TQueryTag[]): QueryGroup[]
+  <TQueryTag extends QueryTag>(tags: TQueryTag | TQueryTag[]): QueryGroup[]
   <TAction extends QueryAction>(action: TAction): QueryGroup[]
   <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): QueryGroup[]
 }
