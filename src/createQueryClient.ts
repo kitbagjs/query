@@ -14,7 +14,6 @@ import { createQueryGroups } from "./createQueryGroups";
 import { createUseQuery } from "./createUseQuery";
 import { isQueryTag, isQueryTags, QueryTag } from "./types/tags";
 import { isArray } from "./utilities/arrays";
-import { F } from "vitest/dist/chunks/reporters.QZ837uWx.js";
 import { assertNever } from "./utilities/assert";
 import { QueryGroup } from "./createQueryGroup";
 
