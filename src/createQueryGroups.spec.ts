@@ -67,6 +67,8 @@ describe('createQuery', () => {
       createQuery: mock,
       hasTag: vi.fn(),
       execute: vi.fn(),
+      setData: vi.fn(),
+      getData: vi.fn(),
     })
 
     const { createQuery } = createQueryGroups()

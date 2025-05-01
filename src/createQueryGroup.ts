@@ -1,6 +1,6 @@
 import { computed, reactive, ref, toRefs } from "vue";
 import { AwaitedQuery, Query, QueryAction, QueryData, QueryOptions } from "./types/query";
-import { createQueryId } from "./createSequence";
+import { createSequence } from "./createSequence";
 import { QueryError } from "./queryError";
 import { createIntervalController } from "./services/intervalController";
 import { QueryTag } from "./types/tags";
@@ -22,6 +22,8 @@ export type QueryGroupOptions = {
   retries?: number | Partial<RetryOptions>,
   onDispose?: () => void,
 }
+
+const createQueryId = createSequence()
 
 export function createQueryGroup<
   TAction extends QueryAction,
