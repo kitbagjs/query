@@ -2,6 +2,7 @@ import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
 import { createQueryClient } from './createQueryClient'
 import { effectScope, ref } from 'vue'
 import { timeout } from './utilities/timeout'
+import { tag } from './tag'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -508,5 +509,107 @@ describe('options', () => {
     expect(result.error).toBeDefined()
     expect(result.errored).toBe(true)
     expect(result.executed).toBe(true)
+  })
+})
+
+describe('setQueryData', () => {
+  test('tag', async () => {
+    const { setQueryData, query } = createQueryClient()
+    const stringTag = tag<string>()
+    const numberTag = tag<number>()
+
+    const stringAction = () => 'foo'
+    const numberAction = () => 1
+
+    const stringQuery = query(stringAction, [], { tags: [stringTag] })
+    const numberQuery = query(numberAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    setQueryData(stringTag, () => {
+      return 'bar'
+    })
+
+    setQueryData(numberTag, () => {
+      return 2
+    })
+
+    expect(stringQuery.data).toBe('bar')
+    expect(numberQuery.data).toBe(2)
+  })
+
+  test('tags', async () => {
+    const { setQueryData, query } = createQueryClient()
+    const stringTag = tag<string>()
+    const numberTag = tag<number>()
+
+    const stringAction = () => 'foo'
+    const numberAction = () => 1
+
+    const stringQuery = query(stringAction, [], { tags: [stringTag] })
+    const numberQuery = query(numberAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    setQueryData([stringTag], () => {
+      return 'bar'
+    })
+
+    setQueryData([numberTag], () => {
+      return 2
+    })
+
+    expect(stringQuery.data).toBe('bar')
+    expect(numberQuery.data).toBe(2)
+  })
+
+  test('action', async () => {
+    const { setQueryData, query } = createQueryClient()
+
+    const stringAction = () => 'foo'
+    const numberAction = () => 1
+
+    const stringQuery = query(stringAction, [])
+    const numberQuery = query(numberAction, [])
+
+    await vi.runOnlyPendingTimersAsync()
+
+    setQueryData(stringAction, () => {
+      return 'bar'
+    })
+
+    setQueryData(numberAction, () => {
+      return 2
+    })
+
+    expect(stringQuery.data).toBe('bar')
+    expect(numberQuery.data).toBe(2)
+  })
+
+  test('action with parameters', async () => {
+    const { setQueryData, query } = createQueryClient()
+
+    const stringAction = (param: string) => param
+    const numberAction = (param: number) => param
+
+    const stringQuery = query(stringAction, ['foo'])
+    const stringQuery2 = query(stringAction, ['bar'])
+    const numberQuery = query(numberAction, [1])
+    const numberQuery2 = query(numberAction, [2])
+
+    await vi.runOnlyPendingTimersAsync()
+
+    setQueryData(stringAction, ['foo'], () => {
+      return 'baz'
+    })
+
+    setQueryData(numberAction, [1], () => {
+      return 3
+    })
+
+    expect(stringQuery.data).toBe('baz')
+    expect(numberQuery.data).toBe(3)
+    expect(stringQuery2.data).toBe('bar')
+    expect(numberQuery2.data).toBe(2)
   })
 })

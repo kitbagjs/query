@@ -1,12 +1,14 @@
-import { QueryActionArgs } from "./query"
+import { QueryActionArgs, QueryData } from "./query"
 import { Query } from "./query"
 import { QueryOptions } from "./query"
 import { QueryAction } from "./query"
+import { QueryTag, QueryTagType } from "./tags"
 
 export type QueryClient = {
   query: QueryFunction,
   useQuery: QueryComposition,
   defineQuery: DefineQuery,
+  setQueryData: SetQueryData,
 }
 
 export type QueryFunction = <
@@ -45,4 +47,13 @@ export type DefinedQuery<
 > = {
   query: DefinedQueryFunction<TAction, TOptions>
   useQuery: DefinedQueryComposition<TAction, TOptions>
+}
+
+export type QueryDataSetter<T = unknown> = (data: T) => T
+
+export type SetQueryData = {
+  <TQueryTag extends QueryTag>(tag: TQueryTag, setter: QueryDataSetter<QueryTagType<TQueryTag>>): void
+  <TQueryTag extends QueryTag>(tags: TQueryTag[], setter: QueryDataSetter<QueryTagType<TQueryTag>>): void
+  <TAction extends QueryAction>(action: TAction, setter: QueryDataSetter<QueryData<TAction>>): void
+  <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>, setter: QueryDataSetter<QueryData<TAction>>): void
 }
