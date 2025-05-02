@@ -1,9 +1,10 @@
 import { isArray } from "./utilities/arrays";
 import { QueryGroup, QueryGroupOptions, createQueryGroup } from "./createQueryGroup";
-import { createActionId } from "./createSequence";
 import { isQueryAction, Query, QueryAction, QueryOptions } from "./types/query";
 import { isQueryTag, isQueryTags, QueryTag } from "./types/tags";
 import { assertNever } from "./utilities/assert";
+import { getQueryGroupKey } from "./getQueryGroupKey";
+import { getActionKey } from "./getActionKey";
 
 type QueryGroupKey = `${number}-${string}`
 
@@ -24,27 +25,14 @@ export type CreateQueryGroups = {
 }
 
 export function createQueryGroups(options?: QueryGroupOptions) {
-  const actions = new Map<QueryAction, number>()
   const actionGroups = new Map<number, Set<QueryGroupKey>>()
   const groups = new Map<QueryGroupKey, QueryGroup>()
-
-  function getActionKey(action: QueryAction): number {
-    if(!actions.has(action)) {
-      actions.set(action, createActionId())
-    }
-
-    return actions.get(action)!
-  }
-
-  function getQueryGroupKey(actionKey: number, args: Parameters<QueryAction>): QueryGroupKey {
-    return `${actionKey}-${JSON.stringify(args)}`
-  }
 
   function getQueryGroup<
     TAction extends QueryAction,
   >(action: TAction, parameters: Parameters<TAction>): QueryGroup<TAction> {
     const actionKey = getActionKey(action)
-    const groupKey = getQueryGroupKey(actionKey, parameters)
+    const groupKey = getQueryGroupKey(action, parameters)
 
     if(!actionGroups.has(actionKey)) {
       actionGroups.set(actionKey, new Set())
@@ -80,8 +68,7 @@ export function createQueryGroups(options?: QueryGroupOptions) {
     }
 
     if(isQueryAction(tagOrAction) && isArray(parameters)) {
-      const actionKey = getActionKey(tagOrAction)
-      const groupKey = getQueryGroupKey(actionKey, parameters)
+      const groupKey = getQueryGroupKey(tagOrAction, parameters)
       const group = groups.get(groupKey)
 
       return group ? [group] : []

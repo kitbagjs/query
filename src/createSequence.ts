@@ -3,7 +3,3 @@ export function createSequence() {
 
   return () => value++
 }
-
-export const createQueryId = createSequence()
-export const createActionId = createSequence()
-export const createTagId = createSequence()

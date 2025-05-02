@@ -1,7 +1,8 @@
-import { QueryTag, QueryTagKey } from "./types/tags"
+import { QueryTag } from "./types/tags"
+import { TagKey } from "./getTagKey"
 
 export function createQueryGroupTags() {
-  const tags = new Map<QueryTagKey, Set<number>>()
+  const tags = new Map<TagKey, Set<number>>()
   const queries = new Map<number, Set<QueryTag>>()
 
   function clear(): void {
