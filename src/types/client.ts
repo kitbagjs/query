@@ -9,6 +9,7 @@ export type QueryClient = {
   useQuery: QueryComposition,
   defineQuery: DefineQuery,
   setQueryData: SetQueryData,
+  refreshQueryData: RefreshQueryData,
 }
 
 export type QueryFunction = <
@@ -52,8 +53,13 @@ export type DefinedQuery<
 export type QueryDataSetter<T = unknown> = (data: T) => T
 
 export type SetQueryData = {
-  <TQueryTag extends QueryTag>(tag: TQueryTag, setter: QueryDataSetter<QueryTagType<TQueryTag>>): void
-  <TQueryTag extends QueryTag>(tags: TQueryTag[], setter: QueryDataSetter<QueryTagType<TQueryTag>>): void
+  <TQueryTag extends QueryTag>(tag: TQueryTag | TQueryTag[], setter: QueryDataSetter<QueryTagType<TQueryTag>>): void
   <TAction extends QueryAction>(action: TAction, setter: QueryDataSetter<QueryData<TAction>>): void
   <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>, setter: QueryDataSetter<QueryData<TAction>>): void
+}
+
+export type RefreshQueryData = {
+  <TQueryTag extends QueryTag>(tag: TQueryTag | TQueryTag[]): void
+  <TAction extends QueryAction>(action: TAction): void
+  <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): void
 }
