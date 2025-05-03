@@ -127,3 +127,24 @@ describe('setQueryData', () => {
     })
   })
 })
+
+describe('refreshQueryData', () => {
+  test('tags', () => {
+    const { refreshQueryData } = createQueryClient()
+
+    const numberTag = tag<number>()
+    const stringTag = tag<string>()
+    const action = (param: number) => param
+
+    refreshQueryData(numberTag)
+    refreshQueryData([numberTag, stringTag])
+    refreshQueryData(action)
+    refreshQueryData(action, [2])
+
+    // @ts-expect-error
+    refreshQueryData(action, [2, 3])
+
+    // @ts-expect-error
+    refreshQueryData(action, ['foo'])
+  })
+})

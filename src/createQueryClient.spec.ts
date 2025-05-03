@@ -613,3 +613,74 @@ describe('setQueryData', () => {
     expect(numberQuery2.data).toBe(2)
   })
 })
+
+describe('refreshQueryData', () => {
+  test('tags', async () => {
+    const { query, refreshQueryData } = createQueryClient()
+
+    const numberAction = vi.fn()
+    const stringAction = vi.fn()
+    const numberTag = tag<number>()
+    const stringTag = tag<string>()
+
+    query(numberAction, [], { tags: [numberTag] })
+    query(stringAction, [], { tags: [stringTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(numberAction).toHaveBeenCalledTimes(1)
+    expect(stringAction).toHaveBeenCalledTimes(1)
+
+    refreshQueryData(numberTag)
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(numberAction).toHaveBeenCalledTimes(2)
+    expect(stringAction).toHaveBeenCalledTimes(1)
+  })
+
+  test('action', async () => {
+    const { query, refreshQueryData } = createQueryClient()
+
+    const actionA = vi.fn()
+    const actionB = vi.fn()
+
+    query(actionA, [])
+    query(actionB, [])
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(actionA).toHaveBeenCalledTimes(1)
+    expect(actionB).toHaveBeenCalledTimes(1)
+
+    refreshQueryData(actionA)
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(actionA).toHaveBeenCalledTimes(2)
+    expect(actionB).toHaveBeenCalledTimes(1)
+  })
+
+  test('action with parameters', async () => {
+    const { query, refreshQueryData } = createQueryClient()
+
+    const actionA = vi.fn((param: number) => param)
+    const actionB = vi.fn((param: number) => param)
+
+    query(actionA, [1])
+    query(actionA, [2])
+    query(actionB, [1])
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(actionA).toHaveBeenCalledTimes(2)
+    expect(actionB).toHaveBeenCalledTimes(1)
+
+    refreshQueryData(actionA, [1])
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(actionA).toHaveBeenCalledTimes(3)
+    expect(actionB).toHaveBeenCalledTimes(1)
+  })
+})
