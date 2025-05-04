@@ -15,8 +15,7 @@ export type CreateQuery = <
 
 export type GetQueryGroups = {
   <TQueryTag extends QueryTag>(tags: TQueryTag | TQueryTag[]): QueryGroup[]
-  <TAction extends QueryAction>(action: TAction): QueryGroup[]
-  <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>): QueryGroup[]
+  <TAction extends QueryAction>(action: TAction, parameters?: Parameters<TAction>): QueryGroup[]
 }
 
 export type CreateQueryGroups = {

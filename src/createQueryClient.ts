@@ -111,21 +111,10 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
       return
     }
 
-    if(isQueryAction(param1) && isArray(param2)) {
+    if(isQueryAction(param1)) {
       const action = param1
       const parameters = param2
       const groups = getQueryGroups(action, parameters)
-
-      groups.forEach(group => {
-        group.execute()
-      })
-
-      return
-    }
-
-    if(isQueryAction(param1)) {
-      const action = param1
-      const groups = getQueryGroups(action)
 
       groups.forEach(group => {
         group.execute()
