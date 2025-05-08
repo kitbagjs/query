@@ -3,6 +3,8 @@ import { QueryTag, QueryTagType } from "./tags"
 
 export type MutationAction = (...args: any[]) => any
 
+export type MutationData<TAction extends MutationAction> = Awaited<ReturnType<TAction>>
+
 export type MutationTags<
   TAction extends MutationAction = MutationAction,
 > = QueryTag[] | ((value: MutationData<TAction>) => QueryTag[])
@@ -37,13 +39,11 @@ export type MutationOptions<
   tags?: TTags,
   refreshQueryData?: boolean,
   retries?: number | Partial<RetryOptions>,
-  onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
+  onSuccess?: (value: MutationData<TAction>) => void,
   onError?: (error: unknown) => void,
   setQueryDataBefore?: (queryData: MutationTagsType<TTags>, context: SetQueryDataBeforeContext<TAction>) => MutationTagsType<TTags>,
   setQueryDataAfter?: (queryData: MutationTagsType<TTags>, context: SetQueryDataAfterContext<TAction>) => MutationTagsType<TTags>,
 }
-
-export type MutationData<TAction extends MutationAction> = Awaited<ReturnType<TAction>>
 
 export type Mutation<
   TAction extends MutationAction,
@@ -54,7 +54,7 @@ export type Mutation<
   executed: boolean,
   error: unknown,
   errored: boolean,
-  execute: () => Promise<Awaited<ReturnType<TAction>>>,
+  execute: () => Promise<MutationData<TAction>>,
 }
 
 export type AwaitedMutation<
