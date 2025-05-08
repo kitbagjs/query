@@ -684,3 +684,208 @@ describe('refreshQueryData', () => {
     expect(actionB).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('mutate', () => {
+  test('calls action and sets mutation properties', async () => {
+    const { mutate } = createQueryClient()
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+
+    const result = mutate(action, [])
+
+    expect(result.data).toBeUndefined()
+    expect(result.error).toBeUndefined()
+    expect(result.errored).toBe(false)
+    expect(result.executed).toBe(false)
+    expect(result.executing).toBe(true)
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(result.data).toBe(response)
+    expect(result.error).toBeUndefined()
+    expect(result.errored).toBe(false)
+    expect(result.executed).toBe(true)
+    expect(result.executing).toBe(false)
+  })
+
+  test('can be awaited', async () => {
+    const { mutate } = createQueryClient()
+    const response = Symbol('response')
+    const action = vi.fn(() => response)
+
+    const result = await mutate(action, [])
+
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(result.data).toBe(response)
+    expect(result.error).toBeUndefined()
+    expect(result.errored).toBe(false)
+    expect(result.executed).toBe(true)
+    expect(result.executing).toBe(false)
+  })
+
+  test('captures error', async () => {
+    const { mutate } = createQueryClient()
+    const error = new Error()
+    const action = vi.fn(() => { throw error })
+
+    const result = mutate(action, [])
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(result.error).toBe(error)
+    expect(result.errored).toBe(true)
+    expect(result.executed).toBe(true)
+    expect(result.executing).toBe(false)
+  })
+
+  test('throws error if awaited', async () => {
+    const { mutate } = createQueryClient()
+    const error = new Error()
+    const action = vi.fn(() => { throw error })
+
+    const result = mutate(action, [])
+
+    await expect(result).rejects.toBe(error)
+  })
+
+  test.each([
+    [true],
+    [undefined],
+  ])('refreshes tagged queries: %s', async (refreshQueryData) => {
+    const { mutate, query } = createQueryClient()
+    const numberTag = tag<number>()
+    const queryAction = vi.fn()
+    const mutationAction = vi.fn()
+
+    query(queryAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(queryAction).toHaveBeenCalledTimes(1)
+
+    mutate(mutationAction, [], {
+      tags: [numberTag],
+      refreshQueryData
+    })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(queryAction).toHaveBeenCalledTimes(2)
+  })
+
+  test('does not refresh tagged queries if refreshQueryData is false', async () => {
+    const { mutate, query } = createQueryClient()
+    const numberTag = tag<number>()
+    const queryAction = vi.fn()
+    const mutationAction = vi.fn()
+
+    query(queryAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(queryAction).toHaveBeenCalledTimes(1)
+
+    mutate(mutationAction, [], {
+      tags: [numberTag],
+      refreshQueryData: false
+    })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(queryAction).toHaveBeenCalledTimes(1)
+  })
+
+  test('does not refresh tagged queries if the action throws an error', async () => {
+    const { mutate, query } = createQueryClient()
+    const numberTag = tag<number>()
+    const queryAction = vi.fn()
+    const mutationAction = vi.fn(() => { throw new Error() })
+
+    query(queryAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(queryAction).toHaveBeenCalledTimes(1)
+
+    mutate(mutationAction, [], {
+      tags: [numberTag]
+    })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(queryAction).toHaveBeenCalledTimes(1)
+  })
+
+  test('setQueryDataBefore updates data before the mutation is executed', async () => {
+    const { mutate, query } = createQueryClient()
+    const numberTag = tag<number>()
+    const { promise } = Promise.withResolvers<number>()
+    const queryResponse = 1
+    const queryAction = vi.fn(() => queryResponse)
+    const mutationAction = vi.fn((value: number) => promise.then(() => value))
+    const mutationValue = 100
+
+    const numberQuery = query(queryAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(queryAction).toHaveBeenCalledTimes(1)
+    expect(numberQuery.data).toBe(queryResponse)
+
+    const setQueryDataBefore = vi.fn((data, { payload }) => payload[0] + data)
+
+    mutate(mutationAction, [mutationValue], {
+      tags: [numberTag],
+      setQueryDataBefore
+    })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(mutationAction).toHaveBeenCalledTimes(1)
+    expect(queryAction).toHaveBeenCalledTimes(1)
+    expect(setQueryDataBefore).toHaveBeenCalledTimes(1)
+    expect(setQueryDataBefore).toHaveBeenCalledWith(queryResponse, { payload: [mutationValue] })
+    expect(numberQuery.data).toBe(mutationValue + queryResponse)
+  })
+
+  test('setQueryDataAfter updates data after the mutation is executed', async () => {
+    const { mutate, query } = createQueryClient()
+    const numberTag = tag<number>()
+    const { promise, resolve } = Promise.withResolvers<number>()
+    const queryResponse = 1
+    const queryAction = vi.fn(() => queryResponse)
+    const mutationAction = vi.fn((value: number) => promise.then(() => value * 10))
+    const mutationValue = 10
+    const mutationResponse = 100
+
+    const numberQuery = query(queryAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(queryAction).toHaveBeenCalledTimes(1)
+    expect(numberQuery.data).toBe(queryResponse)
+
+    const setQueryDataAfter = vi.fn((queryData, { payload, data }) => payload[0] + data + queryData)
+
+    mutate(mutationAction, [mutationValue], {
+      tags: [numberTag],
+      refreshQueryData: false,
+      setQueryDataAfter
+    })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(mutationAction).toHaveBeenCalledTimes(1)
+    expect(queryAction).toHaveBeenCalledTimes(1)
+    expect(setQueryDataAfter).toHaveBeenCalledTimes(0)
+
+    resolve(mutationResponse)
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(setQueryDataAfter).toHaveBeenCalledTimes(1)
+    expect(setQueryDataAfter).toHaveBeenCalledWith(queryResponse, { payload: [mutationValue], data: mutationResponse })
+    expect(numberQuery.data).toBe(mutationValue + queryResponse + mutationResponse)
+  })
+})

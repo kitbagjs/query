@@ -1,29 +1,66 @@
+import { RetryOptions } from "@/utilities/retry"
+import { QueryTag, QueryTagType } from "./tags"
+
 export type MutationAction = (...args: any[]) => any
 
-export type MutationOptions<
-  TAction extends MutationAction
+export type MutationTags<
+  TAction extends MutationAction = MutationAction,
+> = QueryTag[] | ((value: MutationData<TAction>) => QueryTag[])
+
+export type MutationTagsType<
+  TTags extends MutationTags
+> = TTags extends QueryTag[]
+  ? QueryTagType<TTags[number]>
+  : TTags extends (value: MutationData<MutationAction>) => QueryTag[]
+    ? QueryTagType<ReturnType<TTags>[number]>
+    : never
+
+export type SetQueryDataBeforeContext<
+  TAction extends MutationAction,
 > = {
-  placeholder?: any,
-  tags?: any,
+  payload: Parameters<TAction>,
+}
+
+export type SetQueryDataAfterContext<
+  TAction extends MutationAction,
+> = {
+  payload: Parameters<TAction>,
+  data: MutationData<TAction>,
+}
+
+export type MutationOptions<
+  TAction extends MutationAction,
+  TPlaceholder extends unknown,
+  TTags extends MutationTags,
+> = {
+  placeholder?: TPlaceholder,
+  tags?: TTags,
+  refreshQueryData?: boolean,
+  retries?: number | Partial<RetryOptions>,
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
+  setQueryDataBefore?: (queryData: MutationTagsType<TTags>, context: SetQueryDataBeforeContext<TAction>) => MutationTagsType<TTags>,
+  setQueryDataAfter?: (queryData: MutationTagsType<TTags>, context: SetQueryDataAfterContext<TAction>) => MutationTagsType<TTags>,
   onError?: (error: unknown) => void,
 }
 
+export type MutationData<TAction extends MutationAction> = Awaited<ReturnType<TAction>>
+
 export type Mutation<
   TAction extends MutationAction,
-  TOptions extends MutationOptions<TAction>
-> = {
-  data: Awaited<ReturnType<TAction>> | TOptions['placeholder'],
+  TPlaceholder extends unknown,
+> = PromiseLike<AwaitedMutation<TAction>> & {
+  data: MutationData<TAction> | TPlaceholder,
   executing: boolean,
   executed: boolean,
   error: unknown,
   errored: boolean,
+  execute: () => Promise<Awaited<ReturnType<TAction>>>,
 }
 
 export type AwaitedMutation<
   TAction extends MutationAction,
 > = {
-  data: Awaited<ReturnType<TAction>>,
+  data: MutationData<TAction>,
   error: unknown,
   errored: boolean,
   executed: boolean,
@@ -32,13 +69,15 @@ export type AwaitedMutation<
 
 export type MutationFunction = <
   const TAction extends MutationAction,
-  const TOptions extends MutationOptions<TAction>
->(action: TAction, args: Parameters<TAction>, options?: TOptions) => PromiseLike<AwaitedMutation<TAction>> & Mutation<TAction, TOptions>
+  const TPlaceholder extends unknown,
+  const TTags extends MutationTags<TAction>,
+>(action: TAction, args: Parameters<TAction>, options?: MutationOptions<TAction, TPlaceholder, TTags>) => PromiseLike<AwaitedMutation<TAction>> & Mutation<TAction, TPlaceholder>
 
 export type DefinedMutationFunction<
   TAction extends MutationAction,
-  TOptions extends MutationOptions<TAction>
-> = (args: Parameters<TAction>, options?: TOptions) => Mutation<TAction, TOptions>
+  TPlaceholder extends unknown,
+  TTags extends MutationTags<TAction>,
+> = (args: Parameters<TAction>, options?: MutationOptions<TAction, TPlaceholder, TTags>) => Mutation<TAction, TPlaceholder>
 
 type Mutate<
   TAction extends MutationAction
@@ -46,24 +85,28 @@ type Mutate<
 
 export type MutationComposition = <
   const TAction extends MutationAction,
-  const TOptions extends MutationOptions<TAction>
->(action: TAction, options?: TOptions) => { mutate: Mutate<TAction> } & Mutation<TAction, TOptions>
+  const TPlaceholder extends unknown,
+  const TTags extends MutationTags<TAction>,
+>(action: TAction, options?: MutationOptions<TAction, TPlaceholder, TTags>) => { mutate: Mutate<TAction> } & Mutation<TAction, TPlaceholder>
 
 export type DefinedMutationComposition<
   TAction extends MutationAction,
-  TOptions extends MutationOptions<TAction>
-> = (options?: TOptions) => { mutate: Mutate<TAction> } & Mutation<TAction, TOptions>
+  TPlaceholder extends unknown,
+  TTags extends MutationTags<TAction>,
+> = (options?: MutationOptions<TAction, TPlaceholder, TTags>) => { mutate: Mutate<TAction> } & Mutation<TAction, TPlaceholder>
 
 export type DefinedMutation<
   TAction extends MutationAction,
-  TOptions extends MutationOptions<TAction>
+  TPlaceholder extends unknown,
+  TTags extends MutationTags<TAction>,
 > = {
-  mutate: DefinedMutationFunction<TAction, TOptions>,
-  useMutation: DefinedMutationComposition<TAction, TOptions>,
+  mutate: DefinedMutationFunction<TAction, TPlaceholder, TTags>,
+  useMutation: DefinedMutationComposition<TAction, TPlaceholder, TTags>,
 }
 
 export type DefineMutation = <
   const TAction extends MutationAction,
-  const TOptions extends MutationOptions<TAction>
->(action: TAction, options?: TOptions) => DefinedMutation<TAction, TOptions>
+  const TPlaceholder extends unknown,
+  const TTags extends MutationTags<TAction>,
+>(action: TAction, options?: MutationOptions<TAction, TPlaceholder, TTags>) => DefinedMutation<TAction, TPlaceholder, TTags>
 
