@@ -1,4 +1,4 @@
-import { isQueryAction, QueryAction, QueryOptions } from "./types/query";
+import { isQueryAction, QueryAction, QueryData, QueryOptions } from "./types/query";
 import { ClientOptions } from "./types/clientOptions";
 import { 
   DefinedQueryComposition,
@@ -17,6 +17,9 @@ import { isQueryTag, isQueryTags, QueryTag } from "./types/tags";
 import { isArray } from "./utilities/arrays";
 import { assertNever } from "./utilities/assert";
 import { QueryGroup } from "./createQueryGroup";
+import { MutationFunction } from "./types/mutation";
+import { createMutation } from "./createMutation";
+import { getAllTags } from "./getAllTags";
 
 export function createQueryClient(options?: ClientOptions): QueryClient {
   const { createQuery, getQueryGroups } = createQueryGroups(options)
@@ -126,11 +129,41 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
     assertNever(param1, 'Invalid arguments given to setQueryData')
   }
 
+  const mutate: MutationFunction = (action, parameters, options) => {
+    const mutation = createMutation(action, parameters, options)
+    const tags = getAllTags(options?.tags, mutation.data)
+    const { setQueryDataBefore, setQueryDataAfter } = options ?? {}
+
+    if(setQueryDataBefore) {
+      setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, { payload: parameters }))
+    }
+
+    mutation.execute()
+      .then((data) => {
+        if(options?.refreshQueryData ?? true) {
+          refreshQueryData(tags)
+        }
+
+        if(setQueryDataAfter) {
+          setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, { payload: parameters, data }))
+        }
+
+        return mutation
+      })
+      .catch(() => {
+        // silence here for now
+        // later we'll want to automatically revert the `setQueryDataBefore`
+      })
+
+    return mutation
+  }
+
   return {
     query,
     useQuery,
     defineQuery,
     setQueryData,
     refreshQueryData,
+    mutate,
   }
 }

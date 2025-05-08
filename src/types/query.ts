@@ -8,14 +8,16 @@ export function isQueryAction(value: any): value is QueryAction {
   return typeof value === 'function'
 }
 
-export type QueryData<TAction extends QueryAction> = Awaited<ReturnType<TAction>>
+export type QueryData<
+  TAction extends QueryAction = QueryAction
+> = Awaited<ReturnType<TAction>>
 
 export type QueryActionArgs<
   TAction extends QueryAction
 > = MaybeGetter<Parameters<TAction>> | Getter<Parameters<TAction> | null> | Getter<null>
 
 export type QueryTags<
-  TAction extends QueryAction,
+  TAction extends QueryAction = QueryAction,
 > = QueryTag<QueryData<TAction> | Unset>[] | ((value: QueryData<TAction>) => QueryTag<QueryData<TAction> | Unset>[])
 
 export type QueryOptions<

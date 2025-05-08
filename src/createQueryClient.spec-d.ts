@@ -1,4 +1,4 @@
-import { describe, expectTypeOf, test } from "vitest"
+import { describe, expectTypeOf, test, vi } from "vitest"
 import { createQueryClient } from "./createQueryClient"
 import { tag } from "./tag"
 
@@ -146,5 +146,37 @@ describe('refreshQueryData', () => {
 
     // @ts-expect-error
     refreshQueryData(action, ['foo'])
+  })
+})
+
+describe('mutate', () => {
+  test('setQueryDataBefore', () => {
+    const { mutate } = createQueryClient()
+    const action = vi.fn(() => 'response')
+    const numberTag = tag<number>()
+
+    mutate(action, [], { 
+      tags: [numberTag],
+      setQueryDataBefore: (data) => {
+        expectTypeOf(data).toMatchTypeOf<number>()
+
+        return 1
+      }
+    })
+  })
+
+  test('setQueryDataAfter', () => {
+    const { mutate } = createQueryClient()
+    const action = vi.fn()
+    const numberTag = tag<number>()
+    
+    mutate(action, [], { 
+      tags: [numberTag],
+      setQueryDataAfter: (data) => {
+        expectTypeOf(data).toMatchTypeOf<number>()
+
+        return 1
+      }
+    })
   })
 })

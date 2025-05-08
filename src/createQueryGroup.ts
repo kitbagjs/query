@@ -7,6 +7,7 @@ import { QueryTag } from "./types/tags";
 import { log } from "./services/loggingService";
 import { reduceRetryOptions, retry, RetryOptions } from "./utilities/retry";
 import { createQueryGroupTags } from "./createQueryGroupTags";
+import { getAllTags } from "./getAllTags";
 
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
@@ -28,16 +29,14 @@ const createQueryId = createSequence()
 export function createQueryGroup<
   TAction extends QueryAction,
 >(action: TAction, parameters: Parameters<TAction>, options?: QueryGroupOptions): QueryGroup<TAction> {
-  type Group = Query<TAction, QueryOptions<TAction>>
-
   const intervalController = createIntervalController()
   let lastExecuted: number | undefined = undefined
   
-  const data = ref<Group['data']>()
-  const error = ref<Group['error']>()
-  const errored = ref<Group['errored']>(false)
-  const executing = ref<Group['executing']>(false)
-  const executed = ref<Group['executed']>(false)
+  const data = ref()
+  const error = ref<unknown>()
+  const errored = ref<boolean>(false)
+  const executing = ref<boolean>(false)
+  const executed = ref<boolean>(false)
   const { promise, resolve } = Promise.withResolvers()
 
   const queries = new Map<number, QueryOptions<TAction>>()
@@ -113,17 +112,7 @@ export function createQueryGroup<
       return
     }
 
-    if(!tagsToAdd) {
-      return
-    }
-
-    if(typeof tagsToAdd === 'function') {
-      const tags = tagsToAdd(data.value)
-      
-      return addTags(tags, id)
-    }
-
-    tags.addAllTags(tagsToAdd, id)
+    tags.addAllTags(getAllTags(tagsToAdd, data.value), id)
   }
 
   function hasTag(tag: QueryTag | QueryTag[]): boolean {
