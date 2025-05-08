@@ -3,7 +3,9 @@ import { QueryTag, QueryTagType } from "./tags"
 
 export type MutationAction = (...args: any[]) => any
 
-export type MutationData<TAction extends MutationAction> = Awaited<ReturnType<TAction>>
+export type MutationData<
+  TAction extends MutationAction
+> = Awaited<ReturnType<TAction>>
 
 export type MutationTags<
   TAction extends MutationAction = MutationAction,
