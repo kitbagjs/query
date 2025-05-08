@@ -38,9 +38,9 @@ export type MutationOptions<
   refreshQueryData?: boolean,
   retries?: number | Partial<RetryOptions>,
   onSuccess?: (value: Awaited<ReturnType<TAction>>) => void,
+  onError?: (error: unknown) => void,
   setQueryDataBefore?: (queryData: MutationTagsType<TTags>, context: SetQueryDataBeforeContext<TAction>) => MutationTagsType<TTags>,
   setQueryDataAfter?: (queryData: MutationTagsType<TTags>, context: SetQueryDataAfterContext<TAction>) => MutationTagsType<TTags>,
-  onError?: (error: unknown) => void,
 }
 
 export type MutationData<TAction extends MutationAction> = Awaited<ReturnType<TAction>>
