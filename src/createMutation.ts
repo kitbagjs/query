@@ -7,7 +7,7 @@ export function createMutation<
   TAction extends MutationAction,
   TPlaceholder extends unknown,
   TTags extends MutationTags<TAction>,
->(action: TAction, parameters: Parameters<TAction>, options?: MutationOptions<TAction, TPlaceholder, TTags>): Mutation<TAction, TPlaceholder> {
+>(action: TAction, options?: MutationOptions<TAction, TPlaceholder, TTags>): Mutation<TAction, TPlaceholder> {
   const data = ref()
   const executing = ref<boolean>(false)
   const executed = ref<boolean>(false)
@@ -15,17 +15,19 @@ export function createMutation<
   const errored = ref<boolean>(false)
   const { promise, resolve } = Promise.withResolvers()
 
-  async function execute(): Promise<MutationData<TAction>> {
+  async function mutate(...parameters: Parameters<TAction>): Promise<MutationData<TAction>> {
     executing.value = true
+
+    options?.onExecute?.({ payload: parameters })
 
     try {
       const value = await retry(() => action(...parameters), getRetryOptions())
       
-      setData(value)
+      setData(value, parameters)
 
-      return data.value
+      return value
     } catch(error) {
-      setError(error)
+      setError(error, parameters)
 
       throw error
     } finally {
@@ -34,21 +36,21 @@ export function createMutation<
     } 
   }
 
-  function setData(value: Awaited<ReturnType<TAction>>): void {
+  function setData(value: Awaited<ReturnType<TAction>>, parameters: Parameters<TAction>): void {
     error.value = undefined
     errored.value = false
     data.value = value
 
-    options?.onSuccess?.(value)
+    options?.onSuccess?.({ payload: parameters, data: value })
 
     resolve(value)
   }
 
-  function setError(value: unknown): void {
+  function setError(value: unknown, parameters: Parameters<TAction>): void {
     error.value = value
     errored.value = true
 
-    options?.onError?.(value)
+    options?.onError?.({ payload: parameters, error: value })
 
     resolve(new QueryError(value))
   }
@@ -63,7 +65,7 @@ export function createMutation<
     executed,
     error,
     errored,
-    execute,
+    mutate,
   })
 
   const then: Mutation<TAction, TPlaceholder>['then'] = (onFulfilled: any, onRejected: any) => {
