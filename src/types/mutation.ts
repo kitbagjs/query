@@ -19,6 +19,19 @@ export type MutationTagsType<
     ? QueryTagType<ReturnType<TTags>[number]>
     : never
 
+export type OnExecuteContext<
+  TAction extends MutationAction,
+> = {
+  payload: Parameters<TAction>,
+}
+
+export type OnSuccessContext<
+  TAction extends MutationAction,
+> = {
+  payload: Parameters<TAction>,
+  data: MutationData<TAction>,
+}
+
 export type SetQueryDataBeforeContext<
   TAction extends MutationAction,
 > = {
@@ -32,6 +45,13 @@ export type SetQueryDataAfterContext<
   data: MutationData<TAction>,
 }
 
+export type OnErrorContext<
+  TAction extends MutationAction,
+> = {
+  payload: Parameters<TAction>,
+  error: unknown,
+}
+
 export type MutationOptions<
   TAction extends MutationAction,
   TPlaceholder extends unknown,
@@ -41,8 +61,9 @@ export type MutationOptions<
   tags?: TTags,
   refreshQueryData?: boolean,
   retries?: number | Partial<RetryOptions>,
-  onSuccess?: (value: MutationData<TAction>) => void,
-  onError?: (error: unknown) => void,
+  onExecute?: (context: OnExecuteContext<TAction>) => void,
+  onSuccess?: (context: OnSuccessContext<TAction>) => void,
+  onError?: (context: OnErrorContext<TAction>) => void,
   setQueryDataBefore?: (queryData: MutationTagsType<TTags>, context: SetQueryDataBeforeContext<TAction>) => MutationTagsType<TTags>,
   setQueryDataAfter?: (queryData: MutationTagsType<TTags>, context: SetQueryDataAfterContext<TAction>) => MutationTagsType<TTags>,
 }
@@ -56,7 +77,7 @@ export type Mutation<
   executed: boolean,
   error: unknown,
   errored: boolean,
-  execute: () => Promise<MutationData<TAction>>,
+  mutate: (...args: Parameters<TAction>) => Promise<MutationData<TAction>>,
 }
 
 export type AwaitedMutation<

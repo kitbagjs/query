@@ -130,30 +130,38 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
   }
 
   const mutate: MutationFunction = (action, parameters, options) => {
-    const mutation = createMutation(action, parameters, options)
-    const tags = getAllTags(options?.tags, mutation.data)
-    const { setQueryDataBefore, setQueryDataAfter } = options ?? {}
+    const { setQueryDataBefore, setQueryDataAfter, onExecute, onSuccess } = options ?? {}
+    
+    const mutation = createMutation(action, {
+      ...options,
+      onExecute: (context) => {
+        if(setQueryDataBefore) {
+          const tags = getAllTags(options?.tags, undefined)
 
-    if(setQueryDataBefore) {
-      setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, { payload: parameters }))
-    }
+          setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, { payload: parameters }))
+        }
 
-    mutation.execute()
-      .then((data) => {
+        onExecute?.(context)
+      },
+      onSuccess: (context) => {
+        const tags = getAllTags(options?.tags, context.data)
+
         if(options?.refreshQueryData ?? true) {
           refreshQueryData(tags)
         }
 
         if(setQueryDataAfter) {
-          setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, { payload: parameters, data }))
+          setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context))
         }
 
-        return mutation
-      })
-      .catch(() => {
-        // silence here for now
-        // later we'll want to automatically revert the `setQueryDataBefore`
-      })
+        onSuccess?.(context)
+      },
+    })
+        
+    mutation.mutate(...parameters).catch(() => {
+      // silence here for now
+      // later we'll want to automatically revert the `setQueryDataBefore`
+    })
 
     return mutation
   }
