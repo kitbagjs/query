@@ -17,7 +17,7 @@ import { isQueryTag, isQueryTags, QueryTag } from "./types/tags";
 import { isArray } from "./utilities/arrays";
 import { assertNever } from "./utilities/assert";
 import { QueryGroup } from "./createQueryGroup";
-import { MutationFunction } from "./types/mutation";
+import { MutationComposition, MutationFunction } from "./types/mutation";
 import { createMutation } from "./createMutation";
 import { getAllTags } from "./getAllTags";
 
@@ -130,15 +130,26 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
   }
 
   const mutate: MutationFunction = (action, parameters, options) => {
+    const mutation = useMutation(action, options)
+        
+    mutation.mutate(...parameters).catch(() => {
+      // silence here for now
+      // later we'll want to automatically revert the `setQueryDataBefore`
+    })
+
+    return mutation
+  }
+
+  const useMutation: MutationComposition = (action, options) => {
     const { setQueryDataBefore, setQueryDataAfter, onExecute, onSuccess } = options ?? {}
-    
+
     const mutation = createMutation(action, {
       ...options,
       onExecute: (context) => {
         if(setQueryDataBefore) {
           const tags = getAllTags(options?.tags, undefined)
 
-          setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, { payload: parameters }))
+          setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, context))
         }
 
         onExecute?.(context)
@@ -157,11 +168,6 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
         onSuccess?.(context)
       },
     })
-        
-    mutation.mutate(...parameters).catch(() => {
-      // silence here for now
-      // later we'll want to automatically revert the `setQueryDataBefore`
-    })
 
     return mutation
   }
@@ -173,5 +179,6 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
     setQueryData,
     refreshQueryData,
     mutate,
+    useMutation,
   }
 }

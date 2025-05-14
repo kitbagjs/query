@@ -698,9 +698,10 @@ describe('mutate', () => {
     expect(result.errored).toBe(false)
     expect(result.executed).toBe(false)
     expect(result.executing).toBe(true)
-
+    
     await vi.runOnlyPendingTimersAsync()
-
+    
+    expect(action).toHaveBeenCalledWith()
     expect(action).toHaveBeenCalledTimes(1)
     expect(result.data).toBe(response)
     expect(result.error).toBeUndefined()
@@ -887,5 +888,149 @@ describe('mutate', () => {
     expect(setQueryDataAfter).toHaveBeenCalledTimes(1)
     expect(setQueryDataAfter).toHaveBeenCalledWith(queryResponse, { payload: [mutationValue], data: mutationResponse })
     expect(numberQuery.data).toBe(mutationValue + queryResponse + mutationResponse)
+  })
+})
+
+describe('useMutation', () => {
+  test('executes the action each time mutate is called', async () => {
+    const { useMutation } = createQueryClient()
+    const responseA = Symbol('responseA')
+    const responseB = Symbol('responseB')
+    const action = vi.fn((input) => input)
+    const mutation = useMutation(action)
+
+    expect(action).toHaveBeenCalledTimes(0)
+    expect(mutation.data).toBeUndefined()
+    expect(mutation.error).toBeUndefined()
+    expect(mutation.errored).toBe(false)
+    expect(mutation.executed).toBe(false)
+    expect(mutation.executing).toBe(false)
+
+    await mutation.mutate(responseA)
+
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(action).toHaveBeenCalledWith(responseA)
+    expect(mutation.data).toBe(responseA)
+    expect(mutation.error).toBeUndefined()
+    expect(mutation.errored).toBe(false)
+    expect(mutation.executed).toBe(true)
+    expect(mutation.executing).toBe(false)
+
+    await mutation.mutate(responseB)
+
+    expect(action).toHaveBeenCalledTimes(2)
+    expect(action).toHaveBeenCalledWith(responseB)
+    expect(mutation.data).toBe(responseB)
+    expect(mutation.error).toBeUndefined()
+    expect(mutation.errored).toBe(false)
+    expect(mutation.executed).toBe(true)
+    expect(mutation.executing).toBe(false)
+  })
+
+  test('onSuccess is called each time the mutation is executed', async () => {
+    const { useMutation } = createQueryClient()
+    const onSuccess = vi.fn()
+    const responseA = Symbol('responseA')
+    const responseB = Symbol('responseB')
+    const action = vi.fn((input) => input)
+    const { mutate } = useMutation(action, { onSuccess })
+
+    await mutate(responseA)
+
+    expect(onSuccess).toHaveBeenCalledTimes(1)
+    expect(onSuccess).toHaveBeenCalledWith({
+      data: responseA,
+      payload: [responseA]
+    })
+
+    await mutate(responseB)
+
+    expect(onSuccess).toHaveBeenCalledTimes(2)
+    expect(onSuccess).toHaveBeenCalledWith({
+      data: responseB,
+      payload: [responseB]
+    })
+  })
+
+  test('onError is called each time the mutation fails', async () => {
+    const { useMutation } = createQueryClient()
+    const onError = vi.fn()
+    const response = Symbol('response')
+    const error = new Error()
+    const action = vi.fn(({ shouldError }: { shouldError: boolean }) => {
+      if(shouldError) {
+        throw error
+      }
+
+      return response
+    })
+
+    const mutation = useMutation(action, { onError })
+
+    await expect(mutation.mutate({ shouldError: true })).rejects.toBe(error)
+
+    expect(mutation.data).toBeUndefined()
+    expect(mutation.executed).toBe(true)
+    expect(mutation.executing).toBe(false)
+    expect(mutation.error).toBe(error)
+    expect(mutation.errored).toBe(true)
+    expect(onError).toHaveBeenCalledTimes(1)
+    expect(onError).toHaveBeenCalledWith({
+      error,
+      payload: [{ shouldError: true }]
+    })
+
+    await mutation.mutate({ shouldError: false })
+
+    expect(mutation.data).toBe(response)
+    expect(mutation.executed).toBe(true)
+    expect(mutation.executing).toBe(false)
+    expect(mutation.error).toBeUndefined()
+    expect(mutation.errored).toBe(false)
+
+    await expect(mutation.mutate({ shouldError: true })).rejects.toBe(error)
+
+    expect(mutation.data).toBe(response)
+    expect(mutation.executed).toBe(true)
+    expect(mutation.executing).toBe(false)
+    expect(mutation.error).toBe(error)
+    expect(mutation.errored).toBe(true)
+    expect(onError).toHaveBeenCalledTimes(2)
+    expect(onError).toHaveBeenCalledWith({
+      error,
+      payload: [{ shouldError: true }]
+    })
+  })
+
+  test('setQueryDataBefore and setQueryDataAfter are called when the mutation is executed', async () => {
+    const { useMutation, query } = createQueryClient()
+    const { promise, resolve } = Promise.withResolvers<void>()
+    const numberTag = tag<number>()
+    const queryAction = vi.fn()
+    const mutationAction = vi.fn(() => promise)
+    const setQueryDataBefore = vi.fn()
+    const setQueryDataAfter = vi.fn()
+
+    query(queryAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    const mutation = useMutation(mutationAction, {
+      tags: [numberTag],
+      setQueryDataBefore,
+      setQueryDataAfter
+    })
+
+    mutation.mutate()
+
+    expect(setQueryDataBefore).toHaveBeenCalledTimes(1)
+    expect(setQueryDataBefore).toHaveBeenCalledWith(undefined, { payload: [] })
+
+    resolve()
+
+    await vi.runOnlyPendingTimersAsync()
+
+    expect(setQueryDataAfter).toHaveBeenCalledTimes(1)
+    expect(setQueryDataAfter).toHaveBeenCalledWith(undefined, { payload: [] })
   })
 })
