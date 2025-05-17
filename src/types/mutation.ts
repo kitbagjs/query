@@ -110,7 +110,7 @@ export type MutationComposition = <
   const TAction extends MutationAction,
   const TPlaceholder extends unknown,
   const TTags extends MutationTags<TAction>,
->(action: TAction, options?: MutationOptions<TAction, TPlaceholder, TTags>) => { mutate: Mutate<TAction> } & Mutation<TAction, TPlaceholder>
+>(action: TAction, options?: MutationOptions<TAction, TPlaceholder, TTags>) => Mutation<TAction, TPlaceholder>
 
 export type DefinedMutationComposition<
   TAction extends MutationAction,
