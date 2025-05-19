@@ -129,6 +129,52 @@ describe('setQueryData', () => {
 })
 
 describe('refreshQueryData', () => {
+  test('data', async () => {
+    const { mutate, useMutation } = createQueryClient()
+
+    const action = (value: number) => value
+
+    const mutationA = useMutation(action)
+    const mutationB = mutate(action, [1])
+
+    expectTypeOf(mutationA.data).toEqualTypeOf<number | undefined>()
+    expectTypeOf(mutationB.data).toEqualTypeOf<number | undefined>()
+
+    const mutationC = await useMutation(action)
+    const mutationD = await mutate(action, [1])
+
+    expectTypeOf(mutationC.data).toEqualTypeOf<number>()
+    expectTypeOf(mutationD.data).toEqualTypeOf<number>()
+  })
+
+  test('placeholder', async () => {
+    const { mutate, useMutation } = createQueryClient()
+
+    const action = (value: number) => value
+
+    const mutationA = useMutation(action, {
+      placeholder: 'foo'
+    })
+
+    const mutationB = mutate(action, [1], {
+      placeholder: 'foo'
+    })
+
+    expectTypeOf(mutationA.data).toEqualTypeOf<number | 'foo'>()
+    expectTypeOf(mutationB.data).toEqualTypeOf<number | 'foo'>()
+
+    const mutationC = await useMutation(action, {
+      placeholder: 'foo'
+    })
+
+    const mutationD = await mutate(action, [1], {
+      placeholder: 'foo'
+    })
+
+    expectTypeOf(mutationC.data).toEqualTypeOf<number>()
+    expectTypeOf(mutationD.data).toEqualTypeOf<number>()
+  })
+
   test('tags', () => {
     const { refreshQueryData } = createQueryClient()
 
@@ -177,6 +223,83 @@ describe('mutate', () => {
 
         return 1
       }
+    })
+  })
+})
+
+describe('defineMutation', () => {
+
+  test('response', async () => {
+    const { defineMutation } = createQueryClient()
+
+    const action = (value: number) => value
+
+    const { mutate, useMutation } = defineMutation(action)
+
+    const mutationA = useMutation()
+    const mutationB = mutate([1])
+
+    expectTypeOf(mutationA.data).toEqualTypeOf<number | undefined>()
+    expectTypeOf(mutationA.executing).toEqualTypeOf<boolean>()
+    expectTypeOf(mutationA.executed).toEqualTypeOf<boolean>()
+    expectTypeOf(mutationA.error).toEqualTypeOf<unknown>()
+    expectTypeOf(mutationA.errored).toEqualTypeOf<boolean>()
+
+    expectTypeOf(mutationB.executing).toEqualTypeOf<boolean>()
+    expectTypeOf(mutationB.executed).toEqualTypeOf<boolean>()
+    expectTypeOf(mutationB.error).toEqualTypeOf<unknown>()
+    expectTypeOf(mutationB.errored).toEqualTypeOf<boolean>()
+    expectTypeOf(mutationB.data).toEqualTypeOf<number | undefined>()
+
+    const mutationC = await useMutation()
+    const mutationD = await mutate([1])
+
+    expectTypeOf(mutationC.data).toEqualTypeOf<number>()
+    expectTypeOf(mutationD.data).toEqualTypeOf<number>()
+  })
+
+  describe('options', () => {
+    test('placeholder', async () => {
+      const { defineMutation } = createQueryClient()
+
+      const action = (value: number) => value
+
+      const { mutate, useMutation } = defineMutation(action, {
+        placeholder: 'foo'
+      })
+
+      const mutationA = useMutation()
+      const mutationB = mutate([1])
+
+      expectTypeOf(mutationA.data).toEqualTypeOf<number | 'foo'>()
+      expectTypeOf(mutationB.data).toEqualTypeOf<number | 'foo'>()
+
+      const mutationC = useMutation({
+        placeholder: 'bar'
+      })
+
+      const mutationD = mutate([1], {
+        placeholder: 'bar'
+      })
+
+      expectTypeOf(mutationC.data).toEqualTypeOf<number | 'bar'>()
+      expectTypeOf(mutationD.data).toEqualTypeOf<number | 'bar'>()
+
+      const mutationE = await useMutation()
+      const mutationF = await mutate([1])
+
+      const mutationG = await useMutation({
+        placeholder: 'bar'
+      })
+
+      const mutationH = await mutate([1], {
+        placeholder: 'bar'
+      })
+
+      expectTypeOf(mutationE.data).toEqualTypeOf<number>()
+      expectTypeOf(mutationF.data).toEqualTypeOf<number>()
+      expectTypeOf(mutationG.data).toEqualTypeOf<number>()
+      expectTypeOf(mutationH.data).toEqualTypeOf<number>()
     })
   })
 })

@@ -8,7 +8,7 @@ export function createMutation<
   TPlaceholder extends unknown,
   TTags extends MutationTags<TAction>,
 >(action: TAction, options?: MutationOptions<TAction, TPlaceholder, TTags>): Mutation<TAction, TPlaceholder> {
-  const data = ref()
+  const data = ref<any>(options?.placeholder)
   const executing = ref<boolean>(false)
   const executed = ref<boolean>(false)
   const error = ref<unknown>()

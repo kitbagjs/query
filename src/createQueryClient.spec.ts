@@ -1034,3 +1034,608 @@ describe('useMutation', () => {
     expect(setQueryDataAfter).toHaveBeenCalledWith(undefined, { payload: [] })
   })
 })
+
+describe('defineMutation', () => {
+
+  describe('mutate', () => {
+    test('executes the defined action', () => {
+      const { defineMutation } = createQueryClient()
+      const action = vi.fn()
+      const { mutate } = defineMutation(action)
+
+      const mutation = mutate([])
+
+      expect(action).toHaveBeenCalledTimes(1)
+      expect(mutation.data).toBeUndefined()
+    })
+
+    test('returns the correct values', async () => {
+      const { defineMutation } = createQueryClient()
+      const action = (value: number) => value
+      const { mutate } = defineMutation(action)
+
+      const mutation = mutate([1])
+
+      expect(mutation.data).toBeUndefined()
+      expect(mutation.error).toBeUndefined()
+      expect(mutation.errored).toBe(false)
+      expect(mutation.executed).toBe(false)
+      expect(mutation.executing).toBe(true)
+
+      await vi.runOnlyPendingTimersAsync()
+
+      expect(mutation.data).toBe(1)
+      expect(mutation.error).toBeUndefined()
+      expect(mutation.errored).toBe(false)
+      expect(mutation.executed).toBe(true)
+      expect(mutation.executing).toBe(false)
+    })
+
+    describe('options', () => {
+
+      describe('placeholder', () => {
+
+        test('defined placeholder is used if no placeholder is provided', () => {
+          const { defineMutation } = createQueryClient()
+          const definedPlaceholder = 'definedPlaceholder'
+          const action = vi.fn()
+          const { mutate } = defineMutation(action, {
+            placeholder: definedPlaceholder
+          })
+
+          const mutation = mutate([])
+          
+          expect(mutation.data).toBe(definedPlaceholder)
+        })
+
+        test('provided placeholder is used instead of defined placeholder', () => {
+          const { defineMutation } = createQueryClient()
+          const definedPlaceholder = 'definedPlaceholder'
+          const providedPlaceholder = 'providedPlaceholder'
+          const action = vi.fn()
+          const { mutate } = defineMutation(action, {
+            placeholder: definedPlaceholder
+          })
+
+          const mutation = mutate([], {
+            placeholder: providedPlaceholder
+          })
+          
+          expect(mutation.data).toBe(providedPlaceholder)
+        })
+
+      })
+
+      describe('retries', () => {
+        test('defined retries are used if no retries are provided', async () => {
+          const { defineMutation } = createQueryClient()
+          const action = vi.fn(() => { throw new Error() })
+          const { mutate } = defineMutation(action, { retries: 1 })
+
+          mutate([])
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(action).toHaveBeenCalledTimes(2)
+        })
+
+        test('provided retries are used instead of defined retries', async () => {
+          const { defineMutation } = createQueryClient()
+          const action = vi.fn(() => { throw new Error() })
+          const { mutate } = defineMutation(action, { retries: 1 })
+
+          mutate([], { retries: 2 })
+
+          await vi.runOnlyPendingTimersAsync()
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(action).toHaveBeenCalledTimes(3)
+        })
+      })
+
+      describe('refreshQueryData', () => {
+        test('defined refreshQueryData is used if no refreshQueryData is provided', async () => {
+          const { defineMutation, query } = createQueryClient()
+          const tagA = tag()
+          const mutationAction = vi.fn()
+          const { mutate } = defineMutation(mutationAction, { 
+            tags: [tagA],
+            refreshQueryData: true
+          })
+          
+          const queryAction = vi.fn()
+          query(queryAction, [], { 
+            tags: [tagA],
+          })
+
+          await vi.runOnlyPendingTimersAsync()
+          expect(queryAction).toHaveBeenCalledTimes(1)
+          
+          mutate([])
+          
+          await vi.runOnlyPendingTimersAsync()
+          expect(queryAction).toHaveBeenCalledTimes(2)
+        })
+
+        test('provided refreshQueryData is used instead of defined refreshQueryData', async () => {
+          const { defineMutation, query } = createQueryClient()
+          const tagA = tag()
+          const mutationAction = vi.fn()
+          const { mutate } = defineMutation(mutationAction, { 
+            tags: [tagA],
+            refreshQueryData: false
+          })
+          
+          const queryAction = vi.fn()
+          query(queryAction, [], { 
+            tags: [tagA],
+          })
+
+          await vi.runOnlyPendingTimersAsync()
+          expect(queryAction).toHaveBeenCalledTimes(1)
+          
+          mutate([], {
+            refreshQueryData: true
+          })
+          
+          await vi.runOnlyPendingTimersAsync()
+          expect(queryAction).toHaveBeenCalledTimes(2)
+        })
+      })
+
+      describe('onExecute', () => {
+        test('both defined and provided onExecute callbacks are called', async () => {
+          const { defineMutation } = createQueryClient()
+          const definedOnExecute = vi.fn()
+          const providedOnExecute = vi.fn()
+          const { mutate } = defineMutation(vi.fn(), { onExecute: definedOnExecute })
+
+          mutate([], { onExecute: providedOnExecute })
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedOnExecute).toHaveBeenCalledTimes(1)
+          expect(providedOnExecute).toHaveBeenCalledTimes(1)
+        })
+      })
+
+      describe('onSuccess', () => {
+        test('both defined and provided onSuccess callbacks are called with correct value', async () => {
+          const { defineMutation } = createQueryClient()
+          const definedOnSuccess = vi.fn()
+          const providedOnSuccess = vi.fn()
+          const action = (value: number) => value
+          const { mutate } = defineMutation(action, { onSuccess: definedOnSuccess })
+
+          mutate([1], { onSuccess: providedOnSuccess })
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedOnSuccess).toHaveBeenCalledTimes(1)
+          expect(providedOnSuccess).toHaveBeenCalledTimes(1)
+          expect(definedOnSuccess).toHaveBeenCalledWith({
+            data: 1,
+            payload: [1]
+          })
+          expect(providedOnSuccess).toHaveBeenCalledWith({
+            data: 1,
+            payload: [1]
+          })
+        })
+      })
+
+      describe('onError', () => {
+        test('both defined and provided onError are called with correct value', async () => {
+          const { defineMutation } = createQueryClient()
+          const definedOnError = vi.fn()
+          const providedOnError = vi.fn()
+          const error = new Error()
+          const action = (value: number) => {
+            if(value === 1) {
+              throw error
+            }
+          }
+          const { mutate } = defineMutation(action, { onError: definedOnError })
+
+          mutate([1], { onError: providedOnError })
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedOnError).toHaveBeenCalledTimes(1)
+          expect(providedOnError).toHaveBeenCalledTimes(1)
+          expect(definedOnError).toHaveBeenCalledWith({
+            error,
+            payload: [1]
+          })
+          expect(providedOnError).toHaveBeenCalledWith({
+            error,
+            payload: [1]
+          })
+        })
+      })
+
+      describe('setQueryData', () => {
+        test('both defined and provided setQueryData callbacks are called with correct values and updates query data', async () => {
+          const { defineMutation, query } = createQueryClient()
+          const definedSetQueryDataBefore = vi.fn((value) => value + 1)
+          const providedSetQueryDataBefore = vi.fn((value) => value + 1)
+          const definedSetQueryDataAfter = vi.fn((value) => value + 1)
+          const providedSetQueryDataAfter = vi.fn((value) => value + 1)
+          const { promise, resolve } = Promise.withResolvers<void>()
+          const mutationPayload = 1
+          const mutationAction = (value: number) => promise.then(() => value)
+          const tagA = tag()
+          const tagB = tag()
+          const queryAResponse = 1
+          const queryBResponse = 1
+          const queryAAction = () => queryAResponse
+          const queryBAction = () => queryBResponse
+
+          const queryA = query(queryAAction, [], { tags: [tagA] })
+          const queryB = query(queryBAction, [], { tags: [tagB] })
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(queryA.data).toBe(queryAResponse)
+          expect(queryB.data).toBe(queryBResponse)
+
+          const { mutate } = defineMutation(mutationAction, { 
+            tags: [tagA],
+            setQueryDataBefore: definedSetQueryDataBefore,
+            setQueryDataAfter: definedSetQueryDataAfter
+          })
+
+          mutate([mutationPayload], { 
+            tags: [tagB],
+            refreshQueryData: false,
+            setQueryDataBefore: providedSetQueryDataBefore,
+            setQueryDataAfter: providedSetQueryDataAfter
+          })
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedSetQueryDataBefore).toHaveBeenCalledTimes(1)
+          expect(definedSetQueryDataBefore).toHaveBeenCalledWith(queryAResponse, { payload: [mutationPayload] })
+
+          expect(providedSetQueryDataBefore).toHaveBeenCalledTimes(1)
+          expect(providedSetQueryDataBefore).toHaveBeenCalledWith(queryBResponse, { payload: [mutationPayload] })
+
+          resolve()
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedSetQueryDataAfter).toHaveBeenCalledTimes(1)
+          expect(definedSetQueryDataAfter).toHaveBeenCalledWith(queryAResponse + 1, { payload: [mutationPayload], data: mutationPayload })
+
+          expect(providedSetQueryDataAfter).toHaveBeenCalledTimes(1)
+          expect(providedSetQueryDataAfter).toHaveBeenCalledWith(queryBResponse + 1, { payload: [mutationPayload], data: mutationPayload })
+
+          expect(queryA.data).toBe(queryAResponse + 2)
+          expect(queryB.data).toBe(queryBResponse + 2)
+        })
+      })
+    })
+  })
+
+  describe('useMutation', () => {
+    test('executes the defined action', async () => {
+      const { defineMutation } = createQueryClient()
+      const action = vi.fn()
+      const { useMutation } = defineMutation(action)
+
+      const mutation = useMutation()
+
+      mutation.mutate()
+
+      expect(action).toHaveBeenCalledTimes(1)
+      expect(mutation.data).toBeUndefined()
+    })
+
+    test('returns the correct values', async () => {
+      const { defineMutation } = createQueryClient()
+      const response = Symbol('response')
+      const action = vi.fn(() => response)
+      const { useMutation } = defineMutation(action)
+
+      const mutation = useMutation()
+
+      expect(mutation.data).toBeUndefined()
+      expect(mutation.error).toBeUndefined()
+      expect(mutation.errored).toBe(false)
+      expect(mutation.executed).toBe(false)
+      expect(mutation.executing).toBe(false)
+
+      const promise = mutation.mutate()
+
+      expect(mutation.data).toBeUndefined()
+      expect(mutation.error).toBeUndefined()
+      expect(mutation.errored).toBe(false)
+      expect(mutation.executed).toBe(false)
+      expect(mutation.executing).toBe(true)
+
+      await promise
+
+      expect(mutation.data).toBe(response)
+      expect(mutation.error).toBeUndefined()
+      expect(mutation.errored).toBe(false)
+      expect(mutation.executed).toBe(true)
+      expect(mutation.executing).toBe(false)
+    })
+
+    describe('options', () => {
+
+      describe('placeholder', () => {
+
+        test('defined placeholder is used if no placeholder is provided', () => {
+          const { defineMutation } = createQueryClient()
+          const definedPlaceholder = 'definedPlaceholder'
+          const action = vi.fn()
+          const { useMutation } = defineMutation(action, {
+            placeholder: definedPlaceholder
+          })
+
+          const mutation = useMutation()
+          
+          expect(mutation.data).toBe(definedPlaceholder)
+        })
+
+        test('provided placeholder is used instead of defined placeholder', () => {
+          const { defineMutation } = createQueryClient()
+          const definedPlaceholder = 'definedPlaceholder'
+          const providedPlaceholder = 'providedPlaceholder'
+          const action = vi.fn()
+          const { useMutation } = defineMutation(action, {
+            placeholder: definedPlaceholder
+          })
+
+          const mutation = useMutation({
+            placeholder: providedPlaceholder
+          })
+
+          mutation.mutate()
+          
+          expect(mutation.data).toBe(providedPlaceholder)
+        })
+
+      })
+
+      describe('retries', () => {
+        test('defined retries are used if no retries are provided', async () => {
+          const { defineMutation } = createQueryClient()
+          const error = new Error()
+          const action = vi.fn(() => { throw error })
+          const { useMutation } = defineMutation(action, { 
+            retries: {
+              count: 1,
+              delay: 0,
+            }
+          })
+
+          const mutation = useMutation()
+          
+          await expect(mutation.mutate()).rejects.toBe(error)
+          expect(action).toHaveBeenCalledTimes(2)
+        })
+
+        test('provided retries are used instead of defined retries', async () => {
+          const { defineMutation } = createQueryClient()
+          const error = new Error()
+          const action = vi.fn(() => { throw error })
+          const { useMutation } = defineMutation(action, { 
+            retries: {
+              count: 1,
+              delay: 0,
+            }
+          })
+
+          const mutation = useMutation({ 
+            retries: {
+              count: 2,
+              delay: 0,
+            }
+          })
+
+          await expect(mutation.mutate()).rejects.toBe(error)
+
+          expect(action).toHaveBeenCalledTimes(3)
+        })
+      })
+
+      describe('refreshQueryData', () => {
+        test('defined refreshQueryData is used if no refreshQueryData is provided', async () => {
+          const { defineMutation, query } = createQueryClient()
+          const tagA = tag()
+          const mutationAction = vi.fn()
+          const { useMutation } = defineMutation(mutationAction, { 
+            tags: [tagA],
+            refreshQueryData: true
+          })
+          
+          const queryAction = vi.fn()
+          query(queryAction, [], { 
+            tags: [tagA],
+          })
+
+          await vi.runOnlyPendingTimersAsync()
+          expect(queryAction).toHaveBeenCalledTimes(1)
+          
+          const mutation = useMutation()
+
+          mutation.mutate()
+
+          await vi.runOnlyPendingTimersAsync()
+          expect(queryAction).toHaveBeenCalledTimes(2)
+        })
+
+        test('provided refreshQueryData is used instead of defined refreshQueryData', async () => {
+          const { defineMutation, query } = createQueryClient()
+          const tagA = tag()
+          const mutationAction = vi.fn()
+          const { useMutation } = defineMutation(mutationAction, { 
+            tags: [tagA],
+            refreshQueryData: false
+          })
+          
+          const queryAction = vi.fn()
+          query(queryAction, [], { 
+            tags: [tagA],
+          })
+
+          await vi.runOnlyPendingTimersAsync()
+          expect(queryAction).toHaveBeenCalledTimes(1)
+          
+          const mutation = useMutation({
+            refreshQueryData: true
+          })
+
+          mutation.mutate()
+          
+          await vi.runOnlyPendingTimersAsync()
+          expect(queryAction).toHaveBeenCalledTimes(2)
+        })
+      })
+
+      describe('onExecute', () => {
+        test('both defined and provided onExecute callbacks are called', async () => {
+          const { defineMutation } = createQueryClient()
+          const definedOnExecute = vi.fn()
+          const providedOnExecute = vi.fn()
+          const { useMutation } = defineMutation(vi.fn(), { onExecute: definedOnExecute })
+
+          const mutation = useMutation({ onExecute: providedOnExecute })
+
+          mutation.mutate()
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedOnExecute).toHaveBeenCalledTimes(1)
+          expect(providedOnExecute).toHaveBeenCalledTimes(1)
+        })
+      })
+
+      describe('onSuccess', () => {
+        test('both defined and provided onSuccess callbacks are called with correct value', async () => {
+          const { defineMutation } = createQueryClient()
+          const definedOnSuccess = vi.fn()
+          const providedOnSuccess = vi.fn()
+          const action = (value: number) => value
+          const { useMutation } = defineMutation(action, { onSuccess: definedOnSuccess })
+
+          const mutation = useMutation({ onSuccess: providedOnSuccess })
+
+          mutation.mutate(1)
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedOnSuccess).toHaveBeenCalledTimes(1)
+          expect(providedOnSuccess).toHaveBeenCalledTimes(1)
+          expect(definedOnSuccess).toHaveBeenCalledWith({
+            data: 1,
+            payload: [1]
+          })
+          expect(providedOnSuccess).toHaveBeenCalledWith({
+            data: 1,
+            payload: [1]
+          })
+        })
+      })
+
+      describe('onError', () => {
+        test('both defined and provided onError are called with correct value', async () => {
+          const { defineMutation } = createQueryClient()
+          const definedOnError = vi.fn()
+          const providedOnError = vi.fn()
+          const error = new Error()
+          const action = (value: number) => {
+            if(value === 1) {
+              throw error
+            }
+          }
+          const { useMutation } = defineMutation(action, { onError: definedOnError })
+
+          const mutation = useMutation({ onError: providedOnError })
+
+          mutation.mutate(1).catch(() => {
+            // suppress error in test
+          })
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedOnError).toHaveBeenCalledTimes(1)
+          expect(providedOnError).toHaveBeenCalledTimes(1)
+          expect(definedOnError).toHaveBeenCalledWith({
+            error,
+            payload: [1]
+          })
+          expect(providedOnError).toHaveBeenCalledWith({
+            error,
+            payload: [1]
+          })
+        })
+      })
+
+      describe('setQueryData', () => {
+        test('both defined and provided setQueryData callbacks are called with correct values and updates query data', async () => {
+          const { defineMutation, query } = createQueryClient()
+          const definedSetQueryDataBefore = vi.fn((value) => value + 1)
+          const providedSetQueryDataBefore = vi.fn((value) => value + 1)
+          const definedSetQueryDataAfter = vi.fn((value) => value + 1)
+          const providedSetQueryDataAfter = vi.fn((value) => value + 1)
+          const { promise, resolve } = Promise.withResolvers<void>()
+          const mutationPayload = 1
+          const mutationAction = (value: number) => promise.then(() => value)
+          const tagA = tag()
+          const tagB = tag()
+          const queryAResponse = 1
+          const queryBResponse = 1
+          const queryAAction = () => queryAResponse
+          const queryBAction = () => queryBResponse
+
+          const queryA = query(queryAAction, [], { tags: [tagA] })
+          const queryB = query(queryBAction, [], { tags: [tagB] })
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(queryA.data).toBe(queryAResponse)
+          expect(queryB.data).toBe(queryBResponse)
+
+          const { useMutation } = defineMutation(mutationAction, { 
+            tags: [tagA],
+            setQueryDataBefore: definedSetQueryDataBefore,
+            setQueryDataAfter: definedSetQueryDataAfter
+          })
+
+          const mutation = useMutation({ 
+            tags: [tagB],
+            refreshQueryData: false,
+            setQueryDataBefore: providedSetQueryDataBefore,
+            setQueryDataAfter: providedSetQueryDataAfter
+          })
+
+          mutation.mutate(mutationPayload)
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedSetQueryDataBefore).toHaveBeenCalledTimes(1)
+          expect(definedSetQueryDataBefore).toHaveBeenCalledWith(queryAResponse, { payload: [mutationPayload] })
+
+          expect(providedSetQueryDataBefore).toHaveBeenCalledTimes(1)
+          expect(providedSetQueryDataBefore).toHaveBeenCalledWith(queryBResponse, { payload: [mutationPayload] })
+
+          resolve()
+
+          await vi.runOnlyPendingTimersAsync()
+
+          expect(definedSetQueryDataAfter).toHaveBeenCalledTimes(1)
+          expect(definedSetQueryDataAfter).toHaveBeenCalledWith(queryAResponse + 1, { payload: [mutationPayload], data: mutationPayload })
+
+          expect(providedSetQueryDataAfter).toHaveBeenCalledTimes(1)
+          expect(providedSetQueryDataAfter).toHaveBeenCalledWith(queryBResponse + 1, { payload: [mutationPayload], data: mutationPayload })
+
+          expect(queryA.data).toBe(queryAResponse + 2)
+          expect(queryB.data).toBe(queryBResponse + 2)
+        })
+      })
+    })
+  })
+})
