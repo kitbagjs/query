@@ -24,6 +24,84 @@ describe('options', () => {
   })
 })
 
+describe('query', () => {
+  describe('options', () => {
+    test('placeholder', async () => {
+      const { query } = createQueryClient()
+      const response = 'response' as const
+      const placeholder = 'placeholder' as const
+      const action = () => response
+
+      const queryA = query(action, [])
+      expectTypeOf(queryA.data).toEqualTypeOf<typeof response | undefined>()
+      
+      const queryB = query(action, [], { placeholder })
+      expectTypeOf(queryB.data).toEqualTypeOf<typeof response | typeof placeholder>()
+
+      const queryC = await query(action, [])
+      expectTypeOf(queryC.data).toEqualTypeOf<typeof response>()
+
+      const queryD = await query(action, [], { placeholder })
+      expectTypeOf(queryD.data).toEqualTypeOf<typeof response>()
+      
+    })
+  })
+})
+
+describe('useQuery', () => {
+  describe('options', () => {
+    test('placeholder', async () => {
+      const { useQuery } = createQueryClient()
+      const response = 'response' as const
+      const placeholder = 'placeholder' as const
+      const action = () => response
+
+      const queryA = useQuery(action, [])
+      expectTypeOf(queryA.data).toEqualTypeOf<typeof response | undefined>()
+      
+      const queryB = useQuery(action, [], { placeholder })
+      expectTypeOf(queryB.data).toEqualTypeOf<typeof response | typeof placeholder>()
+
+      const queryC = await useQuery(action, [])
+      expectTypeOf(queryC.data).toEqualTypeOf<typeof response>()
+
+      const queryD = await useQuery(action, [], { placeholder })
+      expectTypeOf(queryD.data).toEqualTypeOf<typeof response>()
+      
+    })
+  })
+})
+
+describe('defineQuery', () => {
+  describe('options', () => {
+    test('placeholder', async () => {
+      const { defineQuery } = createQueryClient()
+      const response = 'response' as const
+      const definedPlaceholder = 'defined placeholder' as const
+      const placeholder = 'placeholder' as const
+      const action = () => response
+
+      const { query: definedWithNoPlaceholder } = defineQuery(action)
+      const queryA = definedWithNoPlaceholder([])
+      expectTypeOf(queryA.data).toEqualTypeOf<typeof response | undefined>()
+
+      const { query: definedWithPlaceholder } = defineQuery(action, { placeholder: definedPlaceholder })
+
+      const queryB = definedWithPlaceholder([])
+      expectTypeOf(queryB.data).toEqualTypeOf<typeof response | typeof definedPlaceholder>()
+      
+      const queryC = definedWithPlaceholder([], { placeholder })
+      expectTypeOf(queryC.data).toEqualTypeOf<typeof response | typeof placeholder>()
+
+      const queryD = await definedWithPlaceholder([])
+      expectTypeOf(queryD.data).toEqualTypeOf<typeof response>()
+
+      const queryE = await definedWithPlaceholder([], { placeholder })
+      expectTypeOf(queryE.data).toEqualTypeOf<typeof response>()
+    })
+  })
+})
+
 describe('setQueryData', () => {
   test('tags', async () => {
     const { setQueryData } = createQueryClient()
