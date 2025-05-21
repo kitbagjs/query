@@ -20,7 +20,6 @@ import { QueryGroup } from "./createQueryGroup";
 import { MutationComposition, MutationFunction, DefineMutation, DefinedMutationFunction, MutationAction, MutationTags, MutationOptions, DefinedMutationComposition } from "./types/mutation";
 import { createMutation } from "./createMutation";
 import { getAllTags } from "./getAllTags";
-import { DefaultValue } from "./types/utilities";
 
 export function createQueryClient(options?: ClientOptions): QueryClient {
   const { createQuery, getQueryGroups } = createQueryGroups(options)
