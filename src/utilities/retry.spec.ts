@@ -63,6 +63,20 @@ describe('retry', () => {
     expect(callback).toHaveBeenCalledTimes(4)
   })
 
+  test('should not wait if delay is 0', async () => {
+    vi.useRealTimers()
+    const error = new Error('test')
+    const callback = vi.fn(() => {
+      throw error
+    })
+
+    const result = retry(callback, { count: 10, delay: 0 })
+
+    expect(callback).toHaveBeenCalledTimes(11)
+    await expect(result).rejects.toBe(error)
+    vi.useFakeTimers()
+  })
+
 })
 
 describe('reduceRetryOptions', () => {

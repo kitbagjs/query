@@ -17,7 +17,7 @@ import { isQueryTag, isQueryTags, QueryTag } from "./types/tags";
 import { isArray } from "./utilities/arrays";
 import { assertNever } from "./utilities/assert";
 import { QueryGroup } from "./createQueryGroup";
-import { MutationComposition, MutationFunction } from "./types/mutation";
+import { MutationComposition, MutationFunction, DefineMutation, DefinedMutationFunction, MutationAction, MutationTags, MutationOptions, DefinedMutationComposition } from "./types/mutation";
 import { createMutation } from "./createMutation";
 import { getAllTags } from "./getAllTags";
 
@@ -172,6 +172,104 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
     return mutation
   }
 
+  const defineMutation: DefineMutation = <
+    TDefinedAction extends MutationAction,
+    TDefinedPlaceholder extends unknown,
+    TDefinedTags extends MutationTags<TDefinedAction>
+  >(action: TDefinedAction, definedOptions?: MutationOptions<TDefinedAction, TDefinedPlaceholder, TDefinedTags>) => {
+
+    const definedMutation: DefinedMutationFunction<TDefinedAction, TDefinedPlaceholder> = (parameters, options) => {
+      const mutation = definedUseMutation(options)
+
+      mutation.mutate(...parameters).catch(() => {
+        // silence here for now
+        // later we'll want to automatically revert the `setQueryDataBefore`
+      })
+
+      return mutation
+    }
+
+    const definedUseMutation: DefinedMutationComposition<TDefinedAction, TDefinedPlaceholder> = (options) => {
+      const { 
+        setQueryDataBefore: definedSetQueryDataBefore, 
+        setQueryDataAfter: definedSetQueryDataAfter, 
+        onExecute: definedOnExecute, 
+        onSuccess: definedOnSuccess,
+        onError: definedOnError
+      } = definedOptions ?? {}
+
+      const { 
+        setQueryDataBefore, 
+        setQueryDataAfter, 
+        onExecute, 
+        onSuccess,
+        onError
+      } = options ?? {}
+  
+      const mutation = createMutation(action, {
+        placeholder: options?.placeholder ?? definedOptions?.placeholder,
+        retries: options?.retries ?? definedOptions?.retries,
+        refreshQueryData: options?.refreshQueryData ?? definedOptions?.refreshQueryData,
+        tags: (data) => {
+          const definedTags = getAllTags(definedOptions?.tags, data)
+          const tags = getAllTags(options?.tags, data)
+
+          return [...definedTags, ...tags]
+        },
+        onExecute: (context) => {
+          if(setQueryDataBefore) {
+            const tags = getAllTags(options?.tags, undefined)
+            const setter = (data: QueryData) => setQueryDataBefore(data, context)
+            
+            setQueryData(tags, setter)
+          }
+          
+          if(definedSetQueryDataBefore) {
+            const tags = getAllTags(definedOptions?.tags, undefined)
+            const setter = (data: QueryData) => definedSetQueryDataBefore(data, context)
+            
+            setQueryData(tags, setter)
+          }
+  
+          onExecute?.(context)
+          definedOnExecute?.(context)
+        },
+        onSuccess: (context) => {
+          const shouldRefreshQueryData = options?.refreshQueryData ?? definedOptions?.refreshQueryData ?? true
+          const tags = getAllTags(options?.tags, context.data)
+          const definedTags = getAllTags(definedOptions?.tags, context.data)
+  
+          if(shouldRefreshQueryData) {
+            refreshQueryData(tags)
+            refreshQueryData(definedTags)
+          }
+  
+          if(setQueryDataAfter) {
+            setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context))
+          }
+
+          if(definedSetQueryDataAfter) {
+            setQueryData(definedTags, (queryData: QueryData): QueryData => definedSetQueryDataAfter(queryData, context))
+          }
+  
+          onSuccess?.(context)
+          definedOnSuccess?.(context)
+        },
+        onError: (context) => {
+          onError?.(context)
+          definedOnError?.(context)
+        }
+      })
+
+      return mutation as any
+    }
+
+    return {
+      mutate: definedMutation,
+      useMutation: definedUseMutation,
+    }
+  }
+
   return {
     query,
     useQuery,
@@ -180,5 +278,6 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
     refreshQueryData,
     mutate,
     useMutation,
+    defineMutation,
   }
 }

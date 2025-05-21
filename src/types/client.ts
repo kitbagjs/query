@@ -1,4 +1,4 @@
-import { MutationFunction, MutationComposition } from "./mutation"
+import { MutationFunction, MutationComposition, DefineMutation } from "./mutation"
 import { QueryActionArgs, QueryData } from "./query"
 import { Query } from "./query"
 import { QueryOptions } from "./query"
@@ -13,6 +13,7 @@ export type QueryClient = {
   refreshQueryData: RefreshQueryData,
   mutate: MutationFunction,
   useMutation: MutationComposition,
+  defineMutation: DefineMutation,
 }
 
 export type QueryFunction = <
