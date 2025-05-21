@@ -198,8 +198,6 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
         onError: definedOnError
       } = definedOptions ?? {}
 
-      const placeholder = options?.placeholder ?? definedOptions?.placeholder
-
       const { 
         setQueryDataBefore, 
         setQueryDataAfter, 
@@ -209,7 +207,7 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
       } = options ?? {}
   
       const mutation = createMutation(action, {
-        placeholder,
+        placeholder: options?.placeholder ?? definedOptions?.placeholder,
         retries: options?.retries ?? definedOptions?.retries,
         refreshQueryData: options?.refreshQueryData ?? definedOptions?.refreshQueryData,
         tags: (data) => {
@@ -221,14 +219,16 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
         onExecute: (context) => {
           if(setQueryDataBefore) {
             const tags = getAllTags(options?.tags, undefined)
+            const setter = (data: QueryData) => setQueryDataBefore(data, context)
             
-            setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, context))
+            setQueryData(tags, setter)
           }
           
           if(definedSetQueryDataBefore) {
-            const definedTags = getAllTags(definedOptions?.tags, undefined)
+            const tags = getAllTags(definedOptions?.tags, undefined)
+            const setter = (data: QueryData) => definedSetQueryDataBefore(data, context)
             
-            setQueryData(definedTags, (queryData: QueryData): QueryData => definedSetQueryDataBefore(queryData, context))
+            setQueryData(tags, setter)
           }
   
           onExecute?.(context)
