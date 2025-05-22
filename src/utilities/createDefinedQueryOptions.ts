@@ -8,7 +8,7 @@ type CreateDefinedQueryOptions = {
 
 export function createDefinedQueryOptions({options, definedOptions}: CreateDefinedQueryOptions): QueryOptions {
   return {
-    placeholder: options?.placeholder ?? definedOptions?.placeholder as any,
+    placeholder: options?.placeholder ?? definedOptions?.placeholder,
     interval: options?.interval ?? definedOptions?.interval,
     retries: options?.retries ?? definedOptions?.retries,
     tags: (data) => {
