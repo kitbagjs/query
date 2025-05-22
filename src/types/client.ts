@@ -30,8 +30,8 @@ export type DefinedQueryFunction<
 >(args: Parameters<TAction>, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, DefaultValue<TPlaceholder, TDefinedPlaceholder>>
 
 export type UseQueryOptions<
-  TAction extends QueryAction,
-  TPlaceholder extends unknown
+  TAction extends QueryAction = QueryAction,
+  TPlaceholder extends unknown = unknown
 > = QueryOptions<TAction, TPlaceholder> & {
   immediate?: boolean,
 }

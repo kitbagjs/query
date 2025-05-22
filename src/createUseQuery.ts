@@ -13,7 +13,7 @@ export function createUseQuery<
   TPlaceholder extends unknown
 >(createQuery: CreateQuery, action: TAction, parameters: TArgs, options?: UseQueryOptions<TAction, TPlaceholder>): Query<TAction, TPlaceholder>
 
-export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: UseQueryOptions<QueryAction, unknown> = {}): Query<QueryAction, unknown> {
+export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: UseQueryOptions = {}): Query<QueryAction, unknown> {
   const query = createQuery(noop, [], options)
   const enabled = ref(options?.immediate ?? true)
   const { promise, resolve, reject } = Promise.withResolvers()
