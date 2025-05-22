@@ -1,4 +1,4 @@
-import { isQueryAction, QueryAction, QueryData, QueryOptions } from "./types/query";
+import { isQueryAction, QueryAction, QueryOptions } from "./types/query";
 import { ClientOptions } from "./types/clientOptions";
 import { 
   DefinedQueryComposition,
@@ -19,7 +19,9 @@ import { assertNever } from "./utilities/assert";
 import { QueryGroup } from "./createQueryGroup";
 import { MutationComposition, MutationFunction, DefineMutation, DefinedMutationFunction, MutationAction, MutationTags, MutationOptions, DefinedMutationComposition } from "./types/mutation";
 import { createMutation } from "./createMutation";
-import { getAllTags } from "./getAllTags";
+import { createDefinedQueryOptions } from "./utilities/createDefinedQueryOptions";
+import { createDefinedMutationOptions } from "./utilities/createDefinedMutationOptions";
+import { createMutationOptions } from "./utilities/createMutationOptions";
 
 export function createQueryClient(options?: ClientOptions): QueryClient {
   const { createQuery, getQueryGroups } = createQueryGroups(options)
@@ -33,15 +35,21 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
   }
 
   const defineQuery: DefineQuery = <
-    TAction extends QueryAction,
-    TOptions extends QueryOptions<TAction>
-  >(action: TAction) => {
-    const definedQuery: DefinedQueryFunction<TAction, TOptions> = (args, options) => {
-      return query(action, args, options)
+    TDefinedAction extends QueryAction,
+    TDefinedPlaceholder extends unknown
+  >(action: TDefinedAction, definedOptions?: QueryOptions<TDefinedAction, TDefinedPlaceholder>) => {
+    const definedQuery: DefinedQueryFunction<TDefinedAction, TDefinedPlaceholder> = (args, options) => {
+      return query(action, args, createDefinedQueryOptions({
+        options, 
+        definedOptions
+      }))
     }
 
-    const definedUseQuery: DefinedQueryComposition<TAction, TOptions> = (args, options) => {
-      return useQuery(action, args, options)
+    const definedUseQuery: DefinedQueryComposition<TDefinedAction, TDefinedPlaceholder> = (args, options) => {
+      return useQuery(action, args, createDefinedQueryOptions({
+        options, 
+        definedOptions
+      }))
     }
 
     return {
@@ -130,7 +138,11 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
   }
 
   const mutate: MutationFunction = (action, parameters, options) => {
-    const mutation = useMutation(action, options)
+    const mutation = createMutation(action, createMutationOptions({
+      options,
+      setQueryData,
+      refreshQueryData
+    }))
         
     mutation.mutate(...parameters).catch(() => {
       // silence here for now
@@ -141,35 +153,11 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
   }
 
   const useMutation: MutationComposition = (action, options) => {
-    const { setQueryDataBefore, setQueryDataAfter, onExecute, onSuccess } = options ?? {}
-
-    const mutation = createMutation(action, {
-      ...options,
-      onExecute: (context) => {
-        if(setQueryDataBefore) {
-          const tags = getAllTags(options?.tags, undefined)
-
-          setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, context))
-        }
-
-        onExecute?.(context)
-      },
-      onSuccess: (context) => {
-        const tags = getAllTags(options?.tags, context.data)
-
-        if(options?.refreshQueryData ?? true) {
-          refreshQueryData(tags)
-        }
-
-        if(setQueryDataAfter) {
-          setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context))
-        }
-
-        onSuccess?.(context)
-      },
-    })
-
-    return mutation
+    return createMutation(action, createMutationOptions({
+      options,
+      setQueryData,
+      refreshQueryData
+    }))
   }
 
   const defineMutation: DefineMutation = <
@@ -179,7 +167,14 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
   >(action: TDefinedAction, definedOptions?: MutationOptions<TDefinedAction, TDefinedPlaceholder, TDefinedTags>) => {
 
     const definedMutation: DefinedMutationFunction<TDefinedAction, TDefinedPlaceholder> = (parameters, options) => {
-      const mutation = definedUseMutation(options)
+      const combinedOptions = createDefinedMutationOptions({
+        options,
+        definedOptions,
+        setQueryData,
+        refreshQueryData
+      })
+
+      const mutation = createMutation(action, combinedOptions)
 
       mutation.mutate(...parameters).catch(() => {
         // silence here for now
@@ -190,78 +185,14 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
     }
 
     const definedUseMutation: DefinedMutationComposition<TDefinedAction, TDefinedPlaceholder> = (options) => {
-      const { 
-        setQueryDataBefore: definedSetQueryDataBefore, 
-        setQueryDataAfter: definedSetQueryDataAfter, 
-        onExecute: definedOnExecute, 
-        onSuccess: definedOnSuccess,
-        onError: definedOnError
-      } = definedOptions ?? {}
-
-      const { 
-        setQueryDataBefore, 
-        setQueryDataAfter, 
-        onExecute, 
-        onSuccess,
-        onError
-      } = options ?? {}
-  
-      const mutation = createMutation(action, {
-        placeholder: options?.placeholder ?? definedOptions?.placeholder,
-        retries: options?.retries ?? definedOptions?.retries,
-        refreshQueryData: options?.refreshQueryData ?? definedOptions?.refreshQueryData,
-        tags: (data) => {
-          const definedTags = getAllTags(definedOptions?.tags, data)
-          const tags = getAllTags(options?.tags, data)
-
-          return [...definedTags, ...tags]
-        },
-        onExecute: (context) => {
-          if(setQueryDataBefore) {
-            const tags = getAllTags(options?.tags, undefined)
-            const setter = (data: QueryData) => setQueryDataBefore(data, context)
-            
-            setQueryData(tags, setter)
-          }
-          
-          if(definedSetQueryDataBefore) {
-            const tags = getAllTags(definedOptions?.tags, undefined)
-            const setter = (data: QueryData) => definedSetQueryDataBefore(data, context)
-            
-            setQueryData(tags, setter)
-          }
-  
-          onExecute?.(context)
-          definedOnExecute?.(context)
-        },
-        onSuccess: (context) => {
-          const shouldRefreshQueryData = options?.refreshQueryData ?? definedOptions?.refreshQueryData ?? true
-          const tags = getAllTags(options?.tags, context.data)
-          const definedTags = getAllTags(definedOptions?.tags, context.data)
-  
-          if(shouldRefreshQueryData) {
-            refreshQueryData(tags)
-            refreshQueryData(definedTags)
-          }
-  
-          if(setQueryDataAfter) {
-            setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context))
-          }
-
-          if(definedSetQueryDataAfter) {
-            setQueryData(definedTags, (queryData: QueryData): QueryData => definedSetQueryDataAfter(queryData, context))
-          }
-  
-          onSuccess?.(context)
-          definedOnSuccess?.(context)
-        },
-        onError: (context) => {
-          onError?.(context)
-          definedOnError?.(context)
-        }
+      const combinedOptions = createDefinedMutationOptions({
+        options,
+        definedOptions,
+        setQueryData,
+        refreshQueryData
       })
 
-      return mutation as any
+      return createMutation(action, combinedOptions)
     }
 
     return {

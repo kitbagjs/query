@@ -54,9 +54,9 @@ export type OnErrorContext<
 }
 
 export type MutationOptions<
-  TAction extends MutationAction,
-  TPlaceholder extends unknown,
-  TTags extends MutationTags,
+  TAction extends MutationAction = MutationAction,
+  TPlaceholder extends unknown = unknown,
+  TTags extends MutationTags<TAction> = MutationTags<TAction>,
 > = {
   placeholder?: TPlaceholder,
   tags?: TTags,

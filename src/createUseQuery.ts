@@ -1,5 +1,5 @@
 import { CreateQuery } from "./createQueryGroups"
-import { Query, QueryAction, QueryActionArgs, QueryOptions } from "./types/query"
+import { Query, QueryAction, QueryActionArgs } from "./types/query"
 import { onScopeDispose, ref, toRef, toRefs, toValue, watch } from "vue"
 import isEqual from 'lodash.isequal'
 import { isDefined } from "./utilities"
@@ -10,10 +10,10 @@ const noop = () => undefined
 export function createUseQuery<
   TAction extends QueryAction,
   TArgs extends QueryActionArgs<TAction>,
-  TOptions extends UseQueryOptions<TAction>
->(createQuery: CreateQuery, action: TAction, parameters: TArgs, options?: TOptions): Query<TAction, TOptions>
+  TPlaceholder extends unknown
+>(createQuery: CreateQuery, action: TAction, parameters: TArgs, options?: UseQueryOptions<TAction, TPlaceholder>): Query<TAction, TPlaceholder>
 
-export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: UseQueryOptions<QueryAction> = {}): Query<QueryAction, QueryOptions<QueryAction>> {
+export function createUseQuery(createQuery: CreateQuery, action: QueryAction, parameters: unknown[], options: UseQueryOptions<QueryAction, unknown> = {}): Query<QueryAction, unknown> {
   const query = createQuery(noop, [], options)
   const enabled = ref(options?.immediate ?? true)
   const { promise, resolve, reject } = Promise.withResolvers()
