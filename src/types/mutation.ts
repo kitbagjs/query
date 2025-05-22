@@ -8,9 +8,28 @@ export type MutationData<
   TAction extends MutationAction
 > = Awaited<ReturnType<TAction>>
 
+export type MutationTagsContext<
+  TAction extends MutationAction = MutationAction
+> = MutationTagsBeforeContext<TAction> | MutationTagsAfterContext<TAction>
+
+export type MutationTagsBeforeContext<
+  TAction extends MutationAction = MutationAction
+> = {
+  lifecycle: 'before'
+  payload: Parameters<TAction>
+}
+
+export type MutationTagsAfterContext<
+  TAction extends MutationAction = MutationAction
+> = {
+  lifecycle: 'after'
+  payload: Parameters<TAction>
+  data: MutationData<TAction>
+}
+
 export type MutationTags<
   TAction extends MutationAction = MutationAction,
-> = QueryTag[] | ((value: MutationData<TAction>) => QueryTag[])
+> = QueryTag[] | ((value: MutationTagsContext<TAction>) => QueryTag[])
 
 export type MutationTagsType<
   TTags extends MutationTags
