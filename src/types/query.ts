@@ -1,6 +1,7 @@
 import { RetryOptions } from "@/utilities/retry";
 import { Getter, MaybeGetter } from "./getters";
 import { QueryTag, Unset } from "@/types/tags";
+import { DefaultValue } from "./utilities";
 
 export type QueryAction = (...args: any[]) => any
 
@@ -21,9 +22,10 @@ export type QueryTags<
 > = QueryTag<QueryData<TAction> | Unset>[] | ((value: QueryData<TAction>) => QueryTag<QueryData<TAction> | Unset>[])
 
 export type QueryOptions<
-  TAction extends QueryAction,
+  TAction extends QueryAction = QueryAction,
+  TPlaceholder extends unknown = unknown
 > = {
-  placeholder?: any,
+  placeholder?: TPlaceholder,
   interval?: number,
   onSuccess?: (value: QueryData<TAction>) => void,
   onError?: (error: unknown) => void,
@@ -33,9 +35,9 @@ export type QueryOptions<
 
 export type Query<
   TAction extends QueryAction,
-  TOptions extends QueryOptions<TAction>
+  TPlaceholder extends unknown
 > = PromiseLike<AwaitedQuery<TAction>> & {
-  data: QueryData<TAction> | TOptions['placeholder'],
+  data: QueryData<TAction> | DefaultValue<TPlaceholder, undefined>,
   error: unknown,
   errored: boolean,
   executed: boolean,

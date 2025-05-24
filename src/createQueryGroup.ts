@@ -12,7 +12,7 @@ import { getAllTags } from "./getAllTags";
 export type QueryGroup<
   TAction extends QueryAction = QueryAction,
 > = {
-  createQuery: <TOptions extends QueryOptions<TAction>>(options?: TOptions) => Query<TAction, TOptions>,
+  createQuery: <TPlaceholder extends unknown>(options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>,
   setData: (data: QueryData<TAction>) => void,
   getData: () => QueryData<TAction>,
   hasTag: (tag: QueryTag | QueryTag[]) => boolean,
@@ -39,7 +39,7 @@ export function createQueryGroup<
   const executed = ref<boolean>(false)
   const { promise, resolve } = Promise.withResolvers()
 
-  const queries = new Map<number, QueryOptions<TAction>>()
+  const queries = new Map<number, QueryOptions>()
   const tags = createQueryGroupTags()
 
   async function execute(): Promise<AwaitedQuery<TAction>> {
@@ -107,7 +107,7 @@ export function createQueryGroup<
     }
   }
 
-  function addTags(tagsToAdd: QueryOptions<TAction>['tags'], id: number): void {
+  function addTags(tagsToAdd: QueryOptions['tags'], id: number): void {
     if(lastExecuted === undefined) {
       return
     }
@@ -132,7 +132,7 @@ export function createQueryGroup<
     }
   }
 
-  function addQuery(options?: QueryOptions<TAction>): () => void {
+  function addQuery(options?: QueryOptions): () => void {
     const queryId = createQueryId()
 
     queries.set(queryId, options ?? {})  
@@ -179,8 +179,8 @@ export function createQueryGroup<
   }
 
   function createQuery<
-    TOptions extends QueryOptions<TAction>
-  >(options?: TOptions): Query<TAction, TOptions> {
+    TPlaceholder extends unknown
+  >(options?: QueryOptions<TAction, TPlaceholder>): Query<TAction, TPlaceholder> {
     const removeQuery = addQuery(options)
 
     function dispose(): void {
@@ -188,7 +188,7 @@ export function createQueryGroup<
       setNextExecution()
     }
 
-    const query: Omit<Query<TAction, TOptions>, 'then' | typeof Symbol.dispose> = reactive({
+    const query: Omit<Query<TAction, TPlaceholder>, 'then' | typeof Symbol.dispose> = reactive({
       data: computed(() => data.value ?? options?.placeholder),
       executed,
       error,
@@ -198,7 +198,7 @@ export function createQueryGroup<
       dispose,
     })
 
-    const then: Query<TAction, TOptions>['then'] = (onFulfilled: any, onRejected: any) => {
+    const then: Query<TAction, TPlaceholder>['then'] = (onFulfilled: any, onRejected: any) => {
       return promise.then((value) => {
         if(value instanceof QueryError) {
           throw value.original

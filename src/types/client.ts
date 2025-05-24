@@ -4,6 +4,7 @@ import { Query } from "./query"
 import { QueryOptions } from "./query"
 import { QueryAction } from "./query"
 import { QueryTag, QueryTagType } from "./tags"
+import { DefaultValue } from "./utilities"
 
 export type QueryClient = {
   query: QueryFunction,
@@ -18,40 +19,47 @@ export type QueryClient = {
 
 export type QueryFunction = <
   const TAction extends QueryAction,
-  const TOptions extends QueryOptions<TAction>
->(action: TAction, args: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
+  const TPlaceholder extends unknown
+>(action: TAction, args: Parameters<TAction>, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
 
 export type DefinedQueryFunction<
   TAction extends QueryAction,
-  TOptions extends QueryOptions<TAction>
-> = (args: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
+  TDefinedPlaceholder extends unknown
+> = <
+  const TPlaceholder extends unknown
+>(args: Parameters<TAction>, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, DefaultValue<TPlaceholder, TDefinedPlaceholder>>
 
-export type UseQueryOptions<TAction extends QueryAction> = QueryOptions<TAction> & {
+export type UseQueryOptions<
+  TAction extends QueryAction = QueryAction,
+  TPlaceholder extends unknown = unknown
+> = QueryOptions<TAction, TPlaceholder> & {
   immediate?: boolean,
 }
 
 export type QueryComposition = <
   const TAction extends QueryAction,
   const Args extends QueryActionArgs<TAction>,
-  const TOptions extends UseQueryOptions<TAction>
->(action: TAction, args: Args, options?: TOptions) => Query<TAction, TOptions>
+  const TPlaceholder extends unknown
+>(action: TAction, args: Args, options?: UseQueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
 
 export type DefinedQueryComposition<
   TAction extends QueryAction,
-  TOptions extends QueryOptions<TAction>
-> = (args: QueryActionArgs<TAction>, options?: TOptions) => Query<TAction, TOptions>
+  TDefinedPlaceholder extends unknown
+> = <
+  const TPlaceholder extends unknown
+>(args: QueryActionArgs<TAction>, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, DefaultValue<TPlaceholder, TDefinedPlaceholder>>
 
 export type DefineQuery = <
   const TAction extends QueryAction,
-  const TOptions extends QueryOptions<TAction>
->(action: TAction, options?: TOptions) => DefinedQuery<TAction, TOptions>
+  const TPlaceholder extends unknown
+>(action: TAction, options?: QueryOptions<TAction, TPlaceholder>) => DefinedQuery<TAction, TPlaceholder>
 
 export type DefinedQuery<
   TAction extends QueryAction,
-  TOptions extends QueryOptions<TAction>
+  TPlaceholder extends unknown
 > = {
-  query: DefinedQueryFunction<TAction, TOptions>
-  useQuery: DefinedQueryComposition<TAction, TOptions>
+  query: DefinedQueryFunction<TAction, TPlaceholder>
+  useQuery: DefinedQueryComposition<TAction, TPlaceholder>
 }
 
 export type QueryDataSetter<T = unknown> = (data: T) => T

@@ -10,8 +10,8 @@ type QueryGroupKey = `${number}-${string}`
 
 export type CreateQuery = <
   const TAction extends QueryAction,
-  const TOptions extends QueryOptions<TAction>
->(action: TAction, parameters: Parameters<TAction>, options?: TOptions) => Query<TAction, TOptions>
+  const TPlaceholder extends unknown
+>(action: TAction, parameters: Parameters<TAction>, options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
 
 export type GetQueryGroups = {
   <TQueryTag extends QueryTag>(tags: TQueryTag | TQueryTag[]): QueryGroup[]
