@@ -1,7 +1,7 @@
 import { getAllTags } from "@/getAllTags"
 import { SetQueryData } from "@/types/client"
 import { RefreshQueryData } from "@/types/client"
-import { MutationOptions } from "@/types/mutation"
+import { MutationOptions, MutationTagsAfterContext, MutationTagsBeforeContext } from "@/types/mutation"
 import { QueryData } from "@/types/query"
 
 type CreateMutationOptions = {
@@ -22,7 +22,10 @@ export function createMutationOptions({ options, setQueryData, refreshQueryData 
     ...options,
     onExecute: (context) => {
       if(setQueryDataBefore) {
-        const tags = getAllTags(options?.tags, undefined)
+        const tags = getAllTags(options?.tags, {
+          lifecycle: 'before',
+          payload: context.payload,
+        } satisfies MutationTagsBeforeContext)
 
         setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, context))
       }
@@ -30,7 +33,11 @@ export function createMutationOptions({ options, setQueryData, refreshQueryData 
       onExecute?.(context)
     },
     onSuccess: (context) => {
-      const tags = getAllTags(options?.tags, context.data)
+      const tags = getAllTags(options?.tags, {
+        lifecycle: 'after',
+        payload: context.payload,
+        data: context.data,
+      } satisfies MutationTagsAfterContext)
 
       if(options?.refreshQueryData ?? true) {
         refreshQueryData(tags)

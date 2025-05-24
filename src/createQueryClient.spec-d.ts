@@ -2,28 +2,6 @@ import { describe, expectTypeOf, test, vi } from "vitest"
 import { createQueryClient } from "./createQueryClient"
 import { tag } from "./tag"
 
-describe('options', () => {
-  test('tags', async () => {
-    const action = () => 'response'
-    const { query } = createQueryClient()
-    const numberTag = tag<number>()
-    const stringTag = tag<string>()
-    const untypedTag = tag()
-
-    // @ts-expect-error
-    query(action, [], { tags: [numberTag, stringTag] })
-
-    // @ts-expect-error
-    query(action, [], { tags: () => [numberTag, stringTag] })
-
-    query(action, [], { tags: [stringTag, untypedTag] })
-    query(action, [], { tags: () => [stringTag, untypedTag] })
-
-    query(action, [], { tags: [untypedTag] })
-    query(action, [], { tags: () => [untypedTag] })
-  })
-})
-
 describe('query', () => {
   describe('options', () => {
     test('placeholder', async () => {
@@ -43,7 +21,26 @@ describe('query', () => {
 
       const queryD = await query(action, [], { placeholder })
       expectTypeOf(queryD.data).toEqualTypeOf<typeof response>()
-      
+    })
+
+    test('tags', async () => {
+      const action = () => 'response'
+      const { query } = createQueryClient()
+      const numberTag = tag<number>()
+      const stringTag = tag<string>()
+      const untypedTag = tag()
+  
+      // @ts-expect-error
+      query(action, [], { tags: [numberTag, stringTag] })
+  
+      // @ts-expect-error
+      query(action, [], { tags: () => [numberTag, stringTag] })
+  
+      query(action, [], { tags: [stringTag, untypedTag] })
+      query(action, [], { tags: () => [stringTag, untypedTag] })
+  
+      query(action, [], { tags: [untypedTag] })
+      query(action, [], { tags: () => [untypedTag] })
     })
   })
 })
@@ -67,7 +64,6 @@ describe('useQuery', () => {
 
       const queryD = await useQuery(action, [], { placeholder })
       expectTypeOf(queryD.data).toEqualTypeOf<typeof response>()
-      
     })
   })
 })
@@ -110,51 +106,51 @@ describe('setQueryData', () => {
     const untypedTag = tag()
 
     setQueryData(untypedTag, (data) => {
-      expectTypeOf(data).toMatchTypeOf<unknown>()
+      expectTypeOf(data).toEqualTypeOf<unknown>()
       return 'foo'
     })
 
     setQueryData(numberTag, (data) => {
-      expectTypeOf(data).toMatchTypeOf<number>()
+      expectTypeOf(data).toEqualTypeOf<number>()
       return 2
     })
 
     setQueryData(stringTag, (data) => {
-      expectTypeOf(data).toMatchTypeOf<string>()
+      expectTypeOf(data).toEqualTypeOf<string>()
       return 'new string'
     })
 
     setQueryData([untypedTag], (data) => {
-      expectTypeOf(data).toMatchTypeOf<unknown>()
+      expectTypeOf(data).toEqualTypeOf<unknown>()
       return 'foo'
     })
 
     setQueryData([numberTag], (data) => {
-      expectTypeOf(data).toMatchTypeOf<number>()
+      expectTypeOf(data).toEqualTypeOf<number>()
       return 2
     })
 
     // this is kinda interesting, no matter the data the return type is the union :thinking:
     // so there's not really a type safe way to update multiple queries at once
     setQueryData([numberTag, stringTag], (data) => {
-      expectTypeOf(data).toMatchTypeOf<number | string>()
+      expectTypeOf(data).toEqualTypeOf<number | string>()
       return 'foo'
     })
 
     setQueryData([untypedTag, stringTag, numberTag], (data) => {
-      expectTypeOf(data).toMatchTypeOf<unknown>()
+      expectTypeOf(data).toEqualTypeOf<unknown>()
       return 'foo'
     })
 
     // @ts-expect-error
     setQueryData(numberTag, (data) => {
-      expectTypeOf(data).toMatchTypeOf<number>()
+      expectTypeOf(data).toEqualTypeOf<number>()
       return 'string'
     })
 
     // @ts-expect-error
     setQueryData([numberTag, stringTag], (data) => {
-      expectTypeOf(data).toMatchTypeOf<number | string>()
+      expectTypeOf(data).toEqualTypeOf<number | string>()
       return []
     })
   })
@@ -166,18 +162,18 @@ describe('setQueryData', () => {
     const numberAction = () => 2
 
     setQueryData(stringAction, (data) => {
-      expectTypeOf(data).toMatchTypeOf<string>()
+      expectTypeOf(data).toEqualTypeOf<string>()
       return 'bar'
     })
 
     setQueryData(numberAction, (data) => {
-      expectTypeOf(data).toMatchTypeOf<number>()
+      expectTypeOf(data).toEqualTypeOf<number>()
       return 3
     })
 
     // @ts-expect-error
     setQueryData(stringAction, (data) => {
-      expectTypeOf(data).toMatchTypeOf<string>()
+      expectTypeOf(data).toEqualTypeOf<string>()
       return 3
     })
   })
@@ -189,18 +185,18 @@ describe('setQueryData', () => {
     const numberAction = (param: number) => param
 
     setQueryData(stringAction, ['foo'], (data) => {
-      expectTypeOf(data).toMatchTypeOf<string>()
+      expectTypeOf(data).toEqualTypeOf<string>()
       return 'bar'
     })
 
     setQueryData(numberAction, [2], (data) => {
-      expectTypeOf(data).toMatchTypeOf<number>()
+      expectTypeOf(data).toEqualTypeOf<number>()
       return 3
     })
 
     // @ts-expect-error
     setQueryData(stringAction, ['foo'], (data) => {
-      expectTypeOf(data).toMatchTypeOf<string>()
+      expectTypeOf(data).toEqualTypeOf<string>()
       return 3
     })
   })
@@ -274,33 +270,116 @@ describe('refreshQueryData', () => {
 })
 
 describe('mutate', () => {
-  test('setQueryDataBefore', () => {
-    const { mutate } = createQueryClient()
-    const action = vi.fn(() => 'response')
-    const numberTag = tag<number>()
+  describe('options', () => {
+    test('tags', () => {
+      const { mutate } = createQueryClient()
 
-    mutate(action, [], { 
-      tags: [numberTag],
-      setQueryDataBefore: (data) => {
-        expectTypeOf(data).toMatchTypeOf<number>()
+      const action = (value: number) => value
 
-        return 1
-      }
+      mutate(action, [1], {
+        tags: (context) => {
+          expectTypeOf(context.lifecycle).toEqualTypeOf<'before' | 'after'>()
+          expectTypeOf(context.payload).toEqualTypeOf<[number]>()
+
+          if (context.lifecycle === 'before') {
+            // @ts-expect-error
+            expectTypeOf(context.data)
+          }
+
+          if (context.lifecycle === 'after') {
+            expectTypeOf(context.data).toEqualTypeOf<number>()
+          }
+
+          return []
+        }
+      })
+    })
+
+    test('setQueryDataBefore', () => {
+      const { mutate } = createQueryClient()
+      const action = vi.fn(() => 'response')
+      const numberTag = tag<number>()
+
+      mutate(action, [], {
+        tags: [numberTag],
+        setQueryDataBefore: (data) => {
+          expectTypeOf(data).toEqualTypeOf<number>()
+
+          return 1
+        }
+      })
+    })
+
+    test('setQueryDataAfter', () => {
+      const { mutate } = createQueryClient()
+      const action = vi.fn()
+      const numberTag = tag<number>()
+
+      mutate(action, [], {
+        tags: [numberTag],
+        setQueryDataAfter: (data) => {
+          expectTypeOf(data).toEqualTypeOf<number>()
+
+          return 1
+        }
+      })
     })
   })
+})
 
-  test('setQueryDataAfter', () => {
-    const { mutate } = createQueryClient()
-    const action = vi.fn()
-    const numberTag = tag<number>()
-    
-    mutate(action, [], { 
-      tags: [numberTag],
-      setQueryDataAfter: (data) => {
-        expectTypeOf(data).toMatchTypeOf<number>()
+describe('useMutation', () => {
+  describe('options', () => {
+    test('tags', () => {
+      const { useMutation } = createQueryClient()
+      const action = (value: number) => value
 
-        return 1
-      }
+      useMutation(action, {
+        tags: (context) => {
+          expectTypeOf(context.lifecycle).toEqualTypeOf<'before' | 'after'>()
+          expectTypeOf(context.payload).toEqualTypeOf<[number]>()
+
+          if (context.lifecycle === 'before') {
+            // @ts-expect-error
+            expectTypeOf(context.data)
+          }
+
+          if (context.lifecycle === 'after') {
+            expectTypeOf(context.data).toEqualTypeOf<number>()
+          }
+
+          return []
+        }
+      })
+    })
+
+    test('setQueryDataBefore', () => {
+      const { useMutation } = createQueryClient()
+      const action = vi.fn(() => 'response')
+      const numberTag = tag<number>()
+
+      useMutation(action, {
+        tags: [numberTag],
+        setQueryDataBefore: (data) => {
+          expectTypeOf(data).toEqualTypeOf<number>()
+
+          return 1
+        }
+      })
+    })
+
+    test('setQueryDataAfter', () => {
+      const { useMutation } = createQueryClient()
+      const action = vi.fn()
+      const numberTag = tag<number>()
+
+      useMutation(action, {
+        tags: [numberTag],
+        setQueryDataAfter: (data) => {
+          expectTypeOf(data).toEqualTypeOf<number>()
+
+          return 1
+        }
+      })
     })
   })
 })
@@ -337,6 +416,49 @@ describe('defineMutation', () => {
   })
 
   describe('options', () => {
+    test('tags', async () => {
+      const { defineMutation } = createQueryClient()
+
+      const action = (value: number) => value
+      const { mutate, useMutation } = defineMutation(action)
+
+      mutate([1], {
+        tags: (context) => {
+          expectTypeOf(context.lifecycle).toEqualTypeOf<'before' | 'after'>()
+          expectTypeOf(context.payload).toEqualTypeOf<[number]>()
+
+          if(context.lifecycle === 'before') {
+            // @ts-expect-error
+            expectTypeOf(context.data) 
+          }
+
+          if(context.lifecycle === 'after') {
+            expectTypeOf(context.data).toEqualTypeOf<number>()
+          }
+
+          return []
+        }
+      })
+
+      useMutation({
+        tags: (context) => {
+          expectTypeOf(context.lifecycle).toEqualTypeOf<'before' | 'after'>()
+          expectTypeOf(context.payload).toEqualTypeOf<[number]>()
+
+          if(context.lifecycle === 'before') {
+            // @ts-expect-error
+            expectTypeOf(context.data)
+          }
+
+          if(context.lifecycle === 'after') {
+            expectTypeOf(context.data).toEqualTypeOf<number>()
+          }
+
+          return []
+        }
+      })
+    })
+
     test('placeholder', async () => {
       const { defineMutation } = createQueryClient()
 
