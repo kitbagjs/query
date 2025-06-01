@@ -1,5 +1,5 @@
-import { QueryTag } from "./types/tags"
-import { TagKey } from "./getTagKey"
+import { QueryTag } from './types/tags'
+import { TagKey } from './getTagKey'
 
 export function createQueryGroupTags() {
   const tags = new Map<TagKey, Set<number>>()
@@ -15,7 +15,7 @@ export function createQueryGroupTags() {
   }
 
   function getQueryIdsByTag(tag: QueryTag): Set<number> {
-    if(!tags.has(tag.key)) {
+    if (!tags.has(tag.key)) {
       tags.set(tag.key, new Set())
     }
 
@@ -23,7 +23,7 @@ export function createQueryGroupTags() {
   }
 
   function getTagsByQueryId(queryId: number): Set<QueryTag> {
-    if(!queries.has(queryId)) {
+    if (!queries.has(queryId)) {
       queries.set(queryId, new Set())
     }
 
@@ -42,31 +42,31 @@ export function createQueryGroupTags() {
     queryTags.delete(queryId)
     tagQueries.delete(tag)
 
-    if(queryTags.size === 0) {
+    if (queryTags.size === 0) {
       tags.delete(tag.key)
     }
 
-    if(tagQueries.size === 0) {
+    if (tagQueries.size === 0) {
       queries.delete(queryId)
     }
   }
 
   function addAllTags(tags: QueryTag[] | undefined, queryId: number): void {
-    if(!tags) {
+    if (!tags) {
       return
     }
 
-    for(const tag of tags) {
+    for (const tag of tags) {
       addTag(tag, queryId)
     }
   }
 
   function removeAllTags(tags: QueryTag[] | undefined, queryId: number): void {
-    if(!tags) {
+    if (!tags) {
       return
     }
 
-    for(const tag of tags) {
+    for (const tag of tags) {
       removeTag(tag, queryId)
     }
   }

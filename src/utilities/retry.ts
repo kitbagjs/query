@@ -1,4 +1,4 @@
-import { timeout } from "./timeout"
+import { timeout } from './timeout'
 
 type RetryCallback<T> = () => T
 
@@ -13,11 +13,11 @@ export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
 }
 
 function normalizeRetryOptions(options: Partial<RetryOptions> | number | undefined): RetryOptions {
-  if(typeof options === 'number') {
-     return normalizeRetryOptions({count: options})
+  if (typeof options === 'number') {
+    return normalizeRetryOptions({ count: options })
   }
 
-  if(typeof options === 'object') {
+  if (typeof options === 'object') {
     return {
       ...DEFAULT_RETRY_OPTIONS,
       ...options,
@@ -43,12 +43,12 @@ export async function retry<T>(action: RetryCallback<T>, options: RetryOptions, 
 
   try {
     return await action()
-  } catch(error) {
-    if(count >= retries) {
+  } catch (error) {
+    if (count >= retries) {
       throw error
     }
 
-    if(delay > 0) {
+    if (delay > 0) {
       await timeout(delay)
     }
 

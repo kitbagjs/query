@@ -5,16 +5,20 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest --typecheck",
-    "types": "tsc --noEmit"
+    "types": "tsc --noEmit",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix"
   },
   "dependencies": {
     "lodash.isequal": "^4.5.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
+    "@kitbag/eslint-config": "^1.0.2",
     "@types/lodash.isequal": "^4.5.8",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.28.0",
     "typescript": "^5.2.2",
     "vite": "^6.1.1",
     "vite-plugin-dts": "^4.5.0",

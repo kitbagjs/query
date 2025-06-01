@@ -1,35 +1,35 @@
-import { getAllTags } from "@/getAllTags";
-import { SetQueryData, RefreshQueryData } from "@/types/client";
-import { MutationOptions } from "@/types/mutation";
-import { QueryData } from "@/types/query";
+import { getAllTags } from '@/getAllTags'
+import { SetQueryData, RefreshQueryData } from '@/types/client'
+import { MutationOptions } from '@/types/mutation'
+import { QueryData } from '@/types/query'
 
 type CreateDefinedMutationOptions = {
   options: MutationOptions | undefined,
   definedOptions: MutationOptions | undefined,
-  setQueryData: SetQueryData
-  refreshQueryData: RefreshQueryData
+  setQueryData: SetQueryData,
+  refreshQueryData: RefreshQueryData,
 }
 
-export function createDefinedMutationOptions({ 
+export function createDefinedMutationOptions({
   options,
-  definedOptions, 
+  definedOptions,
   setQueryData,
-  refreshQueryData
+  refreshQueryData,
 }: CreateDefinedMutationOptions): MutationOptions {
-  const { 
-    setQueryDataBefore: definedSetQueryDataBefore, 
-    setQueryDataAfter: definedSetQueryDataAfter, 
-    onExecute: definedOnExecute, 
+  const {
+    setQueryDataBefore: definedSetQueryDataBefore,
+    setQueryDataAfter: definedSetQueryDataAfter,
+    onExecute: definedOnExecute,
     onSuccess: definedOnSuccess,
-    onError: definedOnError
+    onError: definedOnError,
   } = definedOptions ?? {}
 
-  const { 
-    setQueryDataBefore, 
-    setQueryDataAfter, 
-    onExecute, 
+  const {
+    setQueryDataBefore,
+    setQueryDataAfter,
+    onExecute,
     onSuccess,
-    onError
+    onError,
   } = options ?? {}
 
   return {
@@ -43,17 +43,17 @@ export function createDefinedMutationOptions({
       return [...definedTags, ...tags]
     },
     onExecute: (context) => {
-      if(setQueryDataBefore) {
+      if (setQueryDataBefore) {
         const tags = getAllTags(options?.tags, undefined)
         const setter = (data: QueryData) => setQueryDataBefore(data, context)
-        
+
         setQueryData(tags, setter)
       }
-      
-      if(definedSetQueryDataBefore) {
+
+      if (definedSetQueryDataBefore) {
         const tags = getAllTags(definedOptions?.tags, undefined)
         const setter = (data: QueryData) => definedSetQueryDataBefore(data, context)
-        
+
         setQueryData(tags, setter)
       }
 
@@ -65,16 +65,16 @@ export function createDefinedMutationOptions({
       const tags = getAllTags(options?.tags, context.data)
       const definedTags = getAllTags(definedOptions?.tags, context.data)
 
-      if(shouldRefreshQueryData) {
+      if (shouldRefreshQueryData) {
         refreshQueryData(tags)
         refreshQueryData(definedTags)
       }
 
-      if(setQueryDataAfter) {
+      if (setQueryDataAfter) {
         setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context))
       }
 
-      if(definedSetQueryDataAfter) {
+      if (definedSetQueryDataAfter) {
         setQueryData(definedTags, (queryData: QueryData): QueryData => definedSetQueryDataAfter(queryData, context))
       }
 
@@ -84,6 +84,6 @@ export function createDefinedMutationOptions({
     onError: (context) => {
       onError?.(context)
       definedOnError?.(context)
-    }
+    },
   }
 }

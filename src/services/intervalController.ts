@@ -1,4 +1,4 @@
-import { QueryAction } from "@/types/query"
+import { QueryAction } from '@/types/query'
 
 export type IntervalController = {
   set: (action: QueryAction, interval: number) => void,
@@ -9,15 +9,15 @@ export function createIntervalController(): IntervalController {
   let timeout: ReturnType<typeof setTimeout> | undefined
 
   const clear: IntervalController['clear'] = () => {
-    if(timeout) {
+    if (timeout) {
       clearInterval(timeout)
     }
   }
 
-  const set: IntervalController['set'] = async (action, interval) => {
+  const set: IntervalController['set'] = (action, interval) => {
     clear()
 
-    if(interval !== Infinity) {
+    if (interval !== Infinity) {
       timeout = setTimeout(action, interval)
     }
   }

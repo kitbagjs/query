@@ -1,6 +1,6 @@
-import { describe, expect, test, vi, beforeEach, afterEach } from "vitest"
-import { createQueryGroup } from "./createQueryGroup"
-import { tag } from "./tag"
+import { describe, expect, test, vi, beforeEach, afterEach } from 'vitest'
+import { createQueryGroup } from './createQueryGroup'
+import { tag } from './tag'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -12,6 +12,7 @@ afterEach(() => {
 
 test('when creating a new group, always executes the action', async () => {
   const response = Symbol('response')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const action = vi.fn((..._args) => response)
   const args = ['a', 'b']
   const group = createQueryGroup(action, args)
@@ -38,10 +39,10 @@ test('additional query to existing group, does not execute the action', async ()
   group.createQuery()
 
   await vi.runOnlyPendingTimersAsync()
-  
+
   expect(action).toHaveBeenCalledOnce()
 
-  for(let i = 0; i < 10; i++) {
+  for (let i = 0; i < 10; i++) {
     group.createQuery()
   }
 
@@ -53,6 +54,7 @@ test('additional query to existing group, does not execute the action', async ()
 describe('when action executes successfully', () => {
   test('properties are set correctly', async () => {
     const response = Symbol('response')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action = vi.fn((..._args) => response)
     const args = ['a', 'b']
     const group = createQueryGroup(action, args)
@@ -74,14 +76,14 @@ describe('when action executes successfully', () => {
     const response = Symbol('response')
     const action = vi.fn(() => response)
     const group = createQueryGroup(action, [])
-  
+
     const onSuccess = vi.fn()
     const onError = vi.fn()
-  
+
     group.createQuery({ onSuccess, onError })
-  
+
     await vi.runOnlyPendingTimersAsync()
-    
+
     expect(onSuccess).toHaveBeenCalledOnce()
     expect(onError).not.toHaveBeenCalled()
   })
@@ -90,6 +92,7 @@ describe('when action executes successfully', () => {
 describe('when action throws an error', () => {
   test('properties are set correctly', async () => {
     const response = Symbol('response')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action = vi.fn((..._args) => response)
     const args = ['a', 'b']
     const group = createQueryGroup(action, args)
@@ -106,10 +109,12 @@ describe('when action throws an error', () => {
 
     expect(action).toHaveBeenCalledWith(...args)
   })
-  
+
   test('when query adds callbacks, onError is called', async () => {
     const error = Symbol('error')
-    const action = vi.fn(() => { throw error })
+    const action = vi.fn(() => {
+      throw error
+    })
     const group = createQueryGroup(action, [])
 
     const onSuccess = vi.fn()
@@ -118,7 +123,7 @@ describe('when action throws an error', () => {
     group.createQuery({ onSuccess, onError })
 
     await vi.runOnlyPendingTimersAsync()
-    
+
     expect(onSuccess).not.toHaveBeenCalled()
     expect(onError).toHaveBeenCalledOnce()
   })
@@ -221,7 +226,7 @@ describe('given group with interval', () => {
 
       // initial execution
       expect(action).toHaveBeenCalledTimes(1)
-      
+
       // run without hitting interval
       await vi.advanceTimersByTimeAsync(8)
 
@@ -280,7 +285,7 @@ describe('execute', () => {
     // initial execution
     expect(action).toHaveBeenCalledOnce()
 
-    for(let i = 0; i < 10; i++) { 
+    for (let i = 0; i < 10; i++) {
       vi.resetAllMocks()
       group.execute()
 
@@ -301,10 +306,12 @@ describe('execute', () => {
   })
 
   test('if an error is thrown, actually throws', async () => {
-    const action = vi.fn(() => { throw new Error('Expected error') })
+    const action = vi.fn(() => {
+      throw new Error('Expected error')
+    })
     const group = createQueryGroup(action, [])
 
-    const response: () => void = () => group.execute()
+    const response = () => group.execute()
 
     await expect(response).rejects.toThrow('Expected error')
   })
@@ -312,10 +319,12 @@ describe('execute', () => {
 
 describe('retries', () => {
   test('retries the action', async () => {
-    const action = vi.fn(() => { throw new Error('Expected error') })
+    const action = vi.fn(() => {
+      throw new Error('Expected error')
+    })
     const group = createQueryGroup(action, [])
 
-    const result = group.createQuery({ retries: { count: 1, delay: 100 }})
+    const result = group.createQuery({ retries: { count: 1, delay: 100 } })
 
     await vi.advanceTimersByTimeAsync(0)
 

@@ -7,5 +7,5 @@ export {
   query,
   useQuery,
   createQueryClient,
-  tag,
+  tag
 }

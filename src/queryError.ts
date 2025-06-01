@@ -1,6 +1,9 @@
 export class QueryError extends Error {
-  constructor(public original: unknown) {
+  public original: unknown
+
+  public constructor(original: unknown) {
     super()
+
+    this.original = original
   }
 }
-

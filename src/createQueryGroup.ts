@@ -1,18 +1,18 @@
-import { computed, reactive, ref, toRefs } from "vue";
-import { AwaitedQuery, Query, QueryAction, QueryData, QueryOptions } from "./types/query";
-import { createSequence } from "./createSequence";
-import { QueryError } from "./queryError";
-import { createIntervalController } from "./services/intervalController";
-import { QueryTag } from "./types/tags";
-import { log } from "./services/loggingService";
-import { reduceRetryOptions, retry, RetryOptions } from "./utilities/retry";
-import { createQueryGroupTags } from "./createQueryGroupTags";
-import { getAllTags } from "./getAllTags";
+import { computed, reactive, ref, toRefs } from 'vue'
+import { AwaitedQuery, Query, QueryAction, QueryData, QueryOptions } from './types/query'
+import { createSequence } from './createSequence'
+import { QueryError } from './queryError'
+import { createIntervalController } from './services/intervalController'
+import { QueryTag } from './types/tags'
+import { log } from './services/loggingService'
+import { reduceRetryOptions, retry, RetryOptions } from './utilities/retry'
+import { createQueryGroupTags } from './createQueryGroupTags'
+import { getAllTags } from './getAllTags'
 
 export type QueryGroup<
-  TAction extends QueryAction = QueryAction,
+  TAction extends QueryAction = QueryAction
 > = {
-  createQuery: <TPlaceholder extends unknown>(options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>,
+  createQuery: <TPlaceholder>(options?: QueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>,
   setData: (data: QueryData<TAction>) => void,
   getData: () => QueryData<TAction>,
   hasTag: (tag: QueryTag | QueryTag[]) => boolean,
@@ -27,11 +27,11 @@ export type QueryGroupOptions = {
 const createQueryId = createSequence()
 
 export function createQueryGroup<
-  TAction extends QueryAction,
+  TAction extends QueryAction
 >(action: TAction, parameters: Parameters<TAction>, options?: QueryGroupOptions): QueryGroup<TAction> {
   const intervalController = createIntervalController()
   let lastExecuted: number | undefined = undefined
-  
+
   const data = ref()
   const error = ref<unknown>()
   const errored = ref<boolean>(false)
@@ -48,26 +48,26 @@ export function createQueryGroup<
 
     try {
       const value = await retry(() => action(...parameters), getRetryOptions())
-      
+
       setData(value)
       setTags()
       setNextExecution()
 
       return data.value
-    } catch(error) {
+    } catch (error) {
       setError(error)
 
       throw error
     } finally {
       executing.value = false
       executed.value = true
-    } 
+    }
   }
 
   async function safeExecute(): Promise<void> {
     try {
       await execute()
-    } catch(error) {
+    } catch (error) {
       log(error)
     }
   }
@@ -77,7 +77,7 @@ export function createQueryGroup<
     errored.value = false
     data.value = value
 
-    for(const { onSuccess } of queries.values()) {
+    for (const { onSuccess } of queries.values()) {
       onSuccess?.(value)
     }
 
@@ -92,7 +92,7 @@ export function createQueryGroup<
     error.value = value
     errored.value = true
 
-    for(const { onError } of queries.values()) {
+    for (const { onError } of queries.values()) {
       onError?.(value)
     }
 
@@ -102,13 +102,13 @@ export function createQueryGroup<
   function setTags(): void {
     tags.clear()
 
-    for(const [id, { tags }] of queries.entries()) {
+    for (const [id, { tags }] of queries.entries()) {
       addTags(tags, id)
     }
   }
 
   function addTags(tagsToAdd: QueryOptions['tags'], id: number): void {
-    if(lastExecuted === undefined) {
+    if (lastExecuted === undefined) {
       return
     }
 
@@ -116,8 +116,8 @@ export function createQueryGroup<
   }
 
   function hasTag(tag: QueryTag | QueryTag[]): boolean {
-    if(Array.isArray(tag)) {
-      return tag.some(t => tags.has(t))
+    if (Array.isArray(tag)) {
+      return tag.some((t) => tags.has(t))
     }
 
     return tags.has(tag)
@@ -127,7 +127,7 @@ export function createQueryGroup<
     queries.delete(queryId)
     tags.removeAllTagsByQueryId(queryId)
 
-    if(queries.size === 0) {
+    if (queries.size === 0) {
       options?.onDispose?.()
     }
   }
@@ -135,12 +135,14 @@ export function createQueryGroup<
   function addQuery(options?: QueryOptions): () => void {
     const queryId = createQueryId()
 
-    queries.set(queryId, options ?? {})  
+    queries.set(queryId, options ?? {})
 
     setNextExecution()
     addTags(options?.tags, queryId)
 
-    return () => removeQuery(queryId)
+    return () => {
+      removeQuery(queryId)
+    }
   }
 
   function setNextExecution(): void {
@@ -150,7 +152,7 @@ export function createQueryGroup<
   }
 
   function getNextInterval(): number {
-    if(lastExecuted === undefined) {
+    if (lastExecuted === undefined) {
       return 0
     }
 
@@ -163,24 +165,22 @@ export function createQueryGroup<
   function getInterval(): number {
     const intervals = Array
       .from(queries.values())
-      .map(query => query.interval ?? Infinity)
-  
+      .map((query) => query.interval ?? Infinity)
+
     return Math.min(...intervals)
   }
 
   function getRetryOptions(): RetryOptions {
     const retries = Array
       .from(queries.values())
-      .map(query => query.retries)
-    
+      .map((query) => query.retries)
+
     retries.push(options?.retries)
 
     return reduceRetryOptions(retries)
   }
 
-  function createQuery<
-    TPlaceholder extends unknown
-  >(options?: QueryOptions<TAction, TPlaceholder>): Query<TAction, TPlaceholder> {
+  function createQuery<TPlaceholder>(options?: QueryOptions<TAction, TPlaceholder>): Query<TAction, TPlaceholder> {
     const removeQuery = addQuery(options)
 
     function dispose(): void {
@@ -200,14 +200,14 @@ export function createQueryGroup<
 
     const then: Query<TAction, TPlaceholder>['then'] = (onFulfilled: any, onRejected: any) => {
       return promise.then((value) => {
-        if(value instanceof QueryError) {
+        if (value instanceof QueryError) {
           throw value.original
         }
 
         return Object.assign(query, {
           [Symbol.dispose]: () => {
             dispose()
-          }
+          },
         })
       }).then(onFulfilled, onRejected)
     }
@@ -217,7 +217,7 @@ export function createQueryGroup<
       then,
       [Symbol.dispose]: () => {
         dispose()
-      }
+      },
     })
   }
 

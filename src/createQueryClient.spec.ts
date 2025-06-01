@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { test, expect, vi, describe, afterEach, beforeEach } from 'vitest'
 import { createQueryClient } from './createQueryClient'
 import { effectScope, ref } from 'vue'
@@ -73,7 +74,9 @@ describe('query', () => {
     [null],
     [undefined],
   ])('error is set after action throws: %s', async (error) => {
-    const action = vi.fn(() => { throw error })
+    const action = vi.fn(() => {
+      throw error
+    })
     const { query } = createQueryClient()
     const value = query(action, [])
 
@@ -108,7 +111,9 @@ describe('query', () => {
     [null],
     [undefined],
   ])('awaiting a query throws an error if the action throws: %s', async (error) => {
-    const action = vi.fn(() => { throw error })
+    const action = vi.fn(() => {
+      throw error
+    })
     const { query } = createQueryClient()
     const value = query(action, [])
 
@@ -130,7 +135,9 @@ describe('query', () => {
   })
 
   test('onError', async () => {
-    const action = vi.fn(() => { throw new Error('test') })
+    const action = vi.fn(() => {
+      throw new Error('test')
+    })
     const onError = vi.fn()
     const { query } = createQueryClient()
 
@@ -236,7 +243,7 @@ describe('useQuery', () => {
 
       const parameters = ref<[boolean] | null>([false])
 
-      const query = useQuery(action, () => parameters.value, {placeholder })
+      const query = useQuery(action, () => parameters.value, { placeholder })
 
       await vi.runAllTimersAsync()
 
@@ -269,10 +276,12 @@ describe('useQuery', () => {
 
   testInEffectScope('awaiting a query throws an error if the action throws an error', async () => {
     vi.useRealTimers()
-    const action = vi.fn(() => { throw new Error('test') })
+    const action = vi.fn(() => {
+      throw new Error('test')
+    })
     const { useQuery } = createQueryClient()
     const value = useQuery(action, [])
-  
+
     await expect(value).rejects.toThrow('test')
   })
 
@@ -289,7 +298,7 @@ describe('useQuery', () => {
     const { useQuery } = createQueryClient()
 
     const query = useQuery(action, () => {
-      if(input.value === null) {
+      if (input.value === null) {
         return null
       }
 
@@ -354,12 +363,11 @@ describe('useQuery', () => {
   })
 
   describe('immediate', () => {
-
     testInEffectScope('when true, action is executed', async () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
-  
+
       const query = useQuery(action, [], { immediate: true })
 
       await vi.runOnlyPendingTimersAsync()
@@ -372,8 +380,8 @@ describe('useQuery', () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
-  
-      const query =useQuery(action, [], { immediate: false })
+
+      const query = useQuery(action, [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -386,7 +394,7 @@ describe('useQuery', () => {
       const placeholder = Symbol('placeholder')
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
-  
+
       const query = useQuery(action, [], { immediate: false, placeholder })
 
       await vi.runOnlyPendingTimersAsync()
@@ -399,7 +407,7 @@ describe('useQuery', () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
-  
+
       const query = useQuery(action, [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
@@ -417,7 +425,7 @@ describe('useQuery', () => {
       const response = Symbol('response')
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
-  
+
       const query = useQuery(action, [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
@@ -435,16 +443,18 @@ describe('useQuery', () => {
 
     testInEffectScope('when false, execute rejects with the error', async () => {
       const error = new Error('test')
-      const action = vi.fn(() => { throw error })
+      const action = vi.fn(() => {
+        throw error
+      })
       const { useQuery } = createQueryClient()
-  
+
       const query = useQuery(action, [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
 
       expect(action).not.toHaveBeenCalled()
 
-      query.execute().catch(error => {
+      query.execute().catch((error: unknown) => {
         expect(error).toBe(error)
       })
 
@@ -454,9 +464,7 @@ describe('useQuery', () => {
       expect(query.error).toBe(error)
       expect(query.errored).toBe(true)
     })
-
   })
-
 })
 
 describe('defineQuery', () => {
@@ -491,8 +499,10 @@ describe('defineQuery', () => {
 
 describe('options', () => {
   test('retries', async () => {
-    const action = vi.fn(() => { throw new Error('test') })
-    const { query } = createQueryClient({ retries: { count: 1, delay: 100 }})
+    const action = vi.fn(() => {
+      throw new Error('test')
+    })
+    const { query } = createQueryClient({ retries: { count: 1, delay: 100 } })
 
     const result = query(action, [])
 
@@ -698,9 +708,9 @@ describe('mutate', () => {
     expect(result.errored).toBe(false)
     expect(result.executed).toBe(false)
     expect(result.executing).toBe(true)
-    
+
     await vi.runOnlyPendingTimersAsync()
-    
+
     expect(action).toHaveBeenCalledWith()
     expect(action).toHaveBeenCalledTimes(1)
     expect(result.data).toBe(response)
@@ -728,7 +738,9 @@ describe('mutate', () => {
   test('captures error', async () => {
     const { mutate } = createQueryClient()
     const error = new Error()
-    const action = vi.fn(() => { throw error })
+    const action = vi.fn(() => {
+      throw error
+    })
 
     const result = mutate(action, [])
 
@@ -743,7 +755,9 @@ describe('mutate', () => {
   test('throws error if awaited', async () => {
     const { mutate } = createQueryClient()
     const error = new Error()
-    const action = vi.fn(() => { throw error })
+    const action = vi.fn(() => {
+      throw error
+    })
 
     const result = mutate(action, [])
 
@@ -767,7 +781,7 @@ describe('mutate', () => {
 
     mutate(mutationAction, [], {
       tags: [numberTag],
-      refreshQueryData
+      refreshQueryData,
     })
 
     await vi.runOnlyPendingTimersAsync()
@@ -789,7 +803,7 @@ describe('mutate', () => {
 
     mutate(mutationAction, [], {
       tags: [numberTag],
-      refreshQueryData: false
+      refreshQueryData: false,
     })
 
     await vi.runOnlyPendingTimersAsync()
@@ -801,7 +815,9 @@ describe('mutate', () => {
     const { mutate, query } = createQueryClient()
     const numberTag = tag<number>()
     const queryAction = vi.fn()
-    const mutationAction = vi.fn(() => { throw new Error() })
+    const mutationAction = vi.fn(() => {
+      throw new Error()
+    })
 
     query(queryAction, [], { tags: [numberTag] })
 
@@ -810,7 +826,7 @@ describe('mutate', () => {
     expect(queryAction).toHaveBeenCalledTimes(1)
 
     mutate(mutationAction, [], {
-      tags: [numberTag]
+      tags: [numberTag],
     })
 
     await vi.runOnlyPendingTimersAsync()
@@ -838,7 +854,7 @@ describe('mutate', () => {
 
     mutate(mutationAction, [mutationValue], {
       tags: [numberTag],
-      setQueryDataBefore
+      setQueryDataBefore,
     })
 
     await vi.runOnlyPendingTimersAsync()
@@ -872,7 +888,7 @@ describe('mutate', () => {
     mutate(mutationAction, [mutationValue], {
       tags: [numberTag],
       refreshQueryData: false,
-      setQueryDataAfter
+      setQueryDataAfter,
     })
 
     await vi.runOnlyPendingTimersAsync()
@@ -940,7 +956,7 @@ describe('useMutation', () => {
     expect(onSuccess).toHaveBeenCalledTimes(1)
     expect(onSuccess).toHaveBeenCalledWith({
       data: responseA,
-      payload: [responseA]
+      payload: [responseA],
     })
 
     await mutate(responseB)
@@ -948,7 +964,7 @@ describe('useMutation', () => {
     expect(onSuccess).toHaveBeenCalledTimes(2)
     expect(onSuccess).toHaveBeenCalledWith({
       data: responseB,
-      payload: [responseB]
+      payload: [responseB],
     })
   })
 
@@ -958,7 +974,7 @@ describe('useMutation', () => {
     const response = Symbol('response')
     const error = new Error()
     const action = vi.fn(({ shouldError }: { shouldError: boolean }) => {
-      if(shouldError) {
+      if (shouldError) {
         throw error
       }
 
@@ -977,7 +993,7 @@ describe('useMutation', () => {
     expect(onError).toHaveBeenCalledTimes(1)
     expect(onError).toHaveBeenCalledWith({
       error,
-      payload: [{ shouldError: true }]
+      payload: [{ shouldError: true }],
     })
 
     await mutation.mutate({ shouldError: false })
@@ -998,7 +1014,7 @@ describe('useMutation', () => {
     expect(onError).toHaveBeenCalledTimes(2)
     expect(onError).toHaveBeenCalledWith({
       error,
-      payload: [{ shouldError: true }]
+      payload: [{ shouldError: true }],
     })
   })
 
@@ -1018,7 +1034,7 @@ describe('useMutation', () => {
     const mutation = useMutation(mutationAction, {
       tags: [numberTag],
       setQueryDataBefore,
-      setQueryDataAfter
+      setQueryDataAfter,
     })
 
     mutation.mutate()
@@ -1036,7 +1052,6 @@ describe('useMutation', () => {
 })
 
 describe('defineMutation', () => {
-
   describe('mutate', () => {
     test('executes the defined action', () => {
       const { defineMutation } = createQueryClient()
@@ -1072,19 +1087,17 @@ describe('defineMutation', () => {
     })
 
     describe('options', () => {
-
       describe('placeholder', () => {
-
         test('defined placeholder is used if no placeholder is provided', () => {
           const { defineMutation } = createQueryClient()
           const definedPlaceholder = 'definedPlaceholder'
           const action = vi.fn()
           const { mutate } = defineMutation(action, {
-            placeholder: definedPlaceholder
+            placeholder: definedPlaceholder,
           })
 
           const mutation = mutate([])
-          
+
           expect(mutation.data).toBe(definedPlaceholder)
         })
 
@@ -1094,22 +1107,23 @@ describe('defineMutation', () => {
           const providedPlaceholder = 'providedPlaceholder'
           const action = vi.fn()
           const { mutate } = defineMutation(action, {
-            placeholder: definedPlaceholder
+            placeholder: definedPlaceholder,
           })
 
           const mutation = mutate([], {
-            placeholder: providedPlaceholder
+            placeholder: providedPlaceholder,
           })
-          
+
           expect(mutation.data).toBe(providedPlaceholder)
         })
-
       })
 
       describe('retries', () => {
         test('defined retries are used if no retries are provided', async () => {
           const { defineMutation } = createQueryClient()
-          const action = vi.fn(() => { throw new Error() })
+          const action = vi.fn(() => {
+            throw new Error()
+          })
           const { mutate } = defineMutation(action, { retries: 1 })
 
           mutate([])
@@ -1121,7 +1135,9 @@ describe('defineMutation', () => {
 
         test('provided retries are used instead of defined retries', async () => {
           const { defineMutation } = createQueryClient()
-          const action = vi.fn(() => { throw new Error() })
+          const action = vi.fn(() => {
+            throw new Error()
+          })
           const { mutate } = defineMutation(action, { retries: 1 })
 
           mutate([], { retries: 2 })
@@ -1138,21 +1154,21 @@ describe('defineMutation', () => {
           const { defineMutation, query } = createQueryClient()
           const tagA = tag()
           const mutationAction = vi.fn()
-          const { mutate } = defineMutation(mutationAction, { 
+          const { mutate } = defineMutation(mutationAction, {
             tags: [tagA],
-            refreshQueryData: true
+            refreshQueryData: true,
           })
-          
+
           const queryAction = vi.fn()
-          query(queryAction, [], { 
+          query(queryAction, [], {
             tags: [tagA],
           })
 
           await vi.runOnlyPendingTimersAsync()
           expect(queryAction).toHaveBeenCalledTimes(1)
-          
+
           mutate([])
-          
+
           await vi.runOnlyPendingTimersAsync()
           expect(queryAction).toHaveBeenCalledTimes(2)
         })
@@ -1161,23 +1177,23 @@ describe('defineMutation', () => {
           const { defineMutation, query } = createQueryClient()
           const tagA = tag()
           const mutationAction = vi.fn()
-          const { mutate } = defineMutation(mutationAction, { 
+          const { mutate } = defineMutation(mutationAction, {
             tags: [tagA],
-            refreshQueryData: false
+            refreshQueryData: false,
           })
-          
+
           const queryAction = vi.fn()
-          query(queryAction, [], { 
+          query(queryAction, [], {
             tags: [tagA],
           })
 
           await vi.runOnlyPendingTimersAsync()
           expect(queryAction).toHaveBeenCalledTimes(1)
-          
+
           mutate([], {
-            refreshQueryData: true
+            refreshQueryData: true,
           })
-          
+
           await vi.runOnlyPendingTimersAsync()
           expect(queryAction).toHaveBeenCalledTimes(2)
         })
@@ -1215,11 +1231,11 @@ describe('defineMutation', () => {
           expect(providedOnSuccess).toHaveBeenCalledTimes(1)
           expect(definedOnSuccess).toHaveBeenCalledWith({
             data: 1,
-            payload: [1]
+            payload: [1],
           })
           expect(providedOnSuccess).toHaveBeenCalledWith({
             data: 1,
-            payload: [1]
+            payload: [1],
           })
         })
       })
@@ -1231,7 +1247,7 @@ describe('defineMutation', () => {
           const providedOnError = vi.fn()
           const error = new Error()
           const action = (value: number) => {
-            if(value === 1) {
+            if (value === 1) {
               throw error
             }
           }
@@ -1245,11 +1261,11 @@ describe('defineMutation', () => {
           expect(providedOnError).toHaveBeenCalledTimes(1)
           expect(definedOnError).toHaveBeenCalledWith({
             error,
-            payload: [1]
+            payload: [1],
           })
           expect(providedOnError).toHaveBeenCalledWith({
             error,
-            payload: [1]
+            payload: [1],
           })
         })
       })
@@ -1279,17 +1295,17 @@ describe('defineMutation', () => {
           expect(queryA.data).toBe(queryAResponse)
           expect(queryB.data).toBe(queryBResponse)
 
-          const { mutate } = defineMutation(mutationAction, { 
+          const { mutate } = defineMutation(mutationAction, {
             tags: [tagA],
             setQueryDataBefore: definedSetQueryDataBefore,
-            setQueryDataAfter: definedSetQueryDataAfter
+            setQueryDataAfter: definedSetQueryDataAfter,
           })
 
-          mutate([mutationPayload], { 
+          mutate([mutationPayload], {
             tags: [tagB],
             refreshQueryData: false,
             setQueryDataBefore: providedSetQueryDataBefore,
-            setQueryDataAfter: providedSetQueryDataAfter
+            setQueryDataAfter: providedSetQueryDataAfter,
           })
 
           await vi.runOnlyPendingTimersAsync()
@@ -1363,19 +1379,17 @@ describe('defineMutation', () => {
     })
 
     describe('options', () => {
-
       describe('placeholder', () => {
-
         test('defined placeholder is used if no placeholder is provided', () => {
           const { defineMutation } = createQueryClient()
           const definedPlaceholder = 'definedPlaceholder'
           const action = vi.fn()
           const { useMutation } = defineMutation(action, {
-            placeholder: definedPlaceholder
+            placeholder: definedPlaceholder,
           })
 
           const mutation = useMutation()
-          
+
           expect(mutation.data).toBe(definedPlaceholder)
         })
 
@@ -1385,34 +1399,35 @@ describe('defineMutation', () => {
           const providedPlaceholder = 'providedPlaceholder'
           const action = vi.fn()
           const { useMutation } = defineMutation(action, {
-            placeholder: definedPlaceholder
+            placeholder: definedPlaceholder,
           })
 
           const mutation = useMutation({
-            placeholder: providedPlaceholder
+            placeholder: providedPlaceholder,
           })
 
           mutation.mutate()
-          
+
           expect(mutation.data).toBe(providedPlaceholder)
         })
-
       })
 
       describe('retries', () => {
         test('defined retries are used if no retries are provided', async () => {
           const { defineMutation } = createQueryClient()
           const error = new Error()
-          const action = vi.fn(() => { throw error })
-          const { useMutation } = defineMutation(action, { 
+          const action = vi.fn(() => {
+            throw error
+          })
+          const { useMutation } = defineMutation(action, {
             retries: {
               count: 1,
               delay: 0,
-            }
+            },
           })
 
           const mutation = useMutation()
-          
+
           await expect(mutation.mutate()).rejects.toBe(error)
           expect(action).toHaveBeenCalledTimes(2)
         })
@@ -1420,19 +1435,21 @@ describe('defineMutation', () => {
         test('provided retries are used instead of defined retries', async () => {
           const { defineMutation } = createQueryClient()
           const error = new Error()
-          const action = vi.fn(() => { throw error })
-          const { useMutation } = defineMutation(action, { 
+          const action = vi.fn(() => {
+            throw error
+          })
+          const { useMutation } = defineMutation(action, {
             retries: {
               count: 1,
               delay: 0,
-            }
+            },
           })
 
-          const mutation = useMutation({ 
+          const mutation = useMutation({
             retries: {
               count: 2,
               delay: 0,
-            }
+            },
           })
 
           await expect(mutation.mutate()).rejects.toBe(error)
@@ -1446,19 +1463,19 @@ describe('defineMutation', () => {
           const { defineMutation, query } = createQueryClient()
           const tagA = tag()
           const mutationAction = vi.fn()
-          const { useMutation } = defineMutation(mutationAction, { 
+          const { useMutation } = defineMutation(mutationAction, {
             tags: [tagA],
-            refreshQueryData: true
+            refreshQueryData: true,
           })
-          
+
           const queryAction = vi.fn()
-          query(queryAction, [], { 
+          query(queryAction, [], {
             tags: [tagA],
           })
 
           await vi.runOnlyPendingTimersAsync()
           expect(queryAction).toHaveBeenCalledTimes(1)
-          
+
           const mutation = useMutation()
 
           mutation.mutate()
@@ -1471,25 +1488,25 @@ describe('defineMutation', () => {
           const { defineMutation, query } = createQueryClient()
           const tagA = tag()
           const mutationAction = vi.fn()
-          const { useMutation } = defineMutation(mutationAction, { 
+          const { useMutation } = defineMutation(mutationAction, {
             tags: [tagA],
-            refreshQueryData: false
+            refreshQueryData: false,
           })
-          
+
           const queryAction = vi.fn()
-          query(queryAction, [], { 
+          query(queryAction, [], {
             tags: [tagA],
           })
 
           await vi.runOnlyPendingTimersAsync()
           expect(queryAction).toHaveBeenCalledTimes(1)
-          
+
           const mutation = useMutation({
-            refreshQueryData: true
+            refreshQueryData: true,
           })
 
           mutation.mutate()
-          
+
           await vi.runOnlyPendingTimersAsync()
           expect(queryAction).toHaveBeenCalledTimes(2)
         })
@@ -1531,11 +1548,11 @@ describe('defineMutation', () => {
           expect(providedOnSuccess).toHaveBeenCalledTimes(1)
           expect(definedOnSuccess).toHaveBeenCalledWith({
             data: 1,
-            payload: [1]
+            payload: [1],
           })
           expect(providedOnSuccess).toHaveBeenCalledWith({
             data: 1,
-            payload: [1]
+            payload: [1],
           })
         })
       })
@@ -1547,7 +1564,7 @@ describe('defineMutation', () => {
           const providedOnError = vi.fn()
           const error = new Error()
           const action = (value: number) => {
-            if(value === 1) {
+            if (value === 1) {
               throw error
             }
           }
@@ -1565,11 +1582,11 @@ describe('defineMutation', () => {
           expect(providedOnError).toHaveBeenCalledTimes(1)
           expect(definedOnError).toHaveBeenCalledWith({
             error,
-            payload: [1]
+            payload: [1],
           })
           expect(providedOnError).toHaveBeenCalledWith({
             error,
-            payload: [1]
+            payload: [1],
           })
         })
       })
@@ -1599,17 +1616,17 @@ describe('defineMutation', () => {
           expect(queryA.data).toBe(queryAResponse)
           expect(queryB.data).toBe(queryBResponse)
 
-          const { useMutation } = defineMutation(mutationAction, { 
+          const { useMutation } = defineMutation(mutationAction, {
             tags: [tagA],
             setQueryDataBefore: definedSetQueryDataBefore,
-            setQueryDataAfter: definedSetQueryDataAfter
+            setQueryDataAfter: definedSetQueryDataAfter,
           })
 
-          const mutation = useMutation({ 
+          const mutation = useMutation({
             tags: [tagB],
             refreshQueryData: false,
             setQueryDataBefore: providedSetQueryDataBefore,
-            setQueryDataAfter: providedSetQueryDataAfter
+            setQueryDataAfter: providedSetQueryDataAfter,
           })
 
           mutation.mutate(mutationPayload)

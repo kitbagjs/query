@@ -1,7 +1,7 @@
-import { RetryOptions } from "@/utilities/retry";
-import { Getter, MaybeGetter } from "./getters";
-import { QueryTag, Unset } from "@/types/tags";
-import { DefaultValue } from "./utilities";
+import { RetryOptions } from '@/utilities/retry'
+import { Getter, MaybeGetter } from './getters'
+import { QueryTag, Unset } from '@/types/tags'
+import { DefaultValue } from './utilities'
 
 export type QueryAction = (...args: any[]) => any
 
@@ -18,12 +18,12 @@ export type QueryActionArgs<
 > = MaybeGetter<Parameters<TAction>> | Getter<Parameters<TAction> | null> | Getter<null>
 
 export type QueryTags<
-  TAction extends QueryAction = QueryAction,
+  TAction extends QueryAction = QueryAction
 > = QueryTag<QueryData<TAction> | Unset>[] | ((value: QueryData<TAction>) => QueryTag<QueryData<TAction> | Unset>[])
 
 export type QueryOptions<
   TAction extends QueryAction = QueryAction,
-  TPlaceholder extends unknown = unknown
+  TPlaceholder = unknown
 > = {
   placeholder?: TPlaceholder,
   interval?: number,
@@ -35,7 +35,7 @@ export type QueryOptions<
 
 export type Query<
   TAction extends QueryAction,
-  TPlaceholder extends unknown
+  TPlaceholder
 > = PromiseLike<AwaitedQuery<TAction>> & {
   data: QueryData<TAction> | DefaultValue<TPlaceholder, undefined>,
   error: unknown,
@@ -44,11 +44,11 @@ export type Query<
   executing: boolean,
   execute: () => Promise<AwaitedQuery<TAction>>,
   dispose: () => void,
-  [Symbol.dispose](): void;
+  [Symbol.dispose]: () => void,
 }
 
 export type AwaitedQuery<
-  TAction extends QueryAction,
+  TAction extends QueryAction
 > = {
   data: QueryData<TAction>,
   error: unknown,
@@ -57,5 +57,5 @@ export type AwaitedQuery<
   executing: boolean,
   execute: () => Promise<AwaitedQuery<TAction>>,
   dispose: () => void,
-  [Symbol.dispose](): void;
+  [Symbol.dispose]: () => void,
 }
