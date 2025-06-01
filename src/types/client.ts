@@ -35,8 +35,10 @@ export type UseQueryOptions<
 
 export type QueryComposition = <
   const TAction extends QueryAction,
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+  const Args extends QueryActionArgs<TAction>,
   const TPlaceholder
->(action: TAction, args: QueryActionArgs<TAction>, options?: UseQueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
+>(action: TAction, args: Args, options?: UseQueryOptions<TAction, TPlaceholder>) => Query<TAction, TPlaceholder>
 
 export type DefinedQueryComposition<
   TAction extends QueryAction,
