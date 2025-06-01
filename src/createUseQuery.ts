@@ -1,7 +1,7 @@
 import { CreateQuery } from './createQueryGroups'
 import { Query, QueryAction, QueryActionArgs } from './types/query'
 import { onScopeDispose, ref, toRef, toRefs, toValue, watch } from 'vue'
-import isEqual from 'lodash.isequal'
+import equal from "fast-deep-equal"
 import { isDefined } from './utilities'
 import { UseQueryOptions } from './types/client'
 
@@ -22,7 +22,7 @@ export function createUseQuery(createQuery: CreateQuery, action: QueryAction, pa
   }
 
   watch(() => ({ enabled: enabled.value, parameters: toValue(parameters) }) as const, ({ enabled, parameters }, previous) => {
-    const isSameParameters = previous && isDefined(previous.parameters) && isEqual(previous.parameters, parameters)
+    const isSameParameters = previous && isDefined(previous.parameters) && equal(previous.parameters, parameters)
     const isSameEnabled = previous && previous.enabled === enabled
 
     if (isSameParameters && isSameEnabled) {
