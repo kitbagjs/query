@@ -3,8 +3,8 @@
  * It is the combination of the tag id, and the tag value.
  * `${tagId}-${tagValue}`
  */
-export type TagKey = `${number}-${string}`  
+export type TagKey = `${number}-${string}`
 
-export function getTagKey(id: number, value: unknown): TagKey {  
+export function getTagKey(id: number, value: unknown): TagKey {
   return `${id}-${JSON.stringify(value)}`
 }

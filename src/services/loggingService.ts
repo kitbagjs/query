@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
-const enabled: boolean = !import.meta.env?.VITEST;
+const enabled: boolean = !import.meta.env.VITEST
 
-export function log(...data:any[]): void {
-  if(!enabled) {
+export function log(...data: any[]): void {
+  if (!enabled) {
     return
   }
 

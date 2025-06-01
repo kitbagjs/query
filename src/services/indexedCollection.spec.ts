@@ -1,5 +1,5 @@
-import { expect, test } from "vitest";
-import { createIndexedCollection } from "./indexedCollection";
+import { expect, test } from 'vitest'
+import { createIndexedCollection } from './indexedCollection'
 
 type Person = { id: number, name: string, age: number }
 
@@ -14,40 +14,40 @@ test('initializes indexes with correct values', () => {
     jane,
     jim,
     jack,
-  ];
+  ]
 
-  const collection = createIndexedCollection(items, ['name', 'age']);
+  const collection = createIndexedCollection(items, ['name', 'age'])
 
-  expect(collection.getItems('name', 'John')).toEqual([john]);
-  expect(collection.getItems('name', 'Jane')).toEqual([jane]);
-  expect(collection.getItems('name', 'Jim')).toEqual([jim]);
-  expect(collection.getItems('name', 'Jack')).toEqual([jack]);
-  expect(collection.getItems('age', 25)).toEqual([john]);
-  expect(collection.getItems('age', 30)).toEqual([jane, jack]);
-  expect(collection.getItems('age', 35)).toEqual([jim]);
-});
+  expect(collection.getItems('name', 'John')).toEqual([john])
+  expect(collection.getItems('name', 'Jane')).toEqual([jane])
+  expect(collection.getItems('name', 'Jim')).toEqual([jim])
+  expect(collection.getItems('name', 'Jack')).toEqual([jack])
+  expect(collection.getItems('age', 25)).toEqual([john])
+  expect(collection.getItems('age', 30)).toEqual([jane, jack])
+  expect(collection.getItems('age', 35)).toEqual([jim])
+})
 
 test('adds item to indexes', () => {
   const collection = createIndexedCollection([
     john,
-  ], ['name', 'age']);
+  ], ['name', 'age'])
 
-  collection.addItem(jane);
+  collection.addItem(jane)
 
-  expect(collection.getItems('name', 'John')).toEqual([john]);
-  expect(collection.getItems('name', 'Jane')).toEqual([jane]);
-  expect(collection.getItems('age', 25)).toEqual([john]);
-  expect(collection.getItems('age', 30)).toEqual([jane]);
-});
+  expect(collection.getItems('name', 'John')).toEqual([john])
+  expect(collection.getItems('name', 'Jane')).toEqual([jane])
+  expect(collection.getItems('age', 25)).toEqual([john])
+  expect(collection.getItems('age', 30)).toEqual([jane])
+})
 
 test('can be initialized with an empty array', () => {
-  const collection = createIndexedCollection<Person>([], ['name', 'age']);
+  const collection = createIndexedCollection<Person>([], ['name', 'age'])
 
-  collection.addItem(john);
+  collection.addItem(john)
 
-  expect(collection.getItems('name', 'John')).toEqual([john]);
-  expect(collection.getItems('age', 25)).toEqual([john]);
-});
+  expect(collection.getItems('name', 'John')).toEqual([john])
+  expect(collection.getItems('age', 25)).toEqual([john])
+})
 
 test('deletes item from indexes', () => {
   const collection = createIndexedCollection([
@@ -55,16 +55,16 @@ test('deletes item from indexes', () => {
     jane,
     jim,
     jack,
-  ], ['name', 'age']);
+  ], ['name', 'age'])
 
-  collection.deleteItems('name', 'John');
+  collection.deleteItems('name', 'John')
 
-  expect(collection.getItems('name', 'John')).toEqual([]);
-  expect(collection.getItems('age', 25)).toEqual([]);
-  
-  collection.deleteItems('age', 30);
+  expect(collection.getItems('name', 'John')).toEqual([])
+  expect(collection.getItems('age', 25)).toEqual([])
 
-  expect(collection.getItems('age', 30)).toEqual([]);
-  expect(collection.getItems('name', 'jane')).toEqual([]);
-  expect(collection.getItems('name', 'jack')).toEqual([]);
-});
+  collection.deleteItems('age', 30)
+
+  expect(collection.getItems('age', 30)).toEqual([])
+  expect(collection.getItems('name', 'jane')).toEqual([])
+  expect(collection.getItems('name', 'jack')).toEqual([])
+})

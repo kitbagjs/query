@@ -1,8 +1,8 @@
-import { test, expect, vi, describe, beforeEach, afterEach } from "vitest"
-import { createQueryGroups } from "./createQueryGroups"
+import { test, expect, vi, describe, beforeEach, afterEach } from 'vitest'
+import { createQueryGroups } from './createQueryGroups'
 import * as CreateQueryGroupExports from './createQueryGroup'
-import { QueryAction } from "./types/query"
-import { tag } from "./tag"
+import { QueryAction } from './types/query'
+import { tag } from './tag'
 
 const getRandomNumber = () => Math.random()
 const multipleByTwo = (value: number) => value * 2
@@ -17,7 +17,6 @@ afterEach(() => {
 })
 
 describe('createQuery', () => {
-
   test('whenever createQuery is called with a new action, it should create a group', () => {
     const createQueryGroup = vi.spyOn(CreateQueryGroupExports, 'createQueryGroup')
     const { createQuery } = createQueryGroups()
@@ -84,16 +83,16 @@ describe('createQuery', () => {
   })
 })
 
-
 describe('getQueryGroups', () => {
-
   test('when given an action, returns all groups for that action', () => {
     const { createQuery, getQueryGroups } = createQueryGroups()
 
     const response = Symbol('response1')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action1 = (..._args: any[]) => response
 
     const response2 = Symbol('response2')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action2 = (..._args: any[]) => response2
 
     createQuery(action1, [1])
@@ -109,9 +108,11 @@ describe('getQueryGroups', () => {
     const { createQuery, getQueryGroups } = createQueryGroups()
 
     const response = Symbol('response1')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action1 = (..._args: any[]) => response
 
     const response2 = Symbol('response2')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action2 = (..._args: any[]) => response2
 
     createQuery(action1, [1])
@@ -129,19 +130,21 @@ describe('getQueryGroups', () => {
     const tag2 = tag()
 
     const response = Symbol('response1')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action1 = (..._args: any[]) => response
 
     const response2 = Symbol('response2')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action2 = (..._args: any[]) => response2
 
     createQuery(action1, [1], { tags: [tag1] })
     createQuery(action1, [2], { tags: [tag1] })
     createQuery(action2, [3], { tags: [tag2] })
-    
+
     await vi.runOnlyPendingTimersAsync()
 
     const groups = getQueryGroups(tag1)
-    
+
     expect(groups.length).toBe(2)
   })
 
@@ -152,9 +155,11 @@ describe('getQueryGroups', () => {
     const tag3 = tag()
 
     const response = Symbol('response1')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action1 = (..._args: any[]) => response
 
     const response2 = Symbol('response2')
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const action2 = (..._args: any[]) => response2
 
     createQuery(action1, [1], { tags: [tag1] })
@@ -165,7 +170,7 @@ describe('getQueryGroups', () => {
     await vi.runOnlyPendingTimersAsync()
 
     const groups = getQueryGroups([tag1, tag2])
-    
+
     expect(groups.length).toBe(3)
   })
 

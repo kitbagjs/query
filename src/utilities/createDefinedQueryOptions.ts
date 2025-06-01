@@ -1,12 +1,12 @@
-import { getAllTags } from "@/getAllTags"
-import { QueryOptions } from "@/types/query"
+import { getAllTags } from '@/getAllTags'
+import { QueryOptions } from '@/types/query'
 
 type CreateDefinedQueryOptions = {
   options: QueryOptions | undefined,
   definedOptions: QueryOptions | undefined,
 }
 
-export function createDefinedQueryOptions({options, definedOptions}: CreateDefinedQueryOptions): QueryOptions {
+export function createDefinedQueryOptions({ options, definedOptions }: CreateDefinedQueryOptions): QueryOptions {
   return {
     placeholder: options?.placeholder ?? definedOptions?.placeholder,
     interval: options?.interval ?? definedOptions?.interval,

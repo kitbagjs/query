@@ -1,12 +1,12 @@
-import { expectTypeOf, test, vi } from "vitest";
-import { QueryTag, QueryTagFactory, Unset } from "@/types/tags";
-import { createQueryClient } from "./createQueryClient";
-import { tag } from "./tag";
+import { expectTypeOf, test, vi } from 'vitest'
+import { QueryTag, QueryTagFactory, Unset } from '@/types/tags'
+import { createQueryClient } from './createQueryClient'
+import { tag } from './tag'
 
 test('tag function returns a tag when no callback is provided', () => {
   const value = tag()
 
-  expectTypeOf(value).toMatchTypeOf<QueryTag>()  
+  expectTypeOf(value).toMatchTypeOf<QueryTag>()
 })
 
 test('tag function returns a tag factory when a callback is provided', () => {
@@ -44,7 +44,7 @@ test('query from query function with tags callback is called with the query data
       expectTypeOf(data).toMatchTypeOf<string>()
 
       return []
-    }
+    },
   })
 })
 
@@ -57,6 +57,6 @@ test('query from query composition with tags callback is called with the query d
       expectTypeOf(data).toMatchTypeOf<string>()
 
       return []
-    }
+    },
   })
 })

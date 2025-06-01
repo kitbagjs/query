@@ -1,6 +1,6 @@
-import { expect, test } from "vitest";
-import { getAllTags } from "./getAllTags";
-import { tag } from "./tag";
+import { expect, test } from 'vitest'
+import { getAllTags } from './getAllTags'
+import { tag } from './tag'
 
 const tagA = tag()
 const tagB = tag()
@@ -23,4 +23,3 @@ test('given no tags returns an empty array', () => {
 
   expect(tags).toEqual([])
 })
-
