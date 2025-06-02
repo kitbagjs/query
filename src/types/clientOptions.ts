@@ -1,6 +1,5 @@
-import { QueryGroupOptions } from "@/createQueryGroup"
+import { QueryGroupOptions } from '@/createQueryGroup'
 
 export type ClientOptions = QueryGroupOptions & {
-  pauseActionsInBackground?: boolean
+  pauseActionsInBackground?: boolean,
 }
-

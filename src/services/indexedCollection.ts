@@ -1,14 +1,14 @@
-import { createSequence } from "@/createSequence"
+import { createSequence } from '@/createSequence'
 
 type IndexedCollectionId = number
 type CollectionData<TData> = Map<IndexedCollectionId, TData>
 type CollectionIndex<TData, TKey extends keyof TData> = Map<TData[TKey], Set<IndexedCollectionId>>
 
 type IndexedCollection<TData, TKeys extends keyof TData> = {
-  addItem: (item: TData) => void
-  deleteItems: <TKey extends TKeys>(index: TKey, value: TData[TKey]) => void
-  getItems: <TKey extends TKeys>(index: TKey, value: TData[TKey]) => TData[]
-  clear: () => void
+  addItem: (item: TData) => void,
+  deleteItems: <TKey extends TKeys>(index: TKey, value: TData[TKey]) => void,
+  getItems: <TKey extends TKeys>(index: TKey, value: TData[TKey]) => TData[],
+  clear: () => void,
 }
 
 export function createIndexedCollection<const TData, const TKeys extends keyof TData = keyof TData>(items: TData[], indexKeys: TKeys[]): IndexedCollection<TData, TKeys> {
@@ -16,7 +16,7 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
 
   const collectionData: CollectionData<TData> = new Map(items.map((item) => [
     getId(),
-    item
+    item,
   ]))
 
   const indexes = indexKeys.reduce((indexes, key) => {
@@ -29,8 +29,8 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
     const collectionId = getId()
     collectionData.set(collectionId, item)
 
-    indexKeys.forEach(key => {
-      if(!indexes[key].has(item[key])) {
+    indexKeys.forEach((key) => {
+      if (!indexes[key].has(item[key])) {
         indexes[key].set(item[key], new Set([collectionId]))
       } else {
         indexes[key].get(item[key])!.add(collectionId)
@@ -41,14 +41,14 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
   const deleteItems: IndexedCollection<TData, TKeys>['deleteItems'] = (index, value): void => {
     const collectionIds = indexes[index].get(value) ?? []
 
-    collectionIds.forEach(collectionId => {
+    collectionIds.forEach((collectionId) => {
       const item = collectionData.get(collectionId)
 
-      if(!item) {
+      if (!item) {
         return
       }
 
-      indexKeys.forEach(key => {
+      indexKeys.forEach((key) => {
         indexes[key].get(item[key])!.delete(collectionId)
 
         if (indexes[key].get(item[key])?.size === 0) {
@@ -63,13 +63,13 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
   const getItems: IndexedCollection<TData, TKeys>['getItems'] = (index, value): TData[] => {
     return Array
       .from(indexes[index].get(value) ?? [])
-      .map(id => collectionData.get(id)!)
+      .map((id) => collectionData.get(id)!)
   }
 
   const clear: IndexedCollection<TData, TKeys>['clear'] = (): void => {
     collectionData.clear()
 
-    indexKeys.forEach(key => {
+    indexKeys.forEach((key) => {
       indexes[key].clear()
     })
   }
@@ -78,13 +78,13 @@ export function createIndexedCollection<const TData, const TKeys extends keyof T
     addItem,
     deleteItems,
     getItems,
-    clear
+    clear,
   }
 }
 
 function createCollectionIndex<TData, TKey extends keyof TData>(items: CollectionData<TData>, key: TKey): CollectionIndex<TData, TKey> {
   return items.entries().reduce((index, [collectionId, item]) => {
-    if(!index.has(item[key])) {
+    if (!index.has(item[key])) {
       index.set(item[key], new Set([collectionId]))
     } else {
       index.get(item[key])!.add(collectionId)

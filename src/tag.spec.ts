@@ -1,5 +1,5 @@
-import { expect, test } from "vitest";
-import { tag } from "./tag";
+import { expect, test } from 'vitest'
+import { tag } from './tag'
 
 test('tags are unique', () => {
   const tag1 = tag()

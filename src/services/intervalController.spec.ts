@@ -1,5 +1,5 @@
-import { createIntervalController } from "./intervalController"
-import { vi, test, expect, beforeEach, afterEach } from "vitest"
+import { createIntervalController } from './intervalController'
+import { vi, test, expect, beforeEach, afterEach } from 'vitest'
 
 beforeEach(() => {
   vi.useFakeTimers()

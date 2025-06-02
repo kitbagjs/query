@@ -1,6 +1,6 @@
-import { describe, expectTypeOf, test, vi } from "vitest"
-import { createQueryClient } from "./createQueryClient"
-import { tag } from "./tag"
+import { describe, expectTypeOf, test, vi } from 'vitest'
+import { createQueryClient } from './createQueryClient'
+import { tag } from './tag'
 
 describe('query', () => {
   describe('options', () => {
@@ -12,7 +12,7 @@ describe('query', () => {
 
       const queryA = query(action, [])
       expectTypeOf(queryA.data).toEqualTypeOf<typeof response | undefined>()
-      
+
       const queryB = query(action, [], { placeholder })
       expectTypeOf(queryB.data).toEqualTypeOf<typeof response | typeof placeholder>()
 
@@ -29,16 +29,16 @@ describe('query', () => {
       const numberTag = tag<number>()
       const stringTag = tag<string>()
       const untypedTag = tag()
-  
-      // @ts-expect-error
+
+      // @ts-expect-error - number tag not assignable to string action
       query(action, [], { tags: [numberTag, stringTag] })
-  
-      // @ts-expect-error
+
+      // @ts-expect-error - number tag not assignable to string action
       query(action, [], { tags: () => [numberTag, stringTag] })
-  
+
       query(action, [], { tags: [stringTag, untypedTag] })
       query(action, [], { tags: () => [stringTag, untypedTag] })
-  
+
       query(action, [], { tags: [untypedTag] })
       query(action, [], { tags: () => [untypedTag] })
     })
@@ -55,7 +55,7 @@ describe('useQuery', () => {
 
       const queryA = useQuery(action, [])
       expectTypeOf(queryA.data).toEqualTypeOf<typeof response | undefined>()
-      
+
       const queryB = useQuery(action, [], { placeholder })
       expectTypeOf(queryB.data).toEqualTypeOf<typeof response | typeof placeholder>()
 
@@ -85,7 +85,7 @@ describe('defineQuery', () => {
 
       const queryB = definedWithPlaceholder([])
       expectTypeOf(queryB.data).toEqualTypeOf<typeof response | typeof definedPlaceholder>()
-      
+
       const queryC = definedWithPlaceholder([], { placeholder })
       expectTypeOf(queryC.data).toEqualTypeOf<typeof response | typeof placeholder>()
 
@@ -142,13 +142,13 @@ describe('setQueryData', () => {
       return 'foo'
     })
 
-    // @ts-expect-error
+    // @ts-expect-error - number tag not assignable to string action
     setQueryData(numberTag, (data) => {
       expectTypeOf(data).toEqualTypeOf<number>()
       return 'string'
     })
 
-    // @ts-expect-error
+    // @ts-expect-error - number tag not assignable to string action
     setQueryData([numberTag, stringTag], (data) => {
       expectTypeOf(data).toEqualTypeOf<number | string>()
       return []
@@ -171,7 +171,7 @@ describe('setQueryData', () => {
       return 3
     })
 
-    // @ts-expect-error
+    // @ts-expect-error - string tag with numeric return type
     setQueryData(stringAction, (data) => {
       expectTypeOf(data).toEqualTypeOf<string>()
       return 3
@@ -194,7 +194,7 @@ describe('setQueryData', () => {
       return 3
     })
 
-    // @ts-expect-error
+    // @ts-expect-error - string tag with numeric return type
     setQueryData(stringAction, ['foo'], (data) => {
       expectTypeOf(data).toEqualTypeOf<string>()
       return 3
@@ -227,22 +227,22 @@ describe('refreshQueryData', () => {
     const action = (value: number) => value
 
     const mutationA = useMutation(action, {
-      placeholder: 'foo'
+      placeholder: 'foo',
     })
 
     const mutationB = mutate(action, [1], {
-      placeholder: 'foo'
+      placeholder: 'foo',
     })
 
     expectTypeOf(mutationA.data).toEqualTypeOf<number | 'foo'>()
     expectTypeOf(mutationB.data).toEqualTypeOf<number | 'foo'>()
 
     const mutationC = await useMutation(action, {
-      placeholder: 'foo'
+      placeholder: 'foo',
     })
 
     const mutationD = await mutate(action, [1], {
-      placeholder: 'foo'
+      placeholder: 'foo',
     })
 
     expectTypeOf(mutationC.data).toEqualTypeOf<number>()
@@ -261,10 +261,10 @@ describe('refreshQueryData', () => {
     refreshQueryData(action)
     refreshQueryData(action, [2])
 
-    // @ts-expect-error
+    // @ts-expect-error - incorrect number of parameters
     refreshQueryData(action, [2, 3])
 
-    // @ts-expect-error
+    // @ts-expect-error - invalid argument type
     refreshQueryData(action, ['foo'])
   })
 })
@@ -282,7 +282,7 @@ describe('mutate', () => {
           expectTypeOf(context.payload).toEqualTypeOf<[number]>()
 
           if (context.lifecycle === 'before') {
-            // @ts-expect-error
+            // @ts-expect-error - data does not exist in before lifecycle
             expectTypeOf(context.data)
           }
 
@@ -291,7 +291,7 @@ describe('mutate', () => {
           }
 
           return []
-        }
+        },
       })
     })
 
@@ -306,7 +306,7 @@ describe('mutate', () => {
           expectTypeOf(data).toEqualTypeOf<number>()
 
           return 1
-        }
+        },
       })
     })
 
@@ -321,7 +321,7 @@ describe('mutate', () => {
           expectTypeOf(data).toEqualTypeOf<number>()
 
           return 1
-        }
+        },
       })
     })
   })
@@ -339,7 +339,7 @@ describe('useMutation', () => {
           expectTypeOf(context.payload).toEqualTypeOf<[number]>()
 
           if (context.lifecycle === 'before') {
-            // @ts-expect-error
+            // @ts-expect-error - data does not exist in before lifecycle
             expectTypeOf(context.data)
           }
 
@@ -348,7 +348,7 @@ describe('useMutation', () => {
           }
 
           return []
-        }
+        },
       })
     })
 
@@ -363,7 +363,7 @@ describe('useMutation', () => {
           expectTypeOf(data).toEqualTypeOf<number>()
 
           return 1
-        }
+        },
       })
     })
 
@@ -378,14 +378,13 @@ describe('useMutation', () => {
           expectTypeOf(data).toEqualTypeOf<number>()
 
           return 1
-        }
+        },
       })
     })
   })
 })
 
 describe('defineMutation', () => {
-
   test('response', async () => {
     const { defineMutation } = createQueryClient()
 
@@ -427,17 +426,17 @@ describe('defineMutation', () => {
           expectTypeOf(context.lifecycle).toEqualTypeOf<'before' | 'after'>()
           expectTypeOf(context.payload).toEqualTypeOf<[number]>()
 
-          if(context.lifecycle === 'before') {
-            // @ts-expect-error
-            expectTypeOf(context.data) 
+          if (context.lifecycle === 'before') {
+            // @ts-expect-error - data does not exist in before lifecycle
+            expectTypeOf(context.data)
           }
 
-          if(context.lifecycle === 'after') {
+          if (context.lifecycle === 'after') {
             expectTypeOf(context.data).toEqualTypeOf<number>()
           }
 
           return []
-        }
+        },
       })
 
       useMutation({
@@ -445,17 +444,17 @@ describe('defineMutation', () => {
           expectTypeOf(context.lifecycle).toEqualTypeOf<'before' | 'after'>()
           expectTypeOf(context.payload).toEqualTypeOf<[number]>()
 
-          if(context.lifecycle === 'before') {
-            // @ts-expect-error
+          if (context.lifecycle === 'before') {
+            // @ts-expect-error - data does not exist in before lifecycle
             expectTypeOf(context.data)
           }
 
-          if(context.lifecycle === 'after') {
+          if (context.lifecycle === 'after') {
             expectTypeOf(context.data).toEqualTypeOf<number>()
           }
 
           return []
-        }
+        },
       })
     })
 
@@ -465,7 +464,7 @@ describe('defineMutation', () => {
       const action = (value: number) => value
 
       const { mutate, useMutation } = defineMutation(action, {
-        placeholder: 'foo'
+        placeholder: 'foo',
       })
 
       const mutationA = useMutation()
@@ -475,11 +474,11 @@ describe('defineMutation', () => {
       expectTypeOf(mutationB.data).toEqualTypeOf<number | 'foo'>()
 
       const mutationC = useMutation({
-        placeholder: 'bar'
+        placeholder: 'bar',
       })
 
       const mutationD = mutate([1], {
-        placeholder: 'bar'
+        placeholder: 'bar',
       })
 
       expectTypeOf(mutationC.data).toEqualTypeOf<number | 'bar'>()
@@ -489,11 +488,11 @@ describe('defineMutation', () => {
       const mutationF = await mutate([1])
 
       const mutationG = await useMutation({
-        placeholder: 'bar'
+        placeholder: 'bar',
       })
 
       const mutationH = await mutate([1], {
-        placeholder: 'bar'
+        placeholder: 'bar',
       })
 
       expectTypeOf(mutationE.data).toEqualTypeOf<number>()

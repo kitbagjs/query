@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { reduceRetryOptions, retry } from "./retry";
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+import { reduceRetryOptions, retry } from './retry'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -10,7 +10,6 @@ afterEach(() => {
 })
 
 describe('retry', () => {
-
   test('should not retry callback if it does not throw an error and resolve the promise', async () => {
     const callback = vi.fn()
 
@@ -25,7 +24,7 @@ describe('retry', () => {
     let count = 1
 
     const callback = vi.fn(() => {
-      if(count === 1) {
+      if (count === 1) {
         count++
         throw new Error('test')
       }
@@ -48,12 +47,12 @@ describe('retry', () => {
       throw error
     })
 
-    retry(callback, { count: 3, delay: 100 }).catch(error => {
+    retry(callback, { count: 3, delay: 100 }).catch((error: unknown) => {
       expect(error).toBe(error)
 
       return 'error'
     })
-    
+
     await vi.advanceTimersByTimeAsync(0)
 
     expect(callback).toHaveBeenCalledOnce()
@@ -76,7 +75,6 @@ describe('retry', () => {
     await expect(result).rejects.toBe(error)
     vi.useFakeTimers()
   })
-
 })
 
 describe('reduceRetryOptions', () => {
