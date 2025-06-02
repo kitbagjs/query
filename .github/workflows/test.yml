@@ -1,0 +1,28 @@
+name: Tests
+
+on: [pull_request]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup
+        id: setup
+        uses: kitbagjs/actions-setup-project@main
+
+      - name: Run tests
+        run: npm run test
+
+  types:
+    name: Types
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup
+        id: setup
+        uses: kitbagjs/actions-setup-project@main
+
+      - name: Run tsc
+        run: npm run types
