@@ -1,6 +1,7 @@
 {
   "name": "@kitbag/query",
-  "version": "0.0.1-beta.1",
+  "private": false,
+  "version": "0.0.1-beta.2",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -8,6 +9,29 @@
     "types": "tsc --noEmit",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix"
+  },
+  "keywords": [
+    "typescript",
+    "query",
+    "vue",
+    "types",
+    "typed"
+  ],
+  "bugs": {
+    "url": "https://github.com/kitbagjs/query/issues"
+  },
+  "homepage": "https://github.com/kitbagjs/query#readme",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/kitbag-query.umd.cjs",
+  "module": "./dist/kitbag-query.js",
+  "types": "./dist/kitbag-query.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/kitbag-query.js",
+      "require": "./dist/kitbag-query.umd.cjs"
+    }
   },
   "dependencies": {
     "fast-deep-equal": "^3.1.3",
