@@ -1,10 +1,11 @@
 {
   "name": "@kitbag/query",
   "private": false,
-  "version": "0.0.1-beta.2",
+  "version": "0.0.1-beta.3",
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:watch": "vite build --watch --minify=false",
     "test": "vitest --typecheck",
     "types": "tsc --noEmit",
     "lint": "eslint ./src",
