@@ -1,0 +1,39 @@
+:root {
+  --kitbag-teal-300: rgba(94, 234, 212, 1);
+  --kitbag-teal-500: rgba(20, 184, 166, 1);
+  --kitbag-amber-500: rgba(245, 158, 11, 1);
+  --kitbag-teal-500-75: rgba(20, 184, 166, 0.75);
+
+  --vp-button-brand-bg: var(--kitbag-teal-500-75);
+  --vp-c-brand-1: var(--kitbag-teal-500);
+  --vp-c-brand-2: var(--kitbag-amber-500);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(
+    120deg,
+    var(--kitbag-teal-300) 30%,
+    var(--kitbag-amber-500)
+  );
+
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    var(--kitbag-teal-500) 50%,
+    var(--kitbag-amber-500) 50%
+  );
+  --vp-home-hero-image-filter: blur(40px);
+}
+
+a.alt.stackblitz {
+  display: flex;
+  align-items: center;
+  color: rgb(19, 137, 253);
+  gap: 0.2rem;
+}
+
+a.alt.stackblitz::after {
+  display: block;
+  height: 14px;
+  width: 14px;
+  content: '';
+  background-image: url('/stackblitz.svg');
+}
