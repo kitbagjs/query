@@ -1,6 +1,6 @@
 # Background Updates
 
-Background updates allow your application to keep data fresh without interrupting the user experience. @kitbag/query provides several mechanisms for updating data in the background.
+<!-- Background updates allow your application to keep data fresh without interrupting the user experience. Kitbag query provides several mechanisms for updating data in the background.
 
 ## Automatic Background Updates
 
@@ -506,7 +506,7 @@ Show non-intrusive indicators for background updates:
 ```vue
 <template>
   <div class="content-container">
-    <!-- Subtle refresh indicator -->
+    // Subtle refresh indicator
     <div 
       v-if="user.executing && user.data" 
       class="refresh-indicator"
@@ -514,10 +514,10 @@ Show non-intrusive indicators for background updates:
       <div class="refresh-bar"></div>
     </div>
     
-    <!-- Main content -->
+    // Main content
     <UserProfile v-if="user.data" :user="user.data" />
     
-    <!-- Toast notification for successful updates -->
+    // Toast notification for successful updates
     <Teleport to="body">
       <Toast 
         v-if="showUpdateToast"
@@ -762,4 +762,4 @@ const user = useQuery(userQuery, {
 
 - [Optimistic Updates](/advanced-concepts/optimistic-updates) - Improving perceived performance
 - [Caching](/core-concepts/caching) - Understanding cache behavior
-- [Error Handling](/advanced-concepts/error-handling) - Handling background update errors
+- [Error Handling](/advanced-concepts/error-handling) - Handling background update errors -->

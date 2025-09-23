@@ -49,18 +49,11 @@ export default defineConfig({
         {
           text: 'Core Concepts',
           items: [
-            { text: 'Query Client', link: '/core-concepts/query-client' },
             { text: 'Queries', link: '/core-concepts/queries' },
-            { text: 'Mutations', link: '/core-concepts/mutations' },
             { text: 'Tags & Invalidation', link: '/core-concepts/tags-invalidation' },
+            { text: 'Mutations', link: '/core-concepts/mutations' },
+            { text: 'Query Client', link: '/core-concepts/query-client' },
             { text: 'Caching', link: '/core-concepts/caching' },
-          ],
-        },
-        {
-          text: 'Composables',
-          items: [
-            { text: 'useQuery', link: '/composables/useQuery' },
-            { text: 'useMutation', link: '/composables/useMutation' },
           ],
         },
         {
@@ -72,6 +65,7 @@ export default defineConfig({
             { text: 'Optimistic Updates', link: '/advanced-concepts/optimistic-updates' },
           ],
         },
+        { text: 'Migrating from Tanstack', link: '/compare-to-tanstack' },
       ]
     },
 

@@ -1,5 +1,5 @@
 # Optimistic Updates
-
+<!-- 
 Optimistic updates improve perceived performance by updating the UI immediately before the server confirms the change. This makes your application feel faster and more responsive.
 
 ## Basic Optimistic Updates
@@ -594,14 +594,14 @@ Show users when changes are pending:
       
       <span class="task-text">{{ task.title }}</span>
       
-      <!-- Status indicators -->
+      // Status indicators
       <div class="status-indicators">
         <LoadingSpinner v-if="task.pending" size="small" />
         <CheckIcon v-else-if="task.completed" class="success" />
         <ErrorIcon v-else-if="task.status === 'failed'" class="error" />
       </div>
       
-      <!-- Retry option for failed updates -->
+      // Retry option for failed updates
       <button 
         v-if="task.status === 'failed'"
         @click="retryTask"
@@ -637,10 +637,10 @@ Provide undo options for optimistic updates:
 ```vue
 <template>
   <div>
-    <!-- Action buttons -->
+    // Action buttons
     <button @click="deleteItem">Delete Item</button>
     
-    <!-- Undo toast -->
+    // Undo toast
     <Teleport to="body">
       <div v-if="showUndoToast" class="undo-toast">
         <span>Item deleted</span>
@@ -746,13 +746,13 @@ const updateComplexState = useMutation(updateStateMutation, {
 ### 3. Provide Clear Visual Feedback
 
 ```vue
-<!-- ✅ Show pending state -->
+// ✅ Show pending state
 <div :class="{ 'pending': item.pending }">
   {{ item.title }}
   <LoadingSpinner v-if="item.pending" size="small" />
 </div>
 
-<!-- ❌ No indication of pending state -->
+// ❌ No indication of pending state
 <div>{{ item.title }}</div>
 ```
 
@@ -829,4 +829,4 @@ test('optimistic updates work correctly', async () => {
 
 - [Error Handling](/advanced-concepts/error-handling) - Handling optimistic update failures
 - [Background Updates](/advanced-concepts/background-updates) - Combining with background sync
-- [Tags & Invalidation](/core-concepts/tags-invalidation) - Managing cache updates
+- [Tags & Invalidation](/core-concepts/tags-invalidation) - Managing cache updates -->

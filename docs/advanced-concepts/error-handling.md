@@ -1,6 +1,6 @@
 # Error Handling
 
-Effective error handling is crucial for building robust applications. @kitbag/query provides multiple layers of error handling for both queries and mutations.
+<!-- Effective error handling is crucial for building robust applications. Kitbag query provides multiple layers of error handling for both queries and mutations.
 
 ## Basic Error Handling
 
@@ -16,7 +16,7 @@ Effective error handling is crucial for building robust applications. @kitbag/qu
       <button @click="user.execute()">Retry</button>
     </div>
     <div v-else-if="user.data">
-      <!-- User data -->
+      // User data
     </div>
   </div>
 </template>
@@ -182,7 +182,7 @@ export const { query, useQuery, mutation, useMutation } = createQueryClient({
 Create reusable error boundary components:
 
 ```vue
-<!-- ErrorBoundary.vue -->
+// ErrorBoundary.vue
 <template>
   <div class="error-boundary">
     <div v-if="hasError" class="error-container">
@@ -337,14 +337,14 @@ const canShowSettings = computed(() => !userSettings.error)
 <template>
   <div>
     <div v-if="canShowProfile">
-      <!-- User profile section -->
+      // User profile section
     </div>
     <div v-else class="error">
       Failed to load profile
     </div>
     
     <div v-if="canShowPosts">
-      <!-- User posts section -->
+      // User posts section
     </div>
     <div v-else class="error">
       Failed to load posts
@@ -401,12 +401,12 @@ Provide clear feedback during error recovery:
 ```vue
 <template>
   <div>
-    <!-- Loading state -->
+    // Loading state
     <div v-if="user.executing && !user.data" class="loading">
       Loading user profile...
     </div>
     
-    <!-- Error state with retry -->
+    // Error state with retry
     <div v-else-if="user.error" class="error">
       <h3>Unable to load profile</h3>
       <p>{{ getErrorMessage(user.error) }}</p>
@@ -419,9 +419,9 @@ Provide clear feedback during error recovery:
       </div>
     </div>
     
-    <!-- Success state -->
+    // Success state
     <div v-else-if="user.data">
-      <!-- Profile content -->
+      // Profile content
     </div>
   </div>
 </template>
@@ -461,7 +461,7 @@ watch(isOnline, (online) => {
       You are currently offline
     </div>
     
-    <!-- Rest of component -->
+    // Rest of component
   </div>
 </template>
 ```
@@ -526,7 +526,7 @@ const user = useQuery(userQuery, {
 Create an error reporting component:
 
 ```vue
-<!-- ErrorReporter.vue -->
+// ErrorReporter.vue
 <template>
   <div class="error-reporter">
     <h3>Something went wrong</h3>
@@ -622,7 +622,7 @@ const queryClient = createQueryClient({
 ### 3. Provide Recovery Options
 
 ```vue
-<!-- ✅ Always provide a way to recover -->
+// ✅ Always provide a way to recover
 <div v-if="error" class="error">
   <p>{{ error.message }}</p>
   <button @click="retry">Try Again</button>
@@ -661,4 +661,4 @@ const user = useQuery(userQuery, {
 
 - [Loading States](/advanced-concepts/loading-states) - Managing loading UX
 - [Background Updates](/advanced-concepts/background-updates) - Handling background data refresh
-- [Optimistic Updates](/advanced-concepts/optimistic-updates) - Improving perceived performance
+- [Optimistic Updates](/advanced-concepts/optimistic-updates) - Improving perceived performance -->

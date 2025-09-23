@@ -1,6 +1,8 @@
 # Caching
 
-@kitbag/query provides intelligent caching to minimize network requests while keeping your data fresh. Understanding how caching works will help you build more efficient applications.
+Unlike other query libraries, Kitbag queries take both the function and the arguments separately. This enables our queries to cache results to the same function with the same arguments for future queries. By default, if many queries are created for the same function and arguments combination - the function only actually gets executed a single time.
+
+<!-- Kitbag query provides intelligent caching to minimize network requests while keeping your data fresh. Understanding how caching works will help you build more efficient applications.
 
 ## Cache Lifecycle
 
@@ -433,4 +435,4 @@ Learn about advanced caching strategies:
 
 - [Background Updates](/advanced-concepts/background-updates) - Advanced update patterns
 - [Optimistic Updates](/advanced-concepts/optimistic-updates) - Immediate feedback strategies
-- [Loading States](/advanced-concepts/loading-states) - Managing cache and loading states
+- [Loading States](/advanced-concepts/loading-states) - Managing cache and loading states -->

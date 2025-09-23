@@ -1,6 +1,6 @@
 # API Reference
 
-Welcome to the @kitbag/query API reference. This section provides detailed documentation for all functions, types, and interfaces available in the library.
+Welcome to the Kitbag query API reference. This section provides detailed documentation for all functions, types, and interfaces available in the library.
 
 ## Core Functions
 

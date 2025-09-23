@@ -1,6 +1,6 @@
 # Mutations
 
-Mutations handle data modifications in @kitbag/query. They provide a structured way to update server state while managing loading states, errors, and cache invalidation.
+<!-- Mutations handle data modifications in Kitbag query. They provide a structured way to update server state while managing loading states, errors, and cache invalidation.
 
 ## Basic Mutation
 
@@ -398,4 +398,4 @@ Learn more about managing your cache:
 
 - [Tags & Invalidation](/core-concepts/tags-invalidation) - Organize and invalidate cached data
 - [Caching](/core-concepts/caching) - Understanding cache behavior
-- [useMutation Composable](/composables/useMutation) - Advanced mutation usage
+- [useMutation Composable](/composables/useMutation) - Advanced mutation usage -->

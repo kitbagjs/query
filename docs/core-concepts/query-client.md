@@ -1,6 +1,6 @@
 # Query Client
 
-The query client is the central hub of @kitbag/query. It manages all your queries, handles caching, and provides the composables you'll use throughout your application.
+<!-- The query client is the central hub of Kitbag query. It manages all your queries, handles caching, and provides the composables you'll use throughout your application.
 
 ## Getting Started: Use the Default Client
 
@@ -233,4 +233,4 @@ Now that you understand the query client, learn about:
 
 - [Queries](/core-concepts/queries) - Define your data fetching logic
 - [Mutations](/core-concepts/mutations) - Handle data modifications  
-- [Tags & Invalidation](/core-concepts/tags-invalidation) - Manage cache invalidation
+- [Tags & Invalidation](/core-concepts/tags-invalidation) - Manage cache invalidation -->

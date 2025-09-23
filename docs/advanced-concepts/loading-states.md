@@ -1,6 +1,6 @@
 # Loading States
 
-Managing loading states effectively is crucial for good user experience. @kitbag/query provides granular loading state management for both queries and mutations.
+<!-- Managing loading states effectively is crucial for good user experience. Kitbag query provides granular loading state management for both queries and mutations.
 
 ## Query Loading States
 
@@ -9,24 +9,24 @@ Managing loading states effectively is crucial for good user experience. @kitbag
 ```vue
 <template>
   <div>
-    <!-- Initial loading -->
+    // Initial loading
     <div v-if="user.executing && !user.data">
       <LoadingSpinner />
       <p>Loading user profile...</p>
     </div>
     
-    <!-- Background refresh -->
+    // Background refresh
     <div v-else-if="user.executing && user.data">
       <UserProfile :user="user.data" />
       <div class="refresh-indicator">Updating...</div>
     </div>
     
-    <!-- Loaded -->
+    // Loaded
     <div v-else-if="user.data">
       <UserProfile :user="user.data" />
     </div>
     
-    <!-- Error -->
+    // Error
     <div v-else-if="user.error">
       <ErrorMessage :error="user.error" />
     </div>
@@ -77,24 +77,24 @@ const isEmpty = computed(() =>
 
 <template>
   <div>
-    <!-- Initial load -->
+    // Initial load
     <div v-if="isInitialLoading" class="initial-loading">
       <SkeletonLoader />
     </div>
     
-    <!-- Background refresh -->
+    // Background refresh
     <div v-else-if="isRefreshing">
       <UserProfile :user="user.data" />
       <div class="refresh-bar">Updating...</div>
     </div>
     
-    <!-- Reloading after error -->
+    // Reloading after error
     <div v-else-if="isReloading" class="reloading">
       <LoadingSpinner />
       <p>Retrying...</p>
     </div>
     
-    <!-- Content loaded -->
+    // Content loaded
     <div v-else-if="user.data">
       <UserProfile :user="user.data" />
     </div>
@@ -121,12 +121,12 @@ const isEmpty = computed(() =>
       {{ createUser.executing ? 'Creating...' : 'Create User' }}
     </button>
     
-    <!-- Success state -->
+    // Success state
     <div v-if="createUser.data && !createUser.executing" class="success">
       User created successfully!
     </div>
     
-    <!-- Error state -->
+    // Error state
     <div v-if="createUser.error" class="error">
       {{ createUser.error.message }}
     </div>
@@ -184,7 +184,7 @@ Handle multiple mutations with different loading states:
       Delete
     </button>
     
-    <!-- Global loading indicator -->
+    // Global loading indicator
     <div v-if="isAnyLoading" class="global-loading">
       Processing...
     </div>
@@ -211,7 +211,7 @@ const isAnyLoading = computed(() =>
 Create skeleton loaders for better perceived performance:
 
 ```vue
-<!-- SkeletonLoader.vue -->
+// SkeletonLoader.vue
 <template>
   <div class="skeleton-loader">
     <div class="skeleton-header">
@@ -262,7 +262,7 @@ Create skeleton loaders for better perceived performance:
 ### Loading Spinner Component
 
 ```vue
-<!-- LoadingSpinner.vue -->
+// LoadingSpinner.vue
 <template>
   <div :class="['spinner', `spinner-${size}`]">
     <div class="spinner-circle"></div>
@@ -320,7 +320,7 @@ Show content progressively as it loads:
 ```vue
 <template>
   <div class="progressive-loader">
-    <!-- Always show basic structure -->
+    // Always show basic structure
     <div class="user-card">
       <div class="user-avatar">
         <img 
@@ -341,7 +341,7 @@ Show content progressively as it loads:
         <div v-else class="skeleton-line medium"></div>
       </div>
       
-      <!-- Additional data loads separately -->
+      // Additional data loads separately
       <div class="user-stats">
         <div v-if="userStats.data">
           <span>Posts: {{ userStats.data.posts }}</span>
@@ -371,7 +371,7 @@ const userStats = useQuery(userStatsQuery, {
 Create a suspense-like component for loading states:
 
 ```vue
-<!-- QuerySuspense.vue -->
+// QuerySuspense.vue
 <template>
   <div>
     <slot v-if="!isLoading" />
@@ -408,7 +408,7 @@ Usage:
       <SkeletonLoader />
     </template>
     
-    <!-- This renders only when all queries have data -->
+    // This renders only when all queries have data
     <UserDashboard 
       :user="user.data" 
       :posts="posts.data" 
@@ -425,27 +425,27 @@ Show content in stages:
 ```vue
 <template>
   <div class="staggered-content">
-    <!-- Stage 1: Always show immediately -->
+    // Stage 1: Always show immediately
     <div class="stage-1">
       <h1>User Dashboard</h1>
     </div>
     
-    <!-- Stage 2: Show when user data loads -->
+    // Stage 2: Show when user data loads
     <div v-if="user.data" class="stage-2">
       <UserProfile :user="user.data" />
     </div>
     
-    <!-- Stage 3: Show when additional data loads -->
+    // Stage 3: Show when additional data loads
     <div v-if="user.data && posts.data" class="stage-3">
       <UserPosts :posts="posts.data" />
     </div>
     
-    <!-- Stage 4: Show when everything loads -->
+    // Stage 4: Show when everything loads
     <div v-if="user.data && posts.data && stats.data" class="stage-4">
       <UserStats :stats="stats.data" />
     </div>
     
-    <!-- Loading indicators for pending stages -->
+    // Loading indicators for pending stages
     <div v-if="!user.data" class="loading-stage">
       <SkeletonLoader />
     </div>
@@ -486,35 +486,35 @@ const loadingState = computed(() => {
     <input v-model="searchTerm" placeholder="Search users..." />
     
     <div class="search-results">
-      <!-- Empty state -->
+      // Empty state
       <div v-if="loadingState === 'empty'" class="empty-state">
         <SearchIcon />
         <p>Enter a search term to get started</p>
       </div>
       
-      <!-- Searching -->
+      // Searching
       <div v-else-if="loadingState === 'searching'" class="searching">
         <LoadingSpinner />
         <p>Searching...</p>
       </div>
       
-      <!-- Refreshing results -->
+      // Refreshing results
       <div v-else-if="loadingState === 'refreshing'">
         <SearchResults :results="searchResults.data" />
         <div class="refresh-indicator">Updating results...</div>
       </div>
       
-      <!-- No results -->
+      // No results
       <div v-else-if="loadingState === 'no-results'" class="no-results">
         <p>No results found for "{{ searchTerm }}"</p>
       </div>
       
-      <!-- Results -->
+      // Results
       <div v-else-if="loadingState === 'results'">
         <SearchResults :results="searchResults.data" />
       </div>
       
-      <!-- Error -->
+      // Error
       <div v-else-if="loadingState === 'error'" class="error">
         <p>Search failed: {{ searchResults.error.message }}</p>
       </div>
@@ -595,35 +595,35 @@ export function usePersistedLoading(key: string) {
 ### 1. Show Immediate Feedback
 
 ```vue
-<!-- ✅ Good - Immediate loading state -->
+// ✅ Good - Immediate loading state
 <button @click="handleSubmit" :disabled="loading">
   <LoadingSpinner v-if="loading" size="small" />
   {{ loading ? 'Saving...' : 'Save' }}
 </button>
 
-<!-- ❌ Bad - No loading feedback -->
+// ❌ Bad - No loading feedback
 <button @click="handleSubmit">Save</button>
 ```
 
 ### 2. Use Appropriate Loading Indicators
 
 ```vue
-<!-- ✅ Skeleton for initial loads -->
+// ✅ Skeleton for initial loads
 <SkeletonLoader v-if="!user.data && user.executing" />
 
-<!-- ✅ Subtle indicator for background updates -->
+// ✅ Subtle indicator for background updates
 <div v-if="user.executing && user.data" class="refresh-indicator">
   Updating...
 </div>
 
-<!-- ✅ Spinner for explicit actions -->
+// ✅ Spinner for explicit actions
 <LoadingSpinner v-if="mutation.executing" />
 ```
 
 ### 3. Prevent Multiple Submissions
 
 ```vue
-<!-- ✅ Disable buttons during loading -->
+// ✅ Disable buttons during loading
 <button 
   @click="handleSubmit"
   :disabled="createUser.executing"
@@ -635,7 +635,7 @@ export function usePersistedLoading(key: string) {
 ### 4. Show Progress When Possible
 
 ```vue
-<!-- ✅ Show upload progress -->
+// ✅ Show upload progress
 <div v-if="uploadFile.executing" class="upload-progress">
   <div class="progress-bar">
     <div 
@@ -669,7 +669,7 @@ onUnmounted(() => {
 ```vue
 <template>
   <div>
-    <!-- Screen reader announcements -->
+    // Screen reader announcements
     <div 
       v-if="user.executing" 
       aria-live="polite" 
@@ -687,13 +687,13 @@ onUnmounted(() => {
       User profile loaded
     </div>
     
-    <!-- Visual loading indicator -->
+    // Visual loading indicator
     <LoadingSpinner 
       v-if="user.executing"
       aria-label="Loading user profile"
     />
     
-    <!-- Content -->
+    // Content
     <div v-if="user.data" role="main">
       <UserProfile :user="user.data" />
     </div>
@@ -754,4 +754,4 @@ watch(() => user.executing.value, (executing) => {
 
 - [Background Updates](/advanced-concepts/background-updates) - Managing background data refresh
 - [Error Handling](/advanced-concepts/error-handling) - Handling loading errors
-- [Optimistic Updates](/advanced-concepts/optimistic-updates) - Improving perceived performance
+- [Optimistic Updates](/advanced-concepts/optimistic-updates) - Improving perceived performance -->

@@ -1,6 +1,6 @@
 # Tags & Invalidation
 
-Tags provide a powerful way to organize and invalidate cached queries in @kitbag/query. They allow you to group related queries and efficiently update your cache when data changes.
+<!-- Tags provide a powerful way to organize and invalidate cached queries in Kitbag query. They allow you to group related queries and efficiently update your cache when data changes.
 
 ## Creating Tags
 
@@ -399,4 +399,4 @@ Learn more about cache management:
 
 - [Caching](/core-concepts/caching) - Understanding cache behavior
 - [useQuery Composable](/composables/useQuery) - Using tags with queries
-- [Advanced Concepts](/advanced-concepts/error-handling) - Advanced cache strategies
+- [Advanced Concepts](/advanced-concepts/error-handling) - Advanced cache strategies -->
