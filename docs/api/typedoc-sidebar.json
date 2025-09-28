@@ -1,0 +1,212 @@
+[
+  {
+    "text": "Functions",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "createQueryClient",
+        "link": "/api/functions/createQueryClient.md"
+      },
+      {
+        "text": "tag",
+        "link": "/api/functions/tag.md"
+      }
+    ]
+  },
+  {
+    "text": "Types",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "AwaitedMutation",
+        "link": "/api/types/AwaitedMutation.md"
+      },
+      {
+        "text": "AwaitedQuery",
+        "link": "/api/types/AwaitedQuery.md"
+      },
+      {
+        "text": "ClientOptions",
+        "link": "/api/types/ClientOptions.md"
+      },
+      {
+        "text": "DefinedMutation",
+        "link": "/api/types/DefinedMutation.md"
+      },
+      {
+        "text": "DefinedMutationComposition",
+        "link": "/api/types/DefinedMutationComposition.md"
+      },
+      {
+        "text": "DefinedMutationFunction",
+        "link": "/api/types/DefinedMutationFunction.md"
+      },
+      {
+        "text": "DefinedQuery",
+        "link": "/api/types/DefinedQuery.md"
+      },
+      {
+        "text": "DefinedQueryComposition",
+        "link": "/api/types/DefinedQueryComposition.md"
+      },
+      {
+        "text": "DefinedQueryFunction",
+        "link": "/api/types/DefinedQueryFunction.md"
+      },
+      {
+        "text": "DefineMutation",
+        "link": "/api/types/DefineMutation.md"
+      },
+      {
+        "text": "DefineQuery",
+        "link": "/api/types/DefineQuery.md"
+      },
+      {
+        "text": "Mutation",
+        "link": "/api/types/Mutation.md"
+      },
+      {
+        "text": "MutationAction",
+        "link": "/api/types/MutationAction.md"
+      },
+      {
+        "text": "MutationComposition",
+        "link": "/api/types/MutationComposition.md"
+      },
+      {
+        "text": "MutationData",
+        "link": "/api/types/MutationData.md"
+      },
+      {
+        "text": "MutationFunction",
+        "link": "/api/types/MutationFunction.md"
+      },
+      {
+        "text": "MutationOptions",
+        "link": "/api/types/MutationOptions.md"
+      },
+      {
+        "text": "MutationTags",
+        "link": "/api/types/MutationTags.md"
+      },
+      {
+        "text": "MutationTagsAfterContext",
+        "link": "/api/types/MutationTagsAfterContext.md"
+      },
+      {
+        "text": "MutationTagsBeforeContext",
+        "link": "/api/types/MutationTagsBeforeContext.md"
+      },
+      {
+        "text": "MutationTagsContext",
+        "link": "/api/types/MutationTagsContext.md"
+      },
+      {
+        "text": "MutationTagsType",
+        "link": "/api/types/MutationTagsType.md"
+      },
+      {
+        "text": "OnErrorContext",
+        "link": "/api/types/OnErrorContext.md"
+      },
+      {
+        "text": "OnExecuteContext",
+        "link": "/api/types/OnExecuteContext.md"
+      },
+      {
+        "text": "OnSuccessContext",
+        "link": "/api/types/OnSuccessContext.md"
+      },
+      {
+        "text": "Query",
+        "link": "/api/types/Query.md"
+      },
+      {
+        "text": "QueryAction",
+        "link": "/api/types/QueryAction.md"
+      },
+      {
+        "text": "QueryActionArgs",
+        "link": "/api/types/QueryActionArgs.md"
+      },
+      {
+        "text": "QueryClient",
+        "link": "/api/types/QueryClient.md"
+      },
+      {
+        "text": "QueryComposition",
+        "link": "/api/types/QueryComposition.md"
+      },
+      {
+        "text": "QueryData",
+        "link": "/api/types/QueryData.md"
+      },
+      {
+        "text": "QueryDataSetter",
+        "link": "/api/types/QueryDataSetter.md"
+      },
+      {
+        "text": "QueryFunction",
+        "link": "/api/types/QueryFunction.md"
+      },
+      {
+        "text": "QueryOptions",
+        "link": "/api/types/QueryOptions.md"
+      },
+      {
+        "text": "QueryTag",
+        "link": "/api/types/QueryTag.md"
+      },
+      {
+        "text": "QueryTagCallback",
+        "link": "/api/types/QueryTagCallback.md"
+      },
+      {
+        "text": "QueryTagFactory",
+        "link": "/api/types/QueryTagFactory.md"
+      },
+      {
+        "text": "QueryTags",
+        "link": "/api/types/QueryTags.md"
+      },
+      {
+        "text": "QueryTagType",
+        "link": "/api/types/QueryTagType.md"
+      },
+      {
+        "text": "RefreshQueryData",
+        "link": "/api/types/RefreshQueryData.md"
+      },
+      {
+        "text": "SetQueryData",
+        "link": "/api/types/SetQueryData.md"
+      },
+      {
+        "text": "SetQueryDataAfterContext",
+        "link": "/api/types/SetQueryDataAfterContext.md"
+      },
+      {
+        "text": "SetQueryDataBeforeContext",
+        "link": "/api/types/SetQueryDataBeforeContext.md"
+      },
+      {
+        "text": "UseQueryOptions",
+        "link": "/api/types/UseQueryOptions.md"
+      }
+    ]
+  },
+  {
+    "text": "Variables",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "query",
+        "link": "/api/functions/query.md"
+      },
+      {
+        "text": "useQuery",
+        "link": "/api/functions/useQuery.md"
+      }
+    ]
+  }
+]
