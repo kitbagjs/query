@@ -145,12 +145,15 @@ const catsQuery = useQuery(searchCats, () => {
 })
 ```
 
-You can also setup a query NOT to execute immediately. These queries wait until you either call `execute()`, or change the reactive parameters argument.
+You can also setup a query NOT to execute immediately. These queries can only be enabled by calling `execute()` manually.
 
 ```ts
 const selectedBreed = ref<string | undefined>()
 
 const catsQuery = useQuery(searchCats, () => [selectedBreed.value], { immediate: false })
+
+// later
+catsQuery.execute()
 ```
 
 ### Automatic cleanup
