@@ -13,60 +13,34 @@ npm install @kitbag/query
 
 ## Creating a query
 
-Simply pass the function you need called (`fetchUser`) and the arguments you want supplied to that function (`[userId]`).
+Simply pass the function (`searchCats`) and a getter for the arguments to that function (`() => ['Maine Coon']`).
 
 ```ts
 import { useQuery } from '@kitbag/query'
 
-const query = useQuery(fetchUser, [userId])
-```
-
-### Expanded example in a vue component
-
-::: code-group
-
-```vue [UserPage.vue]
-<script setup lang="ts">
-import { useQuery } from '@kitbag/query'
-import { fetchUser } from '@/services/usersApi'
-
-const { userId } = defineProps<{
-  userId: number
-}>()
-
-const query = useQuery(fetchUser, [userId])
-</script>
-```
-
-```ts [usersApi.ts]
-// simple example, not important
-export type User = {
-  name: string,
-  email: string,
+function searchCats(breed?: string) {
+  ...
 }
 
-export function fetchUser(id: number): Promise<User> {
-  return axios.get(`users/${id}`)
-}
+const catsQuery = useQuery(searchCats, () => ['Maine Coon'])
 ```
 
-:::
+That's it! Now you have access to several useful properties on the query for tracking loading state, error state, and of course the response from `searchCats` when it's resolved.
 
-That's it! Now you have access to several useful properties on the query for tracking loading state, error state, and of course the response from `fetchUser` when it's resolved.
+## Using a query
 
 ```vue
 <template>
-  <div v-if="query.loading">
+  <div v-if="catsQuery.loading">
     Loading...
   </div>
   
-  <div v-else-if="query.errored">
-    Error: {{ query.error }}
+  <div v-else-if="catsQuery.errored">
+    Error: {{ catsQuery.error }}
   </div>
   
-  <div v-else-if="query.data">
-    <h1>{{ query.data.name }}</h1>
-    <p>{{ query.data.email }}</p>
+  <div v-for="cat in catsQuery.data ?? []" :key="cat.id">
+    <h1>{{ cat.name }}</h1>
   </div>
 </template>
 ```
@@ -77,7 +51,7 @@ Kitbag query exports a default client, so you can import `useQuery` directly whi
 
 ## Caching
 
-Any other components that create a query for `fetchUser` with the same `id` arguments will share this cached response. Learn more about [caching](/core-concepts/caching).
+Any other components that create a query for `searchCats` with the same `breed` argument will share this cached response. Learn more about [caching](/core-concepts/caching).
 
 ## Next Steps
 

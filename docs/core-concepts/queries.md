@@ -31,8 +31,9 @@ The query includes `execute`, which can be called at any point to force the func
 ```ts
 const catsQuery = query(searchCats, ['Ragdoll'])
 
-const cats = await catsQuery.execute()
-//     ^? data: Cat[]
+function refresh(): void {
+  catsQuery.execute()
+}
 ```
 
 ### Awaiting Queries
@@ -44,22 +45,10 @@ Note that if awaiting a query, any errors that occur will be thrown. Consider pl
 :::
 
 ```ts
-const regularQuery = await query(searchCats, ['Persian'])
+const regularQuery = query(searchCats, ['Persian'])
 //     ^? data: Cat[] | undefined
 const awaitedQuery = await query(searchCats, ['Persian'])
 //     ^? data: Cat[]
-```
-
-### Using syntax
-
-Take advantage of Typescripts [using syntax](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-2.html#using-declarations-and-explicit-resource-management) to automatically dispose of your query when the function is finished executing.
-
-```ts
-function search(): void {
-  using catsQuery = await query(searchCats, ['American Shorthair'])
-
-  return catsQuery.data
-}
 ```
 
 ## Query Options

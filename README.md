@@ -37,27 +37,36 @@ npm install @kitbag/query
 
 ### Creating a query
 
-```ts
-import { query, useQuery } from '@kitbag/query'
+Simply pass the function (`searchCats`) and a getter for the arguments to that function (`() => ['Maine Coon']`).
 
-const userQuery = query('user', async (id: number) => {
-  const response = await fetch(`/api/users/${id}`)
-  return response.json()
-})
+```ts
+import { useQuery } from '@kitbag/query'
+
+function searchCats(breed?: string) {
+  ...
+}
+
+const catsQuery = useQuery(searchCats, () => ['Maine Coon'])
 ```
 
-### Using a query in your component
+That's it! Now you have access to several useful properties on the query for tracking loading state, error state, and of course the response from `searchCats` when it's resolved.
 
-```html
+### Using a query
+
+```vue
 <template>
-  <div v-if="user.pending">Loading...</div>
-  <div v-else-if="user.error">Error: {{ user.error.message }}</div>
-  <div v-else>{{ user.data.name }}</div>
+  <div v-if="catsQuery.loading">
+    Loading...
+  </div>
+  
+  <div v-else-if="catsQuery.errored">
+    Error: {{ catsQuery.error }}
+  </div>
+  
+  <div v-for="cat in catsQuery.data ?? []" :key="cat.id">
+    <h1>{{ cat.name }}</h1>
+  </div>
 </template>
-
-<script setup>
-const user = useQuery(userQuery, { params: [123] })
-</script>
 ```
 
 [npm-badge]: https://img.shields.io/npm/v/@kitbag/query.svg

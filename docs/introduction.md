@@ -1,6 +1,6 @@
 # Introduction
 
-Kitbag query is a type-safe, composable query system designed specifically for Vue.js applications. It provides a powerful yet simple way to fetch, cache, synchronizing, and updating state with full TypeScript support.
+Kitbag query is a type-safe, composable query system designed specifically for Vue.js applications. It provides a powerful yet simple way to fetch, cache, synchronize, and update state with full TypeScript support.
 
 ## What is Kitbag query?
 

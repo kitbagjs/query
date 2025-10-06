@@ -63,6 +63,7 @@ export default defineConfig({
             { text: 'Loading States', link: '/advanced-concepts/loading-states' },
             { text: 'Background Updates', link: '/advanced-concepts/background-updates' },
             { text: 'Optimistic Updates', link: '/advanced-concepts/optimistic-updates' },
+            { text: 'Using syntax', link: '/advanced-concepts/using-queries' },
           ],
         },
         { text: 'Migrating from Tanstack', link: '/compare-to-tanstack' },
