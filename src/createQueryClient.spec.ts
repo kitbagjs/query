@@ -269,7 +269,7 @@ describe('useQuery', () => {
     const action = vi.fn(() => response)
     const { useQuery } = createQueryClient()
 
-    const query = await useQuery(action, [])
+    const query = await useQuery(action, () => [])
 
     expect(query.data).toBe(response)
   })
@@ -280,7 +280,7 @@ describe('useQuery', () => {
       throw new Error('test')
     })
     const { useQuery } = createQueryClient()
-    const value = useQuery(action, [])
+    const value = useQuery(action, () => [])
 
     await expect(value).rejects.toThrow('test')
   })
@@ -339,8 +339,8 @@ describe('useQuery', () => {
     const action2 = vi.fn(() => false)
     const { useQuery } = createQueryClient()
 
-    const query1 = useQuery(action1, [])
-    const query2 = useQuery(action2, [])
+    const query1 = useQuery(action1, () => [])
+    const query2 = useQuery(action2, () => [])
 
     await vi.runOnlyPendingTimersAsync()
 
@@ -353,7 +353,7 @@ describe('useQuery', () => {
     const response = Symbol('response')
     const { useQuery } = createQueryClient()
 
-    const value = useQuery(() => response, [], { placeholder })
+    const value = useQuery(() => response, () => [], { placeholder })
 
     expect(value.data).toBe(placeholder)
 
@@ -368,7 +368,7 @@ describe('useQuery', () => {
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
 
-      const query = useQuery(action, [], { immediate: true })
+      const query = useQuery(action, () => [], { immediate: true })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -381,7 +381,7 @@ describe('useQuery', () => {
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
 
-      const query = useQuery(action, [], { immediate: false })
+      const query = useQuery(action, () => [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -395,7 +395,7 @@ describe('useQuery', () => {
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
 
-      const query = useQuery(action, [], { immediate: false, placeholder })
+      const query = useQuery(action, () => [], { immediate: false, placeholder })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -408,7 +408,7 @@ describe('useQuery', () => {
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
 
-      const query = useQuery(action, [], { immediate: false })
+      const query = useQuery(action, () => [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -426,7 +426,7 @@ describe('useQuery', () => {
       const action = vi.fn(() => response)
       const { useQuery } = createQueryClient()
 
-      const query = useQuery(action, [], { immediate: false })
+      const query = useQuery(action, () => [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -448,7 +448,7 @@ describe('useQuery', () => {
       })
       const { useQuery } = createQueryClient()
 
-      const query = useQuery(action, [], { immediate: false })
+      const query = useQuery(action, () => [], { immediate: false })
 
       await vi.runOnlyPendingTimersAsync()
 
@@ -515,7 +515,7 @@ describe('defineQuery', () => {
 
     const { useQuery } = defineQuery(action)
 
-    const value = useQuery([])
+    const value = useQuery(() => [])
 
     await vi.runOnlyPendingTimersAsync()
 
