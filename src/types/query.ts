@@ -1,5 +1,5 @@
 import { RetryOptions } from '@/utilities/retry'
-import { Getter, MaybeGetter } from './getters'
+import { Getter } from './getters'
 import { QueryTag, Unset } from '@/types/tags'
 import { DefaultValue } from './utilities'
 
@@ -15,7 +15,7 @@ export type QueryData<
 
 export type QueryActionArgs<
   TAction extends QueryAction
-> = MaybeGetter<Parameters<TAction>> | Getter<Parameters<TAction> | null> | Getter<null>
+> = Getter<Parameters<TAction> | null> | Getter<null>
 
 export type QueryTags<
   TAction extends QueryAction = QueryAction

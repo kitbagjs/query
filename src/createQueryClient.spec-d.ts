@@ -53,16 +53,16 @@ describe('useQuery', () => {
       const placeholder = 'placeholder' as const
       const action = () => response
 
-      const queryA = useQuery(action, [])
+      const queryA = useQuery(action, () => [])
       expectTypeOf(queryA.data).toEqualTypeOf<typeof response | undefined>()
 
-      const queryB = useQuery(action, [], { placeholder })
+      const queryB = useQuery(action, () => [], { placeholder })
       expectTypeOf(queryB.data).toEqualTypeOf<typeof response | typeof placeholder>()
 
-      const queryC = await useQuery(action, [])
+      const queryC = await useQuery(action, () => [])
       expectTypeOf(queryC.data).toEqualTypeOf<typeof response>()
 
-      const queryD = await useQuery(action, [], { placeholder })
+      const queryD = await useQuery(action, () => [], { placeholder })
       expectTypeOf(queryD.data).toEqualTypeOf<typeof response>()
     })
   })
