@@ -474,7 +474,7 @@ describe('useQuery', () => {
 
       const { useQuery } = createQueryClient()
 
-      const result = useQuery(action, [], { retries: { count: 1, delay: 100 } })
+      const result = useQuery(action, () => [], { retries: { count: 1, delay: 100 } })
 
       await vi.advanceTimersByTimeAsync(0)
 
