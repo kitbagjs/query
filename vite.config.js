@@ -23,22 +23,22 @@ export default defineConfig({
       name: '@kitbag/query',
       fileName: 'kitbag-query',
     },
+    rollupOptions: {
+      external: ['vue'],
+      output: {
+        globals: {
+          vue: 'Vue',
+        },
+      },
+    },
   },
   plugins: [
     vue(),
-    dts({ 
-      rollupTypes: true 
-    })
+    dts({
+      rollupTypes: true,
+    }),
   ],
   esbuild: {
-    target: 'es2022'
-  },
-  rollupOptions: {
-    external: ['vue'],
-    output: {
-      globals: {
-        vue: 'Vue',
-      },
-    },
+    target: 'es2022',
   },
 })

@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 tsconfig.vitest-temp.json
+
+docs/.vitepress/cache
+docs/.vitepress/dist
