@@ -9,7 +9,7 @@ function searchCats(breed?: string) {
   ...
 }
 
-const catsQuery = query(searchCats, ['Maine Coon'])
+const catsQuery = query(searchCats, () => ['Maine Coon'])
 ```
 
 ## Query Properties
@@ -29,7 +29,7 @@ const catsQuery = query(searchCats, ['Maine Coon'])
 The query includes `execute`, which can be called at any point to force the function to be called again.
 
 ```ts
-const catsQuery = query(searchCats, ['Ragdoll'])
+const catsQuery = query(searchCats, () => ['Ragdoll'])
 
 function refresh(): void {
   catsQuery.execute()
@@ -45,9 +45,9 @@ Note that if awaiting a query, any errors that occur will be thrown. Consider pl
 :::
 
 ```ts
-const regularQuery = query(searchCats, ['Persian'])
+const regularQuery = query(searchCats, () => ['Persian'])
 //     ^? data: Cat[] | undefined
-const awaitedQuery = await query(searchCats, ['Persian'])
+const awaitedQuery = await query(searchCats, () => ['Persian'])
 //     ^? data: Cat[]
 ```
 
@@ -68,7 +68,7 @@ By default a query that hasn't been executed (or hasn't finished executing) will
 
 ```ts
 const placeholder: Cat[] = []
-const catsQuery = await query(searchCats, ['Bengal'], { placeholder })
+const catsQuery = await query(searchCats, () => ['Bengal'], { placeholder })
 //     ^? data: Cat[]
 ```
 
@@ -77,7 +77,7 @@ const catsQuery = await query(searchCats, ['Bengal'], { placeholder })
 Automatically re-trigger the function on an interval. Value provided is time in milliseconds.
 
 ```ts
-const catsQuery = await query(searchCats, ['Persian'], { interval: 30_000 })
+const catsQuery = await query(searchCats, () => ['Persian'], { interval: 30_000 })
 // automatically calls `searchCats` when query is created, and then again every 30 seconds
 ```
 
@@ -86,7 +86,7 @@ const catsQuery = await query(searchCats, ['Persian'], { interval: 30_000 })
 Automatically re-try the function when an error occurs. By default the query will wait `500` milliseconds between retries.
 
 ```ts
-const catsQuery = query(searchCats, ['Siamese'], { retries: 3 })
+const catsQuery = query(searchCats, () => ['Siamese'], { retries: 3 })
 // will try to call `searchCats` a total of 3 times, waiting 500 MS between each attempt
 ```
 
@@ -94,7 +94,7 @@ Alternatively you can pass in `RetryOptions`, which allows you to specify both a
 
 ```ts
 const retries = { count: 1, delay: 1_000 }
-const catsQuery = query(searchCats, ['Siamese'], { retries: 3 })
+const catsQuery = query(searchCats, () => ['Siamese'], { retries: 3 })
 // will retry after 1,000 MS once if initial call fails
 ```
 

@@ -7,12 +7,28 @@ import { MutationAction, MutationData, MutationTagsContext, MutationTagsBeforeCo
 import { QueryAction, QueryData, QueryActionArgs, QueryTags, QueryOptions, Query, AwaitedQuery } from './types/query'
 import { QueryTag, QueryTagType, QueryTagCallback, QueryTagFactory } from './types/tags'
 
-const { query, useQuery } = createQueryClient()
+const {
+  query,
+  useQuery,
+  defineQuery,
+  setQueryData,
+  refreshQueryData,
+  mutate,
+  useMutation,
+  defineMutation,
+} = createQueryClient()
 
 export {
   createQueryClient,
   tag,
-  query, useQuery
+  query,
+  useQuery,
+  defineQuery,
+  setQueryData,
+  refreshQueryData,
+  mutate,
+  useMutation,
+  defineMutation
 }
 
 export type {
