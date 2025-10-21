@@ -1,6 +1,6 @@
 # Tags & Invalidation
 
-When it comes time to refresh your query, there are a few options. First, each query has an `execute()` function, which will force the query to refetch and update the reactive `data` for your query but also any other query that shares the same function and arguments.
+When it comes time to refresh your query, there are a few options. First, each query has an `execute()` function which will ensure your query function gets called again.
 
 ## refreshQueryData
 
@@ -21,67 +21,30 @@ function handleRefreshClick(): void {
 
 ## Tags
 
-Often we have multiple queries to different functions that are related to each other. For example, any queries that use the current user token in API headers would probably want to be called again if the token changes. Ideally these queries that are otherwise unrelated could be grouped together.
+Often we have multiple queries to different functions that are related to each other. Ideally these queries that are otherwise unrelated could be grouped together. The group ensures an easy way to set or invalidate the cache for the whole group.
 
-Tags offer a way to not only organize related queries but also to set and invalidate a cache for queries you might not have direct access to. Think of `tag` as a function that generates a unique identifier that helps Kitbag Query to find the query later.
+As an example, let's group some queries that all use the same external API. That way when the API version changes, we can update all the queries at once because they share the same tag.
 
-Since each tag generated is unique, we recommend creating and exporting your tags from a shared location.
-
-::: code-group
-
-```ts [tags.ts]
-import { tag } from '@kitbag/query'
-
-export const requiresUserContext = tag()
-```
-
-:::
-
-Then from wherever queries are created the query options include `tags`, which expects an array of tags.
-
-::: code-group
-
-```vue [components/UserProfile.ts]
+```vue
 <script lang="ts" setup>
-import { useQuery } from '@kitbag/query'
-import { requiresUserContext } from '../tags'
-import { fetchMe } from '../services/userApi'
+import { tag, useQuery, refreshQueryData } from '@kitbag/query'
 
-const meQuery = useQuery(fetchMe, () => [], { tags: [requiresUserContext] })
+const usesCatsApi = tag()
+
+const catNamesQuery = useQuery(randomCatNames, () => [...], { tags: [usesCatsApi] })
+const catYearsQuery = useQuery(convertToCatYears, () => [...], { tags: [usesCatsApi] })
+const catYearsQuery = useQuery(checkCatIsNapping, () => [...], { tags: [usesCatsApi] })
+
+// later
+refreshQueryData(usesCatsApi)
 </script>
 ```
 
-```vue [components/NotificationsIndicator.ts]
-<script lang="ts" setup>
-import { useQuery } from '@kitbag/query'
-import { requiresUserContext } from '../tags'
-import { getNotifications } from '../services/notificationsApi'
-
-const notificationsQuery = useQuery(getNotifications, () => [], { tags: [requiresUserContext] })
-</script>
-```
-
-:::
-
-Then later perhaps when the user token changes, you can access and invalidate the cache for this tag.
-
-::: code-group
-
-```ts [services/auth.ts]
-import { refreshQueryData } from '@kitbag/query'
-import { requiresUserContext } from '../tags'
-
-function onLoginSuccessful(): void {
-  // refreshes both meQuery and notificationsQuery
-  refreshQueryData(requiresUserContext)
-}
-```
-
-:::
+Think of `tag` as a function that generates a unique identifier that helps Kitbag Query to find the query later. Since each tag generated is unique, we recommend creating and exporting your tags from a shared location.
 
 ## Tag Type
 
-Kitbag Query also tracks a generic on each tag, which By default is `unknown`. This satisfies any query, but assigning your actual type not only validates the query type but also provides improved type safety later when accessing cached data, like in `setQueryData`
+Kitbag Query also supports typed tags. Where a generic type can be added to a tag for extra type safety. By default the tag type is `unknown`. This satisfies any query, but assigning your actual type not only validates the query type but also provides improved type safety later when accessing cached data, like in `setQueryData`.
 
 ```ts
 import { tag, setQueryData } from '@kitbag/query'
