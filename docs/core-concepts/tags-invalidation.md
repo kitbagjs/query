@@ -23,20 +23,18 @@ function handleRefreshClick(): void {
 
 Often we have multiple queries to different functions that are related to each other. These queries that are otherwise unrelated could be grouped together. The group ensures an easy way to set or invalidate the cache for the whole group.
 
-As an example, let's group some queries that all use the same external API. That way when the API version changes, we can update all the queries at once because they share the same tag.
-
 ```vue
 <script lang="ts" setup>
 import { tag, useQuery, refreshQueryData } from '@kitbag/query'
 
-const usesCatsApi = tag()
+const catsTag = tag()
 
-const catNamesQuery = useQuery(randomCatNames, () => [...], { tags: [usesCatsApi] })
-const catYearsQuery = useQuery(convertToCatYears, () => [...], { tags: [usesCatsApi] })
-const catYearsQuery = useQuery(checkCatIsNapping, () => [...], { tags: [usesCatsApi] })
+const catNamesQuery = useQuery(randomCatNames, () => [...], { tags: [catsTag] })
+const catYearsQuery = useQuery(convertToCatYears, () => [...], { tags: [catsTag] })
+const catNappingQuery = useQuery(checkCatIsNapping, () => [...], { tags: [catsTag] })
 
 // later
-refreshQueryData(usesCatsApi)
+refreshQueryData(catsTag)
 </script>
 ```
 
@@ -57,59 +55,19 @@ setQueryData(catTag, (data) => ...)
 
 ## Tag Factories
 
-Tags can also be configured as factories, which offer a way to increase specificity through a callback you define. For example, if you have a bunch of instances of a component that has a query and you want to selectively invalidate cache.
+Tags can also be configured as factories, which offer a way to increase specificity through a callback you define.
 
-::: code-group
-
-```vue [components/CatViewer.vue]
-<script lang="ts" setup>
-import { useQuery } from '@kitbag/query'
-
-const { catId } = defineProps<{
-  catId: string
-}>()
-
-const query = useQuery(fetchCat, () => [catId])
-</script>
-```
-
-:::
-
-If in another part of your application you update the cat model, you could instead define a tag factory.
-
-::: code-group
-
-```ts [tags.ts]
+```ts
 import { tag } from '@kitbag/query'
 
 export const catIdTag = tag<Cat, string>(((catId: string) => catId))
 ```
 
-```vue [components/CatViewer.vue]
-<script lang="ts" setup>
-import { useQuery } from '@kitbag/query'
-import { catIdTag } from '../tags'
+This ensures that the tag is narrowed to only the queries for _this_ `catId`.
 
-const { catId } = defineProps<{
-  catId: string
-}>()
-
-const query = useQuery(fetchCat, () => [catId], { 
-  tags: (cat: Cat) => [catIdTag(cat.id)] 
-})
-</script>
-```
-
-```vue [components/CatEditForm.vue]
-<script lang="ts" setup>
-import { refreshQueryData } from '@kitbag/query'
-import { catIdTag } from '../tags'
-
+```ts
 function save(catId: string): Promise<void> {
   ...
   refreshQueryData(catIdTag(catId))
 }
-</script>
 ```
-
-:::
