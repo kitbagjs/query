@@ -21,7 +21,7 @@ function handleRefreshClick(): void {
 
 ## Tags
 
-Often we have multiple queries to different functions that are related to each other. Ideally these queries that are otherwise unrelated could be grouped together. The group ensures an easy way to set or invalidate the cache for the whole group.
+Often we have multiple queries to different functions that are related to each other. These queries that are otherwise unrelated could be grouped together. The group ensures an easy way to set or invalidate the cache for the whole group.
 
 As an example, let's group some queries that all use the same external API. That way when the API version changes, we can update all the queries at once because they share the same tag.
 
