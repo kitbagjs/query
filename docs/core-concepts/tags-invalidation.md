@@ -21,7 +21,7 @@ function handleRefreshClick(): void {
 
 ## Tags
 
-Often we have multiple queries to different functions that are related to each other. These queries that are otherwise unrelated could be grouped together. The group ensures an easy way to set or invalidate the cache for the whole group.
+Often we have multiple queries to different functions that are related to each other. These queries could be grouped together using a tag. The tag ensures an easy way to set or invalidate the cache for the whole group.
 
 ```vue
 <script lang="ts" setup>
