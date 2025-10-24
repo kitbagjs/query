@@ -15,7 +15,7 @@ function handleRefreshClick(): void {
   refreshQueryData(searchCats)
 
   // invalidates only queries that call searchCats with ['Himalayan']
-  refreshQueryData(searchCats, () => ['Himalayan'])
+  refreshQueryData(searchCats, ['Himalayan'])
 }
 ```
 
@@ -61,6 +61,12 @@ Tags can also be configured as factories, which offer a way to increase specific
 import { tag } from '@kitbag/query'
 
 export const catIdTag = tag<Cat, string>(((catId: string) => catId))
+```
+
+Then assign tags on queries using the tags getter syntax.
+
+```ts
+const catsQuery = useQuery(getCat, () => [props.catId], { tags: (cat) => [catIdTag(cat.id)] })
 ```
 
 This ensures that the tag is narrowed to only the queries for _this_ `catId`.
