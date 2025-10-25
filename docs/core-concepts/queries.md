@@ -108,7 +108,7 @@ The `useQuery` function adds some super useful, vue specific functionality you'd
 
 ### Parameters argument is reactive
 
-When parameters for your query function change, the query is automatically updated. 
+The parameters for your query must be provided as a getter, which ensures they are reactive. When the parameters change, the query is automatically updated. The old query is disposed and a new query is created.
 
 ```ts
 import { useQuery } from '@kitbag/query'
