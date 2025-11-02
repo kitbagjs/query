@@ -1,1 +1,58 @@
-# API
+# @kitbag/query
+
+## Functions
+
+- [createQueryClient](functions/createQueryClient.md)
+- [tag](functions/tag.md)
+
+## Types
+
+- [AwaitedMutation](types/AwaitedMutation.md)
+- [AwaitedQuery](types/AwaitedQuery.md)
+- [ClientOptions](types/ClientOptions.md)
+- [DefinedMutation](types/DefinedMutation.md)
+- [DefinedMutationComposition](types/DefinedMutationComposition.md)
+- [DefinedMutationFunction](types/DefinedMutationFunction.md)
+- [DefinedQuery](types/DefinedQuery.md)
+- [DefinedQueryComposition](types/DefinedQueryComposition.md)
+- [DefinedQueryFunction](types/DefinedQueryFunction.md)
+- [DefineMutation](types/DefineMutation.md)
+- [DefineQuery](types/DefineQuery.md)
+- [Mutation](types/Mutation.md)
+- [MutationAction](types/MutationAction.md)
+- [MutationComposition](types/MutationComposition.md)
+- [MutationData](types/MutationData.md)
+- [MutationFunction](types/MutationFunction.md)
+- [MutationOptions](types/MutationOptions.md)
+- [MutationTags](types/MutationTags.md)
+- [MutationTagsAfterContext](types/MutationTagsAfterContext.md)
+- [MutationTagsBeforeContext](types/MutationTagsBeforeContext.md)
+- [MutationTagsContext](types/MutationTagsContext.md)
+- [MutationTagsType](types/MutationTagsType.md)
+- [OnErrorContext](types/OnErrorContext.md)
+- [OnExecuteContext](types/OnExecuteContext.md)
+- [OnSuccessContext](types/OnSuccessContext.md)
+- [Query](types/Query.md)
+- [QueryAction](types/QueryAction.md)
+- [QueryActionArgs](types/QueryActionArgs.md)
+- [QueryClient](types/QueryClient.md)
+- [QueryComposition](types/QueryComposition.md)
+- [QueryData](types/QueryData.md)
+- [QueryDataSetter](types/QueryDataSetter.md)
+- [QueryFunction](types/QueryFunction.md)
+- [QueryOptions](types/QueryOptions.md)
+- [QueryTag](types/QueryTag.md)
+- [QueryTagCallback](types/QueryTagCallback.md)
+- [QueryTagFactory](types/QueryTagFactory.md)
+- [QueryTags](types/QueryTags.md)
+- [QueryTagType](types/QueryTagType.md)
+- [RefreshQueryData](types/RefreshQueryData.md)
+- [SetQueryData](types/SetQueryData.md)
+- [SetQueryDataAfterContext](types/SetQueryDataAfterContext.md)
+- [SetQueryDataBeforeContext](types/SetQueryDataBeforeContext.md)
+- [UseQueryOptions](types/UseQueryOptions.md)
+
+## Variables
+
+- [query](functions/query.md)
+- [useQuery](functions/useQuery.md)
