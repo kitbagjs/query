@@ -599,6 +599,28 @@ describe('setQueryData', () => {
     expect(numberQuery.data).toBe(2)
   })
 
+  test('tags with object setter dispatches by kind', async () => {
+    const { setQueryData, query } = createQueryClient()
+    const stringTag = tag<string, 'name'>('name')
+    const numberTag = tag<number, 'count'>('count')
+
+    const stringAction = () => 'foo'
+    const numberAction = () => 1
+
+    const stringQuery = query(stringAction, [], { tags: [stringTag] })
+    const numberQuery = query(numberAction, [], { tags: [numberTag] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    setQueryData([stringTag, numberTag], {
+      name: (data) => data + '-bar',
+      count: (data) => data + 10,
+    })
+
+    expect(stringQuery.data).toBe('foo-bar')
+    expect(numberQuery.data).toBe(11)
+  })
+
   test('action', async () => {
     const { setQueryData, query } = createQueryClient()
 

@@ -16,23 +16,35 @@ test('tag function returns a tag factory when a callback is provided', () => {
 
   const value = factory('foo')
 
-  expectTypeOf(value).toEqualTypeOf<QueryTag<Unset>>()
+  expectTypeOf(value).toEqualTypeOf<QueryTag<Unset, 'default'>>()
 })
 
 test('tag function returns a typed tag when data generic is provided', () => {
   const value = tag<string>()
 
-  expectTypeOf(value).toEqualTypeOf<QueryTag<string>>()
+  expectTypeOf(value).toEqualTypeOf<QueryTag<string, 'default'>>()
 })
 
 test('tag factory returns a typed tag when data generic is provided', () => {
   const factory = tag<string, string>((value: string) => value)
 
-  expectTypeOf(factory).toEqualTypeOf<QueryTagFactory<string, string>>()
+  expectTypeOf(factory).toEqualTypeOf<QueryTagFactory<string, string, 'default'>>()
 
   const value = factory('foo')
 
-  expectTypeOf(value).toEqualTypeOf<QueryTag<string>>()
+  expectTypeOf(value).toEqualTypeOf<QueryTag<string, 'default'>>()
+})
+
+test('tag function preserves kind literal', () => {
+  const value = tag('count')
+
+  expectTypeOf(value).toEqualTypeOf<QueryTag<Unset, 'count'>>()
+})
+
+test('tag function preserves kind literal with explicit data and kind generics', () => {
+  const value = tag<number, 'count'>('count')
+
+  expectTypeOf(value).toEqualTypeOf<QueryTag<number, 'count'>>()
 })
 
 test('query from query function with tags callback is called with the query data', () => {
