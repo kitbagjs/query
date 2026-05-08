@@ -1,30 +1,29 @@
 import { createSequence } from './createSequence'
-import { getTagKey } from './getTagKey'
-import { QueryTagFactory, QueryTagCallback, QueryTag, Unset, unset, DEFAULT_TAG_KIND, DefaultTagKind } from './types/tags'
+import { getTagKey, TagKey } from './getTagKey'
+import { QueryTag, unset } from './types/tags'
 
 const createTagId = createSequence()
 
-function createQueryTag(id: number, kind: string, value: unknown): QueryTag {
-  return {
-    data: unset,
-    kind,
-    key: getTagKey(id, value),
-  } as QueryTag
-}
-
-export function tag<const TData = Unset, const TKind extends string = DefaultTagKind>(kind?: TKind): QueryTag<TData, TKind>
-export function tag<const TData = Unset, TInput = unknown, const TKind extends string = DefaultTagKind>(callback: QueryTagCallback<TInput>, kind?: TKind): QueryTagFactory<TData, TInput, TKind>
-export function tag(callbackOrKind?: QueryTagCallback | string, maybeKind?: string): QueryTag | QueryTagFactory {
+function createTag<TData>(parentKeys: readonly TagKey[], label?: string): QueryTag<TData> {
   const id = createTagId()
+  const ownKey = getTagKey(id, label)
+  const keys = Object.freeze([...parentKeys, ownKey])
 
-  if (typeof callbackOrKind === 'function') {
-    const callback = callbackOrKind
-    const kind = maybeKind ?? DEFAULT_TAG_KIND
-
-    return (value) => createQueryTag(id, kind, callback(value))
+  const queryTag = {
+    data: unset,
+    key: ownKey,
+    keys,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+    add<TChildData extends [TData] extends [never] ? unknown : TData, const TKind extends string>(name: TKind): QueryTag<TChildData> {
+      return createTag<TChildData>(keys, name)
+    },
   }
 
-  const kind = callbackOrKind ?? DEFAULT_TAG_KIND
+  return queryTag as unknown as QueryTag<TData>
+}
 
-  return createQueryTag(id, kind, undefined)
+export function tag(): QueryTag<never>
+export function tag<TData>(): QueryTag<TData>
+export function tag(): QueryTag {
+  return createTag([])
 }

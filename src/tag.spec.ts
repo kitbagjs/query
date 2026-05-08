@@ -8,19 +8,28 @@ test('tags are unique', () => {
   expect(tag1).not.toBe(tag2)
 })
 
-test('tag factories are unique', () => {
-  const factory1 = tag((string: string) => string)
-  const factory2 = tag((string: string) => string)
-  const value1 = factory1('foo')
-  const value2 = factory2('foo')
+test('tag.add returns a new descendant tag', () => {
+  const baseTag = tag()
+  const userTag = baseTag.add<number, 'count'>('count')
 
-  expect(value1).not.toBe(value2)
+  expect(userTag).toBeDefined()
+  expect(userTag.key).not.toBe(baseTag.key)
 })
 
-test('tag factory returns the same key when given the same value', () => {
-  const factory = tag((string: string) => string)
-  const value1 = factory('foo')
-  const value2 = factory('foo')
+test('descendants carry their ancestor keys', () => {
+  const baseTag = tag()
+  const userTag = baseTag.add<number, 'count'>('count')
 
-  expect(value1.key).toBe(value2.key)
+  expect(userTag.keys).toContain(baseTag.key)
+  expect(userTag.keys).toContain(userTag.key)
+})
+
+test('chained .add calls accumulate ancestor keys', () => {
+  const baseTag = tag()
+  const userTag = baseTag.add<{ id: number }, 'user'>('user')
+  const deepTag = userTag.add<{ id: number, label: string }, 'label'>('label')
+
+  expect(deepTag.keys).toContain(baseTag.key)
+  expect(deepTag.keys).toContain(userTag.key)
+  expect(deepTag.keys).toContain(deepTag.key)
 })

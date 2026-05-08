@@ -26,15 +26,8 @@ describe('query', () => {
     test('tags', async () => {
       const action = () => 'response'
       const { query, setQueryData } = createQueryClient()
-      const numberTag = tag<number, 'count'>('count')
-      const stringTag = tag<string, 'name'>('name')
+      const stringTag = tag().add<string, 'name'>('name')
       const untypedTag = tag()
-
-      // @ts-expect-error - number tag not assignable to string action
-      query(action, [], { tags: [numberTag, stringTag] })
-
-      // @ts-expect-error - number tag not assignable to string action
-      query(action, [], { tags: () => [numberTag, stringTag] })
 
       query(action, [], { tags: [stringTag, untypedTag] })
       query(action, [], { tags: () => [stringTag, untypedTag] })
@@ -42,9 +35,15 @@ describe('query', () => {
       query(action, [], { tags: [untypedTag] })
       query(action, [], { tags: () => [untypedTag] })
 
-      setQueryData([numberTag, stringTag], {
-        count: (data) => data + 1,
-        name: (data) => data + 'bar',
+      setQueryData(stringTag, (data) => {
+        expectTypeOf(data).toEqualTypeOf<string>()
+        return data + 'bar'
+      })
+
+      // @ts-expect-error - sharedTag has data: never, can't return anything useful
+      setQueryData(untypedTag, (data) => {
+        expectTypeOf(data).toEqualTypeOf<never>()
+        return 'could be corrupting'
       })
     })
   })
@@ -104,113 +103,63 @@ describe('defineQuery', () => {
 })
 
 describe('setQueryData', () => {
-  test('tags', async () => {
+  test('naked tag is not setQueryData-able (data: never)', () => {
     const { setQueryData } = createQueryClient()
-    const numberTag = tag<number, 'count'>('count')
-    const stringTag = tag<string, 'name'>('name')
-    const untypedTag = tag()
+    const myTag = tag()
 
-    setQueryData(untypedTag, (data) => {
-      expectTypeOf(data).toEqualTypeOf<unknown>()
-      return 'foo'
-    })
+    // @ts-expect-error - data: never, return must be never (effectively impossible)
+    setQueryData(myTag, () => 'anything')
+  })
+
+  test('typed tag passes data through with its declared type', () => {
+    const { setQueryData } = createQueryClient()
+    const numberTag = tag<number>()
 
     setQueryData(numberTag, (data) => {
       expectTypeOf(data).toEqualTypeOf<number>()
-      return 2
+      return data + 1
     })
 
-    setQueryData(stringTag, (data) => {
-      expectTypeOf(data).toEqualTypeOf<string>()
-      return 'new string'
-    })
-
-    setQueryData([untypedTag], (data) => {
-      expectTypeOf(data).toEqualTypeOf<unknown>()
-      return 'foo'
-    })
-
-    setQueryData([numberTag], (data) => {
-      expectTypeOf(data).toEqualTypeOf<number>()
-      return 2
-    })
-
-    // multiple tags with distinct kinds: simple callback collapses to never, must use object form
-    setQueryData([numberTag, stringTag], {
-      count: (data) => {
-        expectTypeOf(data).toEqualTypeOf<number>()
-        return data + 1
-      },
-      name: (data) => {
-        expectTypeOf(data).toEqualTypeOf<string>()
-        return data + 'bar'
-      },
-    })
-
-    // untyped tag has the default kind, so its handler is keyed by 'default'
-    setQueryData([untypedTag, stringTag, numberTag], {
-      default: (data) => {
-        expectTypeOf(data).toEqualTypeOf<unknown>()
-        return 'foo'
-      },
-      count: (data) => {
-        expectTypeOf(data).toEqualTypeOf<number>()
-        return data
-      },
-      name: (data) => {
-        expectTypeOf(data).toEqualTypeOf<string>()
-        return data
-      },
-    })
-
-    // @ts-expect-error - number tag with string return
+    // @ts-expect-error - returning wrong type
     setQueryData(numberTag, (data) => {
       expectTypeOf(data).toEqualTypeOf<number>()
-      return 'string'
-    })
-
-    // @ts-expect-error - object handler returning wrong type for kind
-    setQueryData([numberTag, stringTag], {
-      count: () => 'wrong',
-      name: (data) => data,
-    })
-
-    // @ts-expect-error - missing handler for one of the kinds
-    setQueryData([numberTag, stringTag], {
-      count: (data) => data,
+      return 'wrong type'
     })
   })
 
-  test('tags with shared kind', () => {
+  test('descendant tag has its own data type', () => {
     const { setQueryData } = createQueryClient()
-    const userTagA = tag<{ id: number }, 'user'>('user')
-    const userTagB = tag<{ id: number }, 'user'>('user')
+    const sharedTag = tag()
+    const userTag = sharedTag.add<{ id: number }, 'user'>('user')
 
-    // same kind, same type — simple callback works
-    setQueryData([userTagA, userTagB], (data) => {
+    setQueryData(userTag, (data) => {
       expectTypeOf(data).toEqualTypeOf<{ id: number }>()
       return data
     })
 
-    // same kind, same type — object form also works
-    setQueryData([userTagA, userTagB], {
-      user: (data) => {
-        expectTypeOf(data).toEqualTypeOf<{ id: number }>()
-        return data
-      },
+    // ancestor tag is still locked at the type level
+    // @ts-expect-error - sharedTag has data: never
+    setQueryData(sharedTag, (data) => {
+      expectTypeOf(data).toEqualTypeOf<never>()
+
+      return 'could be corrupting'
     })
   })
 
-  test('tags with same kind but different types collapse data to never', () => {
+  test('descendants nest arbitrarily deep', () => {
     const { setQueryData } = createQueryClient()
-    const aTag = tag<number, 'shared'>('shared')
-    const bTag = tag<string, 'shared'>('shared')
+    const sharedTag = tag()
+    const userTag = sharedTag.add<{ id: number }, 'user'>('user')
+    const userAvatarTag = userTag.add<{ id: number, url: string }, 'avatar'>('avatar')
 
-    setQueryData([aTag, bTag], {
-      shared: (data) => {
-        expectTypeOf(data).toEqualTypeOf<never>()
-        return data
-      },
+    setQueryData(userAvatarTag, (data) => {
+      expectTypeOf(data).toEqualTypeOf<{ id: number, url: string }>()
+      return data
+    })
+
+    setQueryData(userTag, (data) => {
+      expectTypeOf(data).toEqualTypeOf<{ id: number }>()
+      return data
     })
   })
 
@@ -311,12 +260,14 @@ describe('refreshQueryData', () => {
   test('tags', () => {
     const { refreshQueryData } = createQueryClient()
 
-    const numberTag = tag<number>()
-    const stringTag = tag<string>()
+    const sharedTag = tag()
+    const numberTag = sharedTag.add<number, 'count'>('count')
+    const stringTag = sharedTag.add<string, 'name'>('name')
     const action = (param: number) => param
 
+    refreshQueryData(sharedTag)
     refreshQueryData(numberTag)
-    refreshQueryData([numberTag, stringTag])
+    refreshQueryData(stringTag)
     refreshQueryData(action)
     refreshQueryData(action, [2])
 

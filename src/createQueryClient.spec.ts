@@ -562,22 +562,18 @@ describe('setQueryData', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    setQueryData(stringTag, () => {
-      return 'bar'
-    })
-
-    setQueryData(numberTag, () => {
-      return 2
-    })
+    setQueryData(stringTag, () => 'bar')
+    setQueryData(numberTag, () => 2)
 
     expect(stringQuery.data).toBe('bar')
     expect(numberQuery.data).toBe(2)
   })
 
-  test('tags', async () => {
+  test('descendant tag setter only matches that descendant\'s queries', async () => {
     const { setQueryData, query } = createQueryClient()
-    const stringTag = tag<string>()
-    const numberTag = tag<number>()
+    const sharedTag = tag()
+    const stringTag = sharedTag.add<string, 'name'>('name')
+    const numberTag = sharedTag.add<number, 'count'>('count')
 
     const stringAction = () => 'foo'
     const numberAction = () => 1
@@ -587,38 +583,10 @@ describe('setQueryData', () => {
 
     await vi.runOnlyPendingTimersAsync()
 
-    setQueryData([stringTag], () => {
-      return 'bar'
-    })
-
-    setQueryData([numberTag], () => {
-      return 2
-    })
-
-    expect(stringQuery.data).toBe('bar')
-    expect(numberQuery.data).toBe(2)
-  })
-
-  test('tags with object setter dispatches by kind', async () => {
-    const { setQueryData, query } = createQueryClient()
-    const stringTag = tag<string, 'name'>('name')
-    const numberTag = tag<number, 'count'>('count')
-
-    const stringAction = () => 'foo'
-    const numberAction = () => 1
-
-    const stringQuery = query(stringAction, [], { tags: [stringTag] })
-    const numberQuery = query(numberAction, [], { tags: [numberTag] })
-
-    await vi.runOnlyPendingTimersAsync()
-
-    setQueryData([stringTag, numberTag], {
-      name: (data) => data + '-bar',
-      count: (data) => data + 10,
-    })
+    setQueryData(stringTag, (data) => data + '-bar')
 
     expect(stringQuery.data).toBe('foo-bar')
-    expect(numberQuery.data).toBe(11)
+    expect(numberQuery.data).toBe(1)
   })
 
   test('action', async () => {
@@ -678,8 +646,8 @@ describe('refreshQueryData', () => {
 
     const numberAction = vi.fn()
     const stringAction = vi.fn()
-    const numberTag = tag<number>()
-    const stringTag = tag<string>()
+    const numberTag = tag()
+    const stringTag = tag()
 
     query(numberAction, [], { tags: [numberTag] })
     query(stringAction, [], { tags: [stringTag] })
@@ -817,7 +785,7 @@ describe('mutate', () => {
     [undefined],
   ])('refreshes tagged queries: %s', async (refreshQueryData) => {
     const { mutate, query } = createQueryClient()
-    const numberTag = tag<number>()
+    const numberTag = tag()
     const queryAction = vi.fn()
     const mutationAction = vi.fn()
 
@@ -839,7 +807,7 @@ describe('mutate', () => {
 
   test('does not refresh tagged queries if refreshQueryData is false', async () => {
     const { mutate, query } = createQueryClient()
-    const numberTag = tag<number>()
+    const numberTag = tag()
     const queryAction = vi.fn()
     const mutationAction = vi.fn()
 
@@ -861,7 +829,7 @@ describe('mutate', () => {
 
   test('does not refresh tagged queries if the action throws an error', async () => {
     const { mutate, query } = createQueryClient()
-    const numberTag = tag<number>()
+    const numberTag = tag()
     const queryAction = vi.fn()
     const mutationAction = vi.fn(() => {
       throw new Error()
@@ -1069,7 +1037,7 @@ describe('useMutation', () => {
   test('setQueryDataBefore and setQueryDataAfter are called when the mutation is executed', async () => {
     const { useMutation, query } = createQueryClient()
     const { promise, resolve } = Promise.withResolvers<void>()
-    const numberTag = tag<number>()
+    const numberTag = tag<void>()
     const queryAction = vi.fn()
     const mutationAction = vi.fn(() => promise)
     const setQueryDataBefore = vi.fn()
@@ -1328,8 +1296,8 @@ describe('defineMutation', () => {
           const { promise, resolve } = Promise.withResolvers<void>()
           const mutationPayload = 1
           const mutationAction = (value: number) => promise.then(() => value)
-          const tagA = tag()
-          const tagB = tag()
+          const tagA = tag<number>()
+          const tagB = tag<number>()
           const queryAResponse = 1
           const queryBResponse = 1
           const queryAAction = () => queryAResponse
@@ -1649,8 +1617,8 @@ describe('defineMutation', () => {
           const { promise, resolve } = Promise.withResolvers<void>()
           const mutationPayload = 1
           const mutationAction = (value: number) => promise.then(() => value)
-          const tagA = tag()
-          const tagB = tag()
+          const tagA = tag<number>()
+          const tagB = tag<number>()
           const queryAResponse = 1
           const queryBResponse = 1
           const queryAAction = () => queryAResponse

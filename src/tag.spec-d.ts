@@ -1,50 +1,60 @@
 import { expectTypeOf, test, vi } from 'vitest'
-import { QueryTag, QueryTagFactory, Unset } from '@/types/tags'
+import { QueryTag } from '@/types/tags'
 import { createQueryClient } from './createQueryClient'
 import { tag } from './tag'
 
-test('tag function returns a tag when no callback is provided', () => {
+test('tag function returns a QueryTag<never>', () => {
   const value = tag()
 
   expectTypeOf(value).toExtend<QueryTag>()
+  expectTypeOf(value).toEqualTypeOf<QueryTag<never>>()
 })
 
-test('tag function returns a tag factory when a callback is provided', () => {
-  const factory = tag((string: string) => string)
+test('tag<T>() returns a typed QueryTag<T>', () => {
+  const value = tag<number>()
 
-  expectTypeOf(factory).toExtend<QueryTagFactory<unknown, string>>()
-
-  const value = factory('foo')
-
-  expectTypeOf(value).toEqualTypeOf<QueryTag<Unset, 'default'>>()
+  expectTypeOf(value).toEqualTypeOf<QueryTag<number>>()
 })
 
-test('tag function returns a typed tag when data generic is provided', () => {
-  const value = tag<string>()
+test('tag.add<T, K>(K) returns a typed descendant', () => {
+  const baseTag = tag()
+  const userTag = baseTag.add<{ id: number }, 'user'>('user')
 
-  expectTypeOf(value).toEqualTypeOf<QueryTag<string, 'default'>>()
+  expectTypeOf(userTag).toEqualTypeOf<QueryTag<{ id: number }>>()
 })
 
-test('tag factory returns a typed tag when data generic is provided', () => {
-  const factory = tag<string, string>((value: string) => value)
+test('descendants nest arbitrarily deep', () => {
+  const baseTag = tag()
+  const userTag = baseTag.add<{ id: number }, 'user'>('user')
+  const userAvatarTag = userTag.add<{ id: number, url: string }, 'avatar'>('avatar')
 
-  expectTypeOf(factory).toEqualTypeOf<QueryTagFactory<string, string, 'default'>>()
-
-  const value = factory('foo')
-
-  expectTypeOf(value).toEqualTypeOf<QueryTag<string, 'default'>>()
+  expectTypeOf(userAvatarTag).toEqualTypeOf<QueryTag<{ id: number, url: string }>>()
 })
 
-test('tag function preserves kind literal', () => {
-  const value = tag('count')
+test('descendant data must be assignable to ancestor data', () => {
+  type User = { id: number }
+  type UserImage = { id: number, url: string }
+  type UserDetails = { id: number, bio: string }
 
-  expectTypeOf(value).toEqualTypeOf<QueryTag<Unset, 'count'>>()
+  const usersTag = tag<User | UserImage | UserDetails>()
+
+  expectTypeOf(usersTag.add<User, 'user'>('user')).toEqualTypeOf<QueryTag<User>>()
+  expectTypeOf(usersTag.add<UserImage, 'image'>('image')).toEqualTypeOf<QueryTag<UserImage>>()
+  expectTypeOf(usersTag.add<UserDetails, 'details'>('details')).toEqualTypeOf<QueryTag<UserDetails>>()
 })
 
-test('tag function preserves kind literal with explicit data and kind generics', () => {
-  const value = tag<number, 'count'>('count')
+test('descendant with data not assignable to ancestor is rejected', () => {
+  const userTag = tag<{ id: number }>()
 
-  expectTypeOf(value).toEqualTypeOf<QueryTag<number, 'count'>>()
+  // @ts-expect-error - { unrelated: true } is not assignable to { id: number }
+  userTag.add<{ unrelated: true }, 'bad'>('bad')
+})
+
+test('untyped root places no constraint on descendants', () => {
+  const baseTag = tag()
+
+  expectTypeOf(baseTag.add<number, 'count'>('count')).toEqualTypeOf<QueryTag<number>>()
+  expectTypeOf(baseTag.add<{ anything: true }, 'whatever'>('whatever')).toEqualTypeOf<QueryTag<{ anything: true }>>()
 })
 
 test('query from query function with tags callback is called with the query data', () => {
