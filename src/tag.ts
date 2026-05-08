@@ -4,18 +4,17 @@ import { QueryTag, unset } from './types/tags'
 
 const createTagId = createSequence()
 
-function createTag<TData>(parentKeys: readonly TagKey[], label?: string): QueryTag<TData> {
+function createTag<TData>(parentKeys: readonly TagKey[]): QueryTag<TData> {
   const id = createTagId()
-  const ownKey = getTagKey(id, label)
+  const ownKey = getTagKey(id, undefined)
   const keys = Object.freeze([...parentKeys, ownKey])
 
   const queryTag = {
     data: unset,
     key: ownKey,
     keys,
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-    add<TChildData extends [TData] extends [never] ? unknown : TData, const TKind extends string>(name: TKind): QueryTag<TChildData> {
-      return createTag<TChildData>(keys, name)
+    add<TChildData extends [TData] extends [never] ? unknown : TData>(): QueryTag<TChildData> {
+      return createTag<TChildData>(keys)
     },
   }
 

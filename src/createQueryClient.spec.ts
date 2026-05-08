@@ -572,8 +572,8 @@ describe('setQueryData', () => {
   test('descendant tag setter only matches that descendant\'s queries', async () => {
     const { setQueryData, query } = createQueryClient()
     const sharedTag = tag()
-    const stringTag = sharedTag.add<string, 'name'>('name')
-    const numberTag = sharedTag.add<number, 'count'>('count')
+    const stringTag = sharedTag.add<string>()
+    const numberTag = sharedTag.add<number>()
 
     const stringAction = () => 'foo'
     const numberAction = () => 1

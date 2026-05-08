@@ -26,7 +26,7 @@ describe('query', () => {
     test('tags', async () => {
       const action = () => 'response'
       const { query, setQueryData } = createQueryClient()
-      const stringTag = tag().add<string, 'name'>('name')
+      const stringTag = tag().add<string>()
       const untypedTag = tag()
 
       query(action, [], { tags: [stringTag, untypedTag] })
@@ -130,7 +130,7 @@ describe('setQueryData', () => {
   test('descendant tag has its own data type', () => {
     const { setQueryData } = createQueryClient()
     const sharedTag = tag()
-    const userTag = sharedTag.add<{ id: number }, 'user'>('user')
+    const userTag = sharedTag.add<{ id: number }>()
 
     setQueryData(userTag, (data) => {
       expectTypeOf(data).toEqualTypeOf<{ id: number }>()
@@ -149,8 +149,8 @@ describe('setQueryData', () => {
   test('descendants nest arbitrarily deep', () => {
     const { setQueryData } = createQueryClient()
     const sharedTag = tag()
-    const userTag = sharedTag.add<{ id: number }, 'user'>('user')
-    const userAvatarTag = userTag.add<{ id: number, url: string }, 'avatar'>('avatar')
+    const userTag = sharedTag.add<{ id: number }>()
+    const userAvatarTag = userTag.add<{ id: number, url: string }>()
 
     setQueryData(userAvatarTag, (data) => {
       expectTypeOf(data).toEqualTypeOf<{ id: number, url: string }>()
@@ -261,8 +261,8 @@ describe('refreshQueryData', () => {
     const { refreshQueryData } = createQueryClient()
 
     const sharedTag = tag()
-    const numberTag = sharedTag.add<number, 'count'>('count')
-    const stringTag = sharedTag.add<string, 'name'>('name')
+    const numberTag = sharedTag.add<number>()
+    const stringTag = sharedTag.add<string>()
     const action = (param: number) => param
 
     refreshQueryData(sharedTag)

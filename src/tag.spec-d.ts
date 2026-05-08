@@ -16,17 +16,17 @@ test('tag<T>() returns a typed QueryTag<T>', () => {
   expectTypeOf(value).toEqualTypeOf<QueryTag<number>>()
 })
 
-test('tag.add<T, K>(K) returns a typed descendant', () => {
+test('tag.add<T>() returns a typed descendant', () => {
   const baseTag = tag()
-  const userTag = baseTag.add<{ id: number }, 'user'>('user')
+  const userTag = baseTag.add<{ id: number }>()
 
   expectTypeOf(userTag).toEqualTypeOf<QueryTag<{ id: number }>>()
 })
 
 test('descendants nest arbitrarily deep', () => {
   const baseTag = tag()
-  const userTag = baseTag.add<{ id: number }, 'user'>('user')
-  const userAvatarTag = userTag.add<{ id: number, url: string }, 'avatar'>('avatar')
+  const userTag = baseTag.add<{ id: number }>()
+  const userAvatarTag = userTag.add<{ id: number, url: string }>()
 
   expectTypeOf(userAvatarTag).toEqualTypeOf<QueryTag<{ id: number, url: string }>>()
 })
@@ -38,23 +38,23 @@ test('descendant data must be assignable to ancestor data', () => {
 
   const usersTag = tag<User | UserImage | UserDetails>()
 
-  expectTypeOf(usersTag.add<User, 'user'>('user')).toEqualTypeOf<QueryTag<User>>()
-  expectTypeOf(usersTag.add<UserImage, 'image'>('image')).toEqualTypeOf<QueryTag<UserImage>>()
-  expectTypeOf(usersTag.add<UserDetails, 'details'>('details')).toEqualTypeOf<QueryTag<UserDetails>>()
+  expectTypeOf(usersTag.add<User>()).toEqualTypeOf<QueryTag<User>>()
+  expectTypeOf(usersTag.add<UserImage>()).toEqualTypeOf<QueryTag<UserImage>>()
+  expectTypeOf(usersTag.add<UserDetails>()).toEqualTypeOf<QueryTag<UserDetails>>()
 })
 
 test('descendant with data not assignable to ancestor is rejected', () => {
   const userTag = tag<{ id: number }>()
 
   // @ts-expect-error - { unrelated: true } is not assignable to { id: number }
-  userTag.add<{ unrelated: true }, 'bad'>('bad')
+  userTag.add<{ unrelated: true }>()
 })
 
 test('untyped root places no constraint on descendants', () => {
   const baseTag = tag()
 
-  expectTypeOf(baseTag.add<number, 'count'>('count')).toEqualTypeOf<QueryTag<number>>()
-  expectTypeOf(baseTag.add<{ anything: true }, 'whatever'>('whatever')).toEqualTypeOf<QueryTag<{ anything: true }>>()
+  expectTypeOf(baseTag.add<number>()).toEqualTypeOf<QueryTag<number>>()
+  expectTypeOf(baseTag.add<{ anything: true }>()).toEqualTypeOf<QueryTag<{ anything: true }>>()
 })
 
 test('query from query function with tags callback is called with the query data', () => {

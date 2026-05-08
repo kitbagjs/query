@@ -28,8 +28,7 @@ export type QueryTag<TData = unknown> = {
    * to this tag's data type, so the parent acts as a supertype of all
    * descendants. An untyped root (`tag()`) places no constraint on descendants.
    */
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-  add: <TChildData extends [TData] extends [never] ? unknown : TData, const TKind extends string>(name: TKind) => QueryTag<TChildData>,
+  add: <TChildData extends [TData] extends [never] ? unknown : TData>() => QueryTag<TChildData>,
 }
 
 export type QueryTagType<TQueryTag extends QueryTag> = TQueryTag extends QueryTag<infer TData>

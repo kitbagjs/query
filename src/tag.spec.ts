@@ -10,7 +10,7 @@ test('tags are unique', () => {
 
 test('tag.add returns a new descendant tag', () => {
   const baseTag = tag()
-  const userTag = baseTag.add<number, 'count'>('count')
+  const userTag = baseTag.add<number>()
 
   expect(userTag).toBeDefined()
   expect(userTag.key).not.toBe(baseTag.key)
@@ -18,7 +18,7 @@ test('tag.add returns a new descendant tag', () => {
 
 test('descendants carry their ancestor keys', () => {
   const baseTag = tag()
-  const userTag = baseTag.add<number, 'count'>('count')
+  const userTag = baseTag.add<number>()
 
   expect(userTag.keys).toContain(baseTag.key)
   expect(userTag.keys).toContain(userTag.key)
@@ -26,8 +26,8 @@ test('descendants carry their ancestor keys', () => {
 
 test('chained .add calls accumulate ancestor keys', () => {
   const baseTag = tag()
-  const userTag = baseTag.add<{ id: number }, 'user'>('user')
-  const deepTag = userTag.add<{ id: number, label: string }, 'label'>('label')
+  const userTag = baseTag.add<{ id: number }>()
+  const deepTag = userTag.add<{ id: number, label: string }>()
 
   expect(deepTag.keys).toContain(baseTag.key)
   expect(deepTag.keys).toContain(userTag.key)
