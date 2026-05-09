@@ -8,28 +8,32 @@ test('tags are unique', () => {
   expect(tag1).not.toBe(tag2)
 })
 
-test('tag.add returns a new descendant tag', () => {
-  const baseTag = tag()
-  const userTag = baseTag.add<number>()
+test('tag with kinds exposes each kind as a property tag', () => {
+  const usersTag = tag<{ user: { id: number }, potato: { genus: string } }>(['user', 'potato'])
 
-  expect(userTag).toBeDefined()
-  expect(userTag.key).not.toBe(baseTag.key)
+  expect(usersTag.user).toBeDefined()
+  expect(usersTag.potato).toBeDefined()
+  expect(usersTag.user.key).not.toBe(usersTag.potato.key)
+  expect(usersTag.user.key).not.toBe(usersTag.key)
 })
 
-test('descendants carry their ancestor keys', () => {
-  const baseTag = tag()
-  const userTag = baseTag.add<number>()
+test('kind tags carry the parent key as an ancestor', () => {
+  const usersTag = tag<{ user: { id: number } }>(['user'])
 
-  expect(userTag.keys).toContain(baseTag.key)
-  expect(userTag.keys).toContain(userTag.key)
+  expect(usersTag.user.keys).toContain(usersTag.key)
+  expect(usersTag.user.keys).toContain(usersTag.user.key)
 })
 
-test('chained .add calls accumulate ancestor keys', () => {
+test('tag without kinds has empty kinds array', () => {
   const baseTag = tag()
-  const userTag = baseTag.add<{ id: number }>()
-  const deepTag = userTag.add<{ id: number, label: string }>()
+  const numberTag = tag<number>()
 
-  expect(deepTag.keys).toContain(baseTag.key)
-  expect(deepTag.keys).toContain(userTag.key)
-  expect(deepTag.keys).toContain(deepTag.key)
+  expect(baseTag.kinds).toEqual([])
+  expect(numberTag.kinds).toEqual([])
+})
+
+test('tag with kinds reports its kind names', () => {
+  const usersTag = tag<{ user: { id: number }, potato: { genus: string } }>(['user', 'potato'])
+
+  expect(usersTag.kinds).toEqual(['user', 'potato'])
 })

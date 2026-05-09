@@ -1,7 +1,7 @@
 import { MutationFunction, MutationComposition, DefineMutation } from './mutation'
 import { Query, QueryOptions, QueryAction, QueryActionArgs, QueryData } from './query'
-import { QueryTag, QueryTagType } from './tags'
-import { DefaultValue } from './utilities'
+import { QueryTag, QueryTagKindsOf, QueryTagType } from './tags'
+import { DefaultValue, UnionToIntersection } from './utilities'
 
 export type QueryClient = {
   query: QueryFunction,
@@ -62,8 +62,15 @@ export type DefinedQuery<
 
 export type QueryDataSetter<T = unknown> = (data: T) => T
 
+type KindHandler<TKinds> = { [K in keyof TKinds]: QueryDataSetter<TKinds[K]> }
+
+export type SetQueryDataValue<TQueryTag extends QueryTag> =
+  keyof QueryTagKindsOf<TQueryTag> extends never
+    ? QueryDataSetter<QueryTagType<TQueryTag>>
+    : QueryDataSetter<UnionToIntersection<QueryTagType<TQueryTag>>> | KindHandler<QueryTagKindsOf<TQueryTag>>
+
 export type SetQueryData = {
-  <TQueryTag extends QueryTag>(tag: TQueryTag, setter: QueryDataSetter<QueryTagType<TQueryTag>>): void,
+  <TQueryTag extends QueryTag>(tag: TQueryTag, setter: SetQueryDataValue<TQueryTag>): void,
   <TAction extends QueryAction>(action: TAction, setter: QueryDataSetter<QueryData<TAction>>): void,
   <TAction extends QueryAction>(action: TAction, parameters: Parameters<TAction>, setter: QueryDataSetter<QueryData<TAction>>): void,
 }

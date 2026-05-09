@@ -26,7 +26,7 @@ describe('query', () => {
     test('tags', async () => {
       const action = () => 'response'
       const { query, setQueryData } = createQueryClient()
-      const stringTag = tag().add<string>()
+      const stringTag = tag<string>()
       const untypedTag = tag()
 
       query(action, [], { tags: [stringTag, untypedTag] })
@@ -127,39 +127,54 @@ describe('setQueryData', () => {
     })
   })
 
-  test('descendant tag has its own data type', () => {
+  test('can type with single kind as well', () => {
     const { setQueryData } = createQueryClient()
-    const sharedTag = tag()
-    const userTag = sharedTag.add<{ id: number }>()
+    const usersTag = tag<{ user: { id: number } }>(['user'])
 
-    setQueryData(userTag, (data) => {
+    setQueryData(usersTag.user, (data) => {
       expectTypeOf(data).toEqualTypeOf<{ id: number }>()
       return data
-    })
-
-    // ancestor tag is still locked at the type level
-    // @ts-expect-error - sharedTag has data: never
-    setQueryData(sharedTag, (data) => {
-      expectTypeOf(data).toEqualTypeOf<never>()
-
-      return 'could be corrupting'
     })
   })
 
-  test('descendants nest arbitrarily deep', () => {
+  test('object handler on parent typed per kind', () => {
     const { setQueryData } = createQueryClient()
-    const sharedTag = tag()
-    const userTag = sharedTag.add<{ id: number }>()
-    const userAvatarTag = userTag.add<{ id: number, url: string }>()
 
-    setQueryData(userAvatarTag, (data) => {
-      expectTypeOf(data).toEqualTypeOf<{ id: number, url: string }>()
-      return data
+    type User = { id: string, name: string, email: string }
+    type Potato = { genus: string, species: string }
+
+    const genericTag = tag<{ user: User, potato: Potato }>(['user', 'potato'])
+
+    setQueryData(genericTag, {
+      user: (data) => {
+        expectTypeOf(data).toEqualTypeOf<User>()
+        return data
+      },
+      potato: (data) => {
+        expectTypeOf(data).toEqualTypeOf<Potato>()
+        return data
+      },
     })
 
-    setQueryData(userTag, (data) => {
-      expectTypeOf(data).toEqualTypeOf<{ id: number }>()
+    // function form on parent is locked when kinds are disjoint:
+    // setter takes UnionToIntersection<User | Potato> = never
+    // @ts-expect-error - return type cannot satisfy never
+    setQueryData(genericTag, () => ({ id: '123', name: 'John', email: 'a@b' }))
+
+    // function form on a specific kind works
+    setQueryData(genericTag.user, (data) => {
+      expectTypeOf(data).toEqualTypeOf<User>()
       return data
+    })
+  })
+
+  test('object handler must cover every declared kind', () => {
+    const { setQueryData } = createQueryClient()
+    const genericTag = tag<{ a: number, b: string }>(['a', 'b'])
+
+    // @ts-expect-error - missing 'b' kind in handler
+    setQueryData(genericTag, {
+      a: (data) => data,
     })
   })
 
@@ -260,14 +275,12 @@ describe('refreshQueryData', () => {
   test('tags', () => {
     const { refreshQueryData } = createQueryClient()
 
-    const sharedTag = tag()
-    const numberTag = sharedTag.add<number>()
-    const stringTag = sharedTag.add<string>()
+    const sharedTag = tag<{ count: number, name: string }>(['count', 'name'])
     const action = (param: number) => param
 
     refreshQueryData(sharedTag)
-    refreshQueryData(numberTag)
-    refreshQueryData(stringTag)
+    refreshQueryData(sharedTag.count)
+    refreshQueryData(sharedTag.name)
     refreshQueryData(action)
     refreshQueryData(action, [2])
 

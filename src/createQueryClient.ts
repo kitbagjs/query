@@ -60,7 +60,7 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
 
   const setQueryData: SetQueryData = (
     param1: QueryTag | QueryAction,
-    param2: Parameters<QueryAction> | QueryDataSetter,
+    param2: Parameters<QueryAction> | QueryDataSetter | Record<string, QueryDataSetter>,
     param3?: QueryDataSetter,
   ): void => {
     const setDataForGroups = (groups: QueryGroup[], setter: QueryDataSetter): void => {
@@ -74,10 +74,23 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
 
     if (isQueryTag(param1)) {
       const queryTag = param1
-      const setter = param2 as QueryDataSetter
-      const groups = getQueryGroups(queryTag)
 
-      setDataForGroups(groups, setter)
+      if (typeof param2 === 'function') {
+        const setter = param2
+        const groups = getQueryGroups(queryTag)
+
+        setDataForGroups(groups, setter)
+      } else {
+        const handler = param2 as unknown as Record<string, QueryDataSetter>
+
+        for (const kind of queryTag.kinds) {
+          const childTag = (queryTag as unknown as Record<string, QueryTag>)[kind]
+          const setter = handler[kind]
+          const groups = getQueryGroups(childTag)
+
+          setDataForGroups(groups, setter)
+        }
+      }
 
       return
     }

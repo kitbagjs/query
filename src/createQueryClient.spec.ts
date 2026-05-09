@@ -569,24 +569,43 @@ describe('setQueryData', () => {
     expect(numberQuery.data).toBe(2)
   })
 
-  test('descendant tag setter only matches that descendant\'s queries', async () => {
+  test('kind tag setter only matches that kind\'s queries', async () => {
     const { setQueryData, query } = createQueryClient()
-    const sharedTag = tag()
-    const stringTag = sharedTag.add<string>()
-    const numberTag = sharedTag.add<number>()
+    const sharedTag = tag<{ name: string, count: number }>(['name', 'count'])
 
     const stringAction = () => 'foo'
     const numberAction = () => 1
 
-    const stringQuery = query(stringAction, [], { tags: [stringTag] })
-    const numberQuery = query(numberAction, [], { tags: [numberTag] })
+    const stringQuery = query(stringAction, [], { tags: [sharedTag.name] })
+    const numberQuery = query(numberAction, [], { tags: [sharedTag.count] })
 
     await vi.runOnlyPendingTimersAsync()
 
-    setQueryData(stringTag, (data) => data + '-bar')
+    setQueryData(sharedTag.name, (data) => data + '-bar')
 
     expect(stringQuery.data).toBe('foo-bar')
     expect(numberQuery.data).toBe(1)
+  })
+
+  test('object handler on parent dispatches to each kind', async () => {
+    const { setQueryData, query } = createQueryClient()
+    const sharedTag = tag<{ name: string, count: number }>(['name', 'count'])
+
+    const stringAction = () => 'foo'
+    const numberAction = () => 1
+
+    const stringQuery = query(stringAction, [], { tags: [sharedTag.name] })
+    const numberQuery = query(numberAction, [], { tags: [sharedTag.count] })
+
+    await vi.runOnlyPendingTimersAsync()
+
+    setQueryData(sharedTag, {
+      name: (data) => data + '-bar',
+      count: (data) => data + 10,
+    })
+
+    expect(stringQuery.data).toBe('foo-bar')
+    expect(numberQuery.data).toBe(11)
   })
 
   test('action', async () => {

@@ -3,7 +3,12 @@ import { TagKey } from '@/getTagKey'
 export const unset = Symbol('unset')
 export type Unset = typeof unset
 
-export type QueryTag<TData = unknown> = {
+export type QueryTagKinds = Record<string, unknown>
+
+export type QueryTag<
+  TData = unknown,
+  TKinds extends QueryTagKinds = Record<never, never>
+> = {
   /**
    * @private
    * @internal
@@ -22,21 +27,25 @@ export type QueryTag<TData = unknown> = {
    */
   keys: readonly TagKey[],
   /**
-   * Create a typed descendant of this tag. The descendant inherits this
-   * tag's identity, so any operation against this tag also matches queries
-   * tagged with the descendant. The descendant's data type must be assignable
-   * to this tag's data type, so the parent acts as a supertype of all
-   * descendants. An untyped root (`tag()`) places no constraint on descendants.
+   * Names of the descendant kinds declared on this tag, in declaration order.
+   * Empty for leaf tags. Used at runtime to dispatch object-form
+   * setQueryData handlers to the correct descendant tag.
    */
-  add: <TChildData extends [TData] extends [never] ? unknown : TData>() => QueryTag<TChildData>,
+  kinds: readonly string[],
+} & {
+  [K in keyof TKinds]: QueryTag<TKinds[K]>
 }
 
 export type QueryTagType<TQueryTag extends QueryTag> = TQueryTag extends QueryTag<infer TData>
   ? TData
   : never
 
+export type QueryTagKindsOf<TQueryTag extends QueryTag> = TQueryTag extends QueryTag<any, infer TKinds>
+  ? TKinds
+  : never
+
 export function isQueryTag(tag: unknown): tag is QueryTag {
-  return typeof tag === 'object' && tag !== null && 'data' in tag && 'key' in tag && 'keys' in tag
+  return typeof tag === 'object' && tag !== null && 'data' in tag && 'key' in tag && 'keys' in tag && 'kinds' in tag
 }
 
 export function isQueryTags(tags: unknown): tags is QueryTag[] {
