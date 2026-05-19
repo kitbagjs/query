@@ -43,7 +43,7 @@
     "vue": "^3.5.31"
   },
   "devDependencies": {
-    "@kitbag/eslint-config": "^1.0.2",
+    "@kitbag/eslint-config": "^1.0.6",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vue/test-utils": "^2.4.6",
     "eslint": "^9.39.4",
