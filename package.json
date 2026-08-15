@@ -43,10 +43,10 @@
     "vue": "^3.5.31"
   },
   "devDependencies": {
-    "@kitbag/eslint-config": "^1.0.2",
+    "@kitbag/eslint-config": "^1.0.6",
     "@vitejs/plugin-vue": "^6.0.5",
     "@vue/test-utils": "^2.4.9",
-    "eslint": "^9.39.4",
+    "eslint": "^9.39.5",
     "typescript": "^6.0.2",
     "vite": "^8.0.3",
     "vite-plugin-dts": "^4.5.4",
