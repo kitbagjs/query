@@ -13,7 +13,7 @@ import {
 } from './types/client'
 import { createQueryGroups } from './createQueryGroups'
 import { createUseQuery } from './createUseQuery'
-import { isQueryTag, isQueryTags, QueryTag } from './types/tags'
+import { isQueryTag, QueryTag } from './types/tags'
 import { isArray } from './utilities/arrays'
 import { assertNever } from './utilities/assert'
 import { QueryGroup } from './createQueryGroup'
@@ -59,8 +59,8 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
   }
 
   const setQueryData: SetQueryData = (
-    param1: QueryTag | QueryTag[] | QueryAction,
-    param2: Parameters<QueryAction> | QueryDataSetter,
+    param1: QueryTag | QueryAction,
+    param2: Parameters<QueryAction> | QueryDataSetter | Record<string, QueryDataSetter>,
     param3?: QueryDataSetter,
   ): void => {
     const setDataForGroups = (groups: QueryGroup[], setter: QueryDataSetter): void => {
@@ -72,12 +72,25 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
       })
     }
 
-    if (isQueryTag(param1) || isQueryTags(param1)) {
-      const tags = param1
-      const setter = param2 as QueryDataSetter
-      const groups = getQueryGroups(tags)
+    if (isQueryTag(param1)) {
+      const queryTag = param1
 
-      setDataForGroups(groups, setter)
+      if (typeof param2 === 'function') {
+        const setter = param2
+        const groups = getQueryGroups(queryTag)
+
+        setDataForGroups(groups, setter)
+      } else {
+        const handler = param2 as unknown as Record<string, QueryDataSetter>
+
+        for (const kind of queryTag.kinds) {
+          const childTag = (queryTag as unknown as Record<string, QueryTag>)[kind]
+          const setter = handler[kind]
+          const groups = getQueryGroups(childTag)
+
+          setDataForGroups(groups, setter)
+        }
+      }
 
       return
     }
@@ -107,12 +120,12 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
   }
 
   const refreshQueryData: RefreshQueryData = (
-    param1: QueryTag | QueryTag[] | QueryAction,
+    param1: QueryTag | QueryAction,
     param2?: Parameters<QueryAction>,
   ): void => {
-    if (isQueryTag(param1) || isQueryTags(param1)) {
-      const tags = param1
-      const groups = getQueryGroups(tags)
+    if (isQueryTag(param1)) {
+      const queryTag = param1
+      const groups = getQueryGroups(queryTag)
 
       groups.forEach((group) => {
         group.execute()
@@ -133,7 +146,7 @@ export function createQueryClient(options?: ClientOptions): QueryClient {
       return
     }
 
-    assertNever(param1, 'Invalid arguments given to setQueryData')
+    assertNever(param1, 'Invalid arguments given to refreshQueryData')
   }
 
   const mutate: MutationFunction = (action, parameters, options) => {
