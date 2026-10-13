@@ -8,19 +8,32 @@ test('tags are unique', () => {
   expect(tag1).not.toBe(tag2)
 })
 
-test('tag factories are unique', () => {
-  const factory1 = tag((string: string) => string)
-  const factory2 = tag((string: string) => string)
-  const value1 = factory1('foo')
-  const value2 = factory2('foo')
+test('tag with kinds exposes each kind as a property tag', () => {
+  const usersTag = tag<{ user: { id: number }, potato: { genus: string } }>(['user', 'potato'])
 
-  expect(value1).not.toBe(value2)
+  expect(usersTag.user).toBeDefined()
+  expect(usersTag.potato).toBeDefined()
+  expect(usersTag.user.key).not.toBe(usersTag.potato.key)
+  expect(usersTag.user.key).not.toBe(usersTag.key)
 })
 
-test('tag factory returns the same key when given the same value', () => {
-  const factory = tag((string: string) => string)
-  const value1 = factory('foo')
-  const value2 = factory('foo')
+test('kind tags carry the parent key as an ancestor', () => {
+  const usersTag = tag<{ user: { id: number } }>(['user'])
 
-  expect(value1.key).toBe(value2.key)
+  expect(usersTag.user.keys).toContain(usersTag.key)
+  expect(usersTag.user.keys).toContain(usersTag.user.key)
+})
+
+test('tag without kinds has empty kinds array', () => {
+  const baseTag = tag()
+  const numberTag = tag<number>()
+
+  expect(baseTag.kinds).toEqual([])
+  expect(numberTag.kinds).toEqual([])
+})
+
+test('tag with kinds reports its kind names', () => {
+  const usersTag = tag<{ user: { id: number }, potato: { genus: string } }>(['user', 'potato'])
+
+  expect(usersTag.kinds).toEqual(['user', 'potato'])
 })

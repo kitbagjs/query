@@ -1,38 +1,38 @@
 import { expectTypeOf, test, vi } from 'vitest'
-import { QueryTag, QueryTagFactory, Unset } from '@/types/tags'
+import { QueryTag } from '@/types/tags'
 import { createQueryClient } from './createQueryClient'
 import { tag } from './tag'
 
-test('tag function returns a tag when no callback is provided', () => {
+test('tag function returns a QueryTag<never>', () => {
   const value = tag()
 
   expectTypeOf(value).toExtend<QueryTag>()
+  expectTypeOf(value).toEqualTypeOf<QueryTag<never>>()
 })
 
-test('tag function returns a tag factory when a callback is provided', () => {
-  const factory = tag((string: string) => string)
+test('tag<T>() returns a typed QueryTag<T>', () => {
+  const value = tag<number>()
 
-  expectTypeOf(factory).toExtend<QueryTagFactory<unknown, string>>()
-
-  const value = factory('foo')
-
-  expectTypeOf(value).toEqualTypeOf<QueryTag<Unset>>()
+  expectTypeOf(value).toEqualTypeOf<QueryTag<number>>()
 })
 
-test('tag function returns a typed tag when data generic is provided', () => {
-  const value = tag<string>()
+test('tag with kinds exposes each kind as a typed descendant tag', () => {
+  type User = { id: number }
+  type Potato = { genus: string }
 
-  expectTypeOf(value).toEqualTypeOf<QueryTag<string>>()
+  const usersTag = tag<{ user: User, potato: Potato }>(['user', 'potato'])
+
+  expectTypeOf(usersTag.user).toEqualTypeOf<QueryTag<User>>()
+  expectTypeOf(usersTag.potato).toEqualTypeOf<QueryTag<Potato>>()
 })
 
-test('tag factory returns a typed tag when data generic is provided', () => {
-  const factory = tag<string, string>((value: string) => value)
+test('parent of kinds has union data type', () => {
+  type User = { id: number }
+  type Potato = { genus: string }
 
-  expectTypeOf(factory).toEqualTypeOf<QueryTagFactory<string, string>>()
+  const usersTag = tag<{ user: User, potato: Potato }>(['user', 'potato'])
 
-  const value = factory('foo')
-
-  expectTypeOf(value).toEqualTypeOf<QueryTag<string>>()
+  expectTypeOf(usersTag.data).toEqualTypeOf<User | Potato>()
 })
 
 test('query from query function with tags callback is called with the query data', () => {

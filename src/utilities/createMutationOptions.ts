@@ -26,7 +26,10 @@ export function createMutationOptions({ options, setQueryData, refreshQueryData 
           payload: context.payload,
         } satisfies MutationTagsBeforeContext)
 
-        setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataBefore(queryData, context))
+        const setter = (queryData: QueryData): QueryData => setQueryDataBefore(queryData, context)
+        for (const tag of tags) {
+          setQueryData(tag, setter)
+        }
       }
 
       onExecute?.(context)
@@ -39,11 +42,16 @@ export function createMutationOptions({ options, setQueryData, refreshQueryData 
       } satisfies MutationTagsAfterContext)
 
       if (options?.refreshQueryData ?? true) {
-        refreshQueryData(tags)
+        for (const tag of tags) {
+          refreshQueryData(tag)
+        }
       }
 
       if (setQueryDataAfter) {
-        setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context))
+        const setter = (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context)
+        for (const tag of tags) {
+          setQueryData(tag, setter)
+        }
       }
 
       onSuccess?.(context)
