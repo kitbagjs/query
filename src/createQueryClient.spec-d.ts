@@ -25,22 +25,26 @@ describe('query', () => {
 
     test('tags', async () => {
       const action = () => 'response'
-      const { query } = createQueryClient()
-      const numberTag = tag<number>()
+      const { query, setQueryData } = createQueryClient()
       const stringTag = tag<string>()
       const untypedTag = tag()
-
-      // @ts-expect-error - number tag not assignable to string action
-      query(action, [], { tags: [numberTag, stringTag] })
-
-      // @ts-expect-error - number tag not assignable to string action
-      query(action, [], { tags: () => [numberTag, stringTag] })
 
       query(action, [], { tags: [stringTag, untypedTag] })
       query(action, [], { tags: () => [stringTag, untypedTag] })
 
       query(action, [], { tags: [untypedTag] })
       query(action, [], { tags: () => [untypedTag] })
+
+      setQueryData(stringTag, (data) => {
+        expectTypeOf(data).toEqualTypeOf<string>()
+        return data + 'bar'
+      })
+
+      // @ts-expect-error - sharedTag has data: never, can't return anything useful
+      setQueryData(untypedTag, (data) => {
+        expectTypeOf(data).toEqualTypeOf<never>()
+        return 'could be corrupting'
+      })
     })
   })
 })
@@ -99,59 +103,78 @@ describe('defineQuery', () => {
 })
 
 describe('setQueryData', () => {
-  test('tags', async () => {
+  test('naked tag is not setQueryData-able (data: never)', () => {
+    const { setQueryData } = createQueryClient()
+    const myTag = tag()
+
+    // @ts-expect-error - data: never, return must be never (effectively impossible)
+    setQueryData(myTag, () => 'anything')
+  })
+
+  test('typed tag passes data through with its declared type', () => {
     const { setQueryData } = createQueryClient()
     const numberTag = tag<number>()
-    const stringTag = tag<string>()
-    const untypedTag = tag()
-
-    setQueryData(untypedTag, (data) => {
-      expectTypeOf(data).toEqualTypeOf<unknown>()
-      return 'foo'
-    })
 
     setQueryData(numberTag, (data) => {
       expectTypeOf(data).toEqualTypeOf<number>()
-      return 2
+      return data + 1
     })
 
-    setQueryData(stringTag, (data) => {
-      expectTypeOf(data).toEqualTypeOf<string>()
-      return 'new string'
-    })
-
-    setQueryData([untypedTag], (data) => {
-      expectTypeOf(data).toEqualTypeOf<unknown>()
-      return 'foo'
-    })
-
-    setQueryData([numberTag], (data) => {
-      expectTypeOf(data).toEqualTypeOf<number>()
-      return 2
-    })
-
-    // this is kinda interesting, no matter the data the return type is the union :thinking:
-    // so there's not really a type safe way to update multiple queries at once
-    setQueryData([numberTag, stringTag], (data) => {
-      expectTypeOf(data).toEqualTypeOf<number | string>()
-      return 'foo'
-    })
-
-    setQueryData([untypedTag, stringTag, numberTag], (data) => {
-      expectTypeOf(data).toEqualTypeOf<unknown>()
-      return 'foo'
-    })
-
-    // @ts-expect-error - number tag not assignable to string action
+    // @ts-expect-error - returning wrong type
     setQueryData(numberTag, (data) => {
       expectTypeOf(data).toEqualTypeOf<number>()
-      return 'string'
+      return 'wrong type'
+    })
+  })
+
+  test('can type with single kind as well', () => {
+    const { setQueryData } = createQueryClient()
+    const usersTag = tag<{ user: { id: number } }>(['user'])
+
+    setQueryData(usersTag.user, (data) => {
+      expectTypeOf(data).toEqualTypeOf<{ id: number }>()
+      return data
+    })
+  })
+
+  test('object handler on parent typed per kind', () => {
+    const { setQueryData } = createQueryClient()
+
+    type User = { id: string, name: string, email: string }
+    type Potato = { genus: string, species: string }
+
+    const genericTag = tag<{ user: User, potato: Potato }>(['user', 'potato'])
+
+    setQueryData(genericTag, {
+      user: (data) => {
+        expectTypeOf(data).toEqualTypeOf<User>()
+        return data
+      },
+      potato: (data) => {
+        expectTypeOf(data).toEqualTypeOf<Potato>()
+        return data
+      },
     })
 
-    // @ts-expect-error - number tag not assignable to string action
-    setQueryData([numberTag, stringTag], (data) => {
-      expectTypeOf(data).toEqualTypeOf<number | string>()
-      return []
+    // function form on parent is locked when kinds are disjoint:
+    // setter takes UnionToIntersection<User | Potato> = never
+    // @ts-expect-error - return type cannot satisfy never
+    setQueryData(genericTag, () => ({ id: '123', name: 'John', email: 'a@b' }))
+
+    // function form on a specific kind works
+    setQueryData(genericTag.user, (data) => {
+      expectTypeOf(data).toEqualTypeOf<User>()
+      return data
+    })
+  })
+
+  test('object handler must cover every declared kind', () => {
+    const { setQueryData } = createQueryClient()
+    const genericTag = tag<{ a: number, b: string }>(['a', 'b'])
+
+    // @ts-expect-error - missing 'b' kind in handler
+    setQueryData(genericTag, {
+      a: (data) => data,
     })
   })
 
@@ -252,12 +275,12 @@ describe('refreshQueryData', () => {
   test('tags', () => {
     const { refreshQueryData } = createQueryClient()
 
-    const numberTag = tag<number>()
-    const stringTag = tag<string>()
+    const sharedTag = tag<{ count: number, name: string }>(['count', 'name'])
     const action = (param: number) => param
 
-    refreshQueryData(numberTag)
-    refreshQueryData([numberTag, stringTag])
+    refreshQueryData(sharedTag)
+    refreshQueryData(sharedTag.count)
+    refreshQueryData(sharedTag.name)
     refreshQueryData(action)
     refreshQueryData(action, [2])
 
