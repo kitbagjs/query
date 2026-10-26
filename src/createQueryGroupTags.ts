@@ -2,52 +2,55 @@ import { QueryTag } from './types/tags'
 import { TagKey } from './getTagKey'
 
 export function createQueryGroupTags() {
-  const tags = new Map<TagKey, Set<number>>()
-  const queries = new Map<number, Set<QueryTag>>()
+  const tagKeyToQueryIds = new Map<TagKey, Set<number>>()
+  const queryIdToTags = new Map<number, Set<QueryTag>>()
 
   function clear(): void {
-    tags.clear()
-    queries.clear()
+    tagKeyToQueryIds.clear()
+    queryIdToTags.clear()
   }
 
   function has(tag: QueryTag): boolean {
-    return tags.has(tag.key)
+    return tagKeyToQueryIds.has(tag.key)
   }
 
-  function getQueryIdsByTag(tag: QueryTag): Set<number> {
-    if (!tags.has(tag.key)) {
-      tags.set(tag.key, new Set())
+  function getQueryIdsForKey(key: TagKey): Set<number> {
+    if (!tagKeyToQueryIds.has(key)) {
+      tagKeyToQueryIds.set(key, new Set())
     }
 
-    return tags.get(tag.key)!
+    return tagKeyToQueryIds.get(key)!
   }
 
   function getTagsByQueryId(queryId: number): Set<QueryTag> {
-    if (!queries.has(queryId)) {
-      queries.set(queryId, new Set())
+    if (!queryIdToTags.has(queryId)) {
+      queryIdToTags.set(queryId, new Set())
     }
 
-    return queries.get(queryId)!
+    return queryIdToTags.get(queryId)!
   }
 
   function addTag(tag: QueryTag, queryId: number): void {
-    getQueryIdsByTag(tag).add(queryId)
+    for (const key of tag.keys) {
+      getQueryIdsForKey(key).add(queryId)
+    }
+
     getTagsByQueryId(queryId).add(tag)
   }
 
   function removeTag(tag: QueryTag, queryId: number): void {
-    const queryTags = getQueryIdsByTag(tag)
-    const tagQueries = getTagsByQueryId(queryId)
-
-    queryTags.delete(queryId)
-    tagQueries.delete(tag)
-
-    if (queryTags.size === 0) {
-      tags.delete(tag.key)
+    for (const key of tag.keys) {
+      const queryIds = getQueryIdsForKey(key)
+      queryIds.delete(queryId)
+      if (queryIds.size === 0) {
+        tagKeyToQueryIds.delete(key)
+      }
     }
 
-    if (tagQueries.size === 0) {
-      queries.delete(queryId)
+    const tagSet = getTagsByQueryId(queryId)
+    tagSet.delete(tag)
+    if (tagSet.size === 0) {
+      queryIdToTags.delete(queryId)
     }
   }
 
