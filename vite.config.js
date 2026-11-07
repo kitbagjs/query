@@ -35,7 +35,7 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
-      rollupTypes: true,
+      bundleTypes: true,
     }),
   ],
   esbuild: {
