@@ -1,24 +1,31 @@
 import { createSequence } from './createSequence'
-import { getTagKey } from './getTagKey'
-import { QueryTagFactory, QueryTagCallback, QueryTag, Unset, unset } from './types/tags'
+import { getTagKey, TagKey } from './getTagKey'
+import { QueryTag, QueryTagKinds, unset } from './types/tags'
 
 const createTagId = createSequence()
 
-function createQueryTag(id: number, value: unknown): QueryTag {
-  return {
+function createTag(parentKeys: readonly TagKey[], kindNames: readonly string[]): QueryTag {
+  const id = createTagId()
+  const ownKey = getTagKey(id, undefined)
+  const keys = Object.freeze([...parentKeys, ownKey])
+
+  const queryTag: Record<string, unknown> = {
     data: unset,
-    key: getTagKey(id, value),
+    key: ownKey,
+    keys,
+    kinds: Object.freeze([...kindNames]),
   }
+
+  for (const kindName of kindNames) {
+    queryTag[kindName] = createTag(keys, [])
+  }
+
+  return queryTag as unknown as QueryTag
 }
 
-export function tag<const TData = Unset>(): QueryTag<TData>
-export function tag<const TData = Unset, TInput = unknown>(callback: QueryTagCallback<TInput>): QueryTagFactory<TData, TInput>
-export function tag(callback?: QueryTagCallback): QueryTag | QueryTagFactory {
-  const id = createTagId()
-
-  if (callback) {
-    return (value) => createQueryTag(id, callback(value))
-  }
-
-  return createQueryTag(id, undefined)
+export function tag(): QueryTag<never>
+export function tag<TData>(): QueryTag<TData>
+export function tag<TKinds extends QueryTagKinds>(kinds: (keyof TKinds & string)[]): QueryTag<TKinds[keyof TKinds], TKinds>
+export function tag(kinds?: readonly string[]) {
+  return createTag([], kinds ?? [])
 }
