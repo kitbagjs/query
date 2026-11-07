@@ -16,6 +16,8 @@ updates:
           - "vite-plugin-dts"
           - "@vitejs/plugin-vue"
           - "typescript"
+          - "@typescript/native"
+          - "@microsoft/api-extractor"
           - "vue-tsc"
       testing:
         patterns:

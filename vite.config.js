@@ -35,7 +35,12 @@ export default defineConfig({
   plugins: [
     vue(),
     dts({
-      rollupTypes: true,
+      bundleTypes: {
+        // The `typescript` package is aliased to @typescript/typescript6, which
+        // re-exports the TS 6 API but ships no lib.*.d.ts files. Let API Extractor
+        // use its own bundled TypeScript instead of that folder.
+        invokeOptions: { typescriptCompilerFolder: undefined },
+      },
     }),
   ],
   esbuild: {
