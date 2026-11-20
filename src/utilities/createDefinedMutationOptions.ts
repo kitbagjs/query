@@ -47,14 +47,18 @@ export function createDefinedMutationOptions({
         const tags = getAllTags(options?.tags, undefined)
         const setter = (data: QueryData) => setQueryDataBefore(data, context)
 
-        setQueryData(tags, setter)
+        for (const tag of tags) {
+          setQueryData(tag, setter)
+        }
       }
 
       if (definedSetQueryDataBefore) {
         const tags = getAllTags(definedOptions?.tags, undefined)
         const setter = (data: QueryData) => definedSetQueryDataBefore(data, context)
 
-        setQueryData(tags, setter)
+        for (const tag of tags) {
+          setQueryData(tag, setter)
+        }
       }
 
       onExecute?.(context)
@@ -66,16 +70,26 @@ export function createDefinedMutationOptions({
       const definedTags = getAllTags(definedOptions?.tags, context.data)
 
       if (shouldRefreshQueryData) {
-        refreshQueryData(tags)
-        refreshQueryData(definedTags)
+        for (const tag of tags) {
+          refreshQueryData(tag)
+        }
+        for (const tag of definedTags) {
+          refreshQueryData(tag)
+        }
       }
 
       if (setQueryDataAfter) {
-        setQueryData(tags, (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context))
+        const setter = (queryData: QueryData): QueryData => setQueryDataAfter(queryData, context)
+        for (const tag of tags) {
+          setQueryData(tag, setter)
+        }
       }
 
       if (definedSetQueryDataAfter) {
-        setQueryData(definedTags, (queryData: QueryData): QueryData => definedSetQueryDataAfter(queryData, context))
+        const setter = (queryData: QueryData): QueryData => definedSetQueryDataAfter(queryData, context)
+        for (const tag of definedTags) {
+          setQueryData(tag, setter)
+        }
       }
 
       onSuccess?.(context)

@@ -244,31 +244,27 @@ describe('given group with tags', () => {
   test('can check if it has a tag', async () => {
     const group = createQueryGroup(vi.fn(), [])
     const tag1 = tag()
-    const tag2 = tag((value: string) => value)
+    const tag2 = tag<string>()
 
     expect(group.hasTag(tag1)).toBe(false)
 
     const query1 = group.createQuery({ tags: [tag1] })
-    const query2 = group.createQuery({ tags: [tag2('foo')] })
+    const query2 = group.createQuery({ tags: [tag2] })
 
-    // need executed to happen for tag factories
     await vi.advanceTimersByTimeAsync(0)
 
     expect(group.hasTag(tag1)).toBe(true)
-    expect(group.hasTag(tag2('foo'))).toBe(true)
-    expect(group.hasTag(tag2('bar'))).toBe(false)
+    expect(group.hasTag(tag2)).toBe(true)
 
     query1.dispose()
 
     expect(group.hasTag(tag1)).toBe(false)
-    expect(group.hasTag(tag2('foo'))).toBe(true)
-    expect(group.hasTag(tag2('bar'))).toBe(false)
+    expect(group.hasTag(tag2)).toBe(true)
 
     query2.dispose()
 
     expect(group.hasTag(tag1)).toBe(false)
-    expect(group.hasTag(tag2('foo'))).toBe(false)
-    expect(group.hasTag(tag2('bar'))).toBe(false)
+    expect(group.hasTag(tag2)).toBe(false)
   })
 })
 

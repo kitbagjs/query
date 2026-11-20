@@ -1,6 +1,6 @@
 import { RetryOptions } from '@/utilities/retry'
 import { Getter } from './getters'
-import { QueryTag, Unset } from '@/types/tags'
+import { QueryTag } from '@/types/tags'
 import { DefaultValue } from './utilities'
 
 export type QueryAction = (...args: any[]) => any
@@ -19,7 +19,7 @@ export type QueryActionArgs<
 
 export type QueryTags<
   TAction extends QueryAction = QueryAction
-> = QueryTag<QueryData<TAction> | Unset>[] | ((value: QueryData<TAction>) => QueryTag<QueryData<TAction> | Unset>[])
+> = QueryTag<QueryData<TAction>>[] | ((value: QueryData<TAction>) => QueryTag<QueryData<TAction>>[])
 
 export type QueryOptions<
   TAction extends QueryAction = QueryAction,

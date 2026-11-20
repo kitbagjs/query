@@ -4,18 +4,18 @@ import { tag } from './tag'
 
 const tagA = tag()
 const tagB = tag()
-const tagC = tag((input: string) => input)
+const tagC = tag<string>()
 
 test('given tags returns all tags', () => {
-  const tags = getAllTags([tagA, tagB, tagC('foo')], undefined)
+  const tags = getAllTags([tagA, tagB, tagC], undefined)
 
-  expect(tags).toEqual([tagA, tagB, tagC('foo')])
+  expect(tags).toEqual([tagA, tagB, tagC])
 })
 
 test('given a function returns all tags', () => {
-  const tags = getAllTags((input: string) => [tagA, tagB, tagC(input)], 'foo')
+  const tags = getAllTags(() => [tagA, tagB, tagC], 'foo')
 
-  expect(tags).toEqual([tagA, tagB, tagC('foo')])
+  expect(tags).toEqual([tagA, tagB, tagC])
 })
 
 test('given no tags returns an empty array', () => {
